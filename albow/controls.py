@@ -8,7 +8,6 @@ from .widget import Widget, overridable_property
 from .theme import ThemeProperty
 from .utils import blit_in_rect, frame_rect
 from . import resource
-import six
 
 #---------------------------------------------------------------------------
 
@@ -250,7 +249,7 @@ class Image(Widget):
     def __init__(self, image=None, rect=None, **kwds):
         Widget.__init__(self, rect, **kwds)
         if image:
-            if isinstance(image, six.string_types):
+            if isinstance(image, str):
                 image = resource.get_image(image)
             w, h = image.get_size()
             d = 2 * self.margin

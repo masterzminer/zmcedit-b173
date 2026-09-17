@@ -28,9 +28,6 @@ from cStringIO import StringIO
 import os
 from contextlib import closing
 from numpy import array, zeros, uint8, fromstring
-import six
-from six.moves import range
-from six.moves import map
 TAGfmt = ">b"
 
 class NBTFormatError(RuntimeError): pass
@@ -263,7 +260,7 @@ class TAG_String(TAG_Value):
 
     tag = 8
     fmt = ">h%ds"
-    dataType = lambda self, s: isinstance(s, six.text_type) and s.encode('utf-8') or s
+    dataType = lambda self, s: isinstance(s, str) and s.encode('utf-8') or s
 
     @classmethod
     def load_from(cls, data, data_cursor):
@@ -361,7 +358,7 @@ class TAG_Compound(TAG_Value, collections.MutableMapping):
         and unicodes in a TAG_String."""
         if isinstance(v, (list, tuple)):
             v = TAG_List(v)
-        elif isinstance(v, six.string_types):
+        elif isinstance(v, str):
             v = TAG_String(v)
 
         if not (v.__class__ in list(tag_classes.values())): raise TypeError("Invalid type %s for TAG_Compound" % v.__class__)
@@ -521,7 +518,7 @@ def load(filename="", buf=None):
     root TAG_Compound object. Argument can be a string containing a 
     filename or an array of integers containing TAG_Compound data. """
 
-    if filename and isinstance(filename, (str, six.text_type)):
+    if filename and isinstance(filename, (str, str)):
         return loadFile(filename)
     if isinstance(buf, str): buf = fromstring(buf, uint8)
     data = buf
@@ -540,6 +537,6 @@ def load(filename="", buf=None):
     return tag
 
 
-__all__ = [a.__name__ for a in six.itervalues(tag_classes)] + ["load", "loadFile", "gunzip"]
+__all__ = [a.__name__ for a in tag_classes.values()] + ["load", "loadFile", "gunzip"]
 
 

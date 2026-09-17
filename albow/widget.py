@@ -14,7 +14,6 @@ from . import theme
 from .theme import ThemeProperty, FontProperty
 
 from numpy import fromstring
-import six
 
 debug_rect = False
 debug_tab = True
@@ -101,7 +100,7 @@ class Widget(object):
         self.set(**kwds)
 
     def set(self, **kwds):
-        for name, value in six.iteritems(kwds):
+        for name, value in kwds.items():
             if not hasattr(self, name):
                 raise TypeError("Unexpected keyword argument '%s'" % name)
             setattr(self, name, value)
@@ -591,7 +590,7 @@ class Widget(object):
         if width is not None:
             font = self.font
             d = 2 * self.margin
-            if isinstance(width, six.string_types):
+            if isinstance(width, str):
                 width, height = font.size(width)
                 width += d + 2
             else:

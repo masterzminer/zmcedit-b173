@@ -27,7 +27,6 @@ from cStringIO import StringIO
 from datetime import datetime
 import directories
 from errorreporting import reportCrash, reportException
-import six.moves.http_client
 import mcplatform
 import numpy
 from OpenGL import GL, GLU
@@ -40,7 +39,6 @@ import release
 import sys
 import traceback
 import zipfile
-import six
 
 
 def alertException(func):
@@ -459,7 +457,7 @@ class HotkeyColumn(Widget):
 
         Widget.__init__(self)
         for (hotkey, title, action) in items:
-            if isinstance(title, (str, six.text_type)):
+            if isinstance(title, str):
                 button = Button(title, action=action)
             else:
                 button = ValueButton(ref=title, action=action, width=200)
@@ -649,7 +647,7 @@ def showProgress(progressText, progressIterator, cancel=False):
                 if amount is None:
                     self.progressBar.width = maxwidth
                     self.progressBar.bg_color = (255, 255, 25, 255)
-                elif isinstance(amount, six.string_types):
+                elif isinstance(amount, str):
                     self.statusText = amount
                 else:
                     self.progressAmount = amount

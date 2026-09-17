@@ -9,7 +9,6 @@ Requires mcInterface.py in the same folder.'''
 # Make a backup if you are experimenting!
 from __future__ import absolute_import
 from __future__ import print_function
-from six.moves import range
 LOADNAME = "LevelSave"
 
 # How many trees do you want to add?

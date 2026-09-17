@@ -40,9 +40,6 @@ from glbackground import *
 from albow.dialogs import Dialog
 from pymclevel.mclevelbase import exhaust
 from albow.root import Cancel
-import six
-from six.moves import map
-from six.moves import range
 
 
 class NudgeButton(GLBackground):
@@ -779,7 +776,7 @@ class EditorTool(object):
             return None, None
 
         cp = self.editor.mainViewport.cameraPosition
-        distances = dict((sum(map(lambda a, b: (b - a) ** 2, cp, point)), (face, point)) for face, point in six.iteritems(points))
+        distances = dict((sum(map(lambda a, b: (b - a) ** 2, cp, point)), (face, point)) for face, point in points.items())
         if not len(distances):
             return None, None
 
@@ -788,7 +785,7 @@ class EditorTool(object):
         #    minmax = max
         # else:
 
-        face, point = distances[min(six.iterkeys(distances))]
+        face, point = distances[min(distances.keys())]
 
         # if the point is near the edge of the face, and the edge is facing away,
         # return the away-facing face
@@ -816,7 +813,7 @@ class EditorTool(object):
 
             if dot(facenormal, cv) > 0 or cameraBehind:
                 # the face adjacent to the clicked edge faces away from the cam
-                return distances[max(six.iterkeys(distances))]
+                return distances[max(distances.keys())]
 
         return face, point
 

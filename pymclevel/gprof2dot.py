@@ -16,13 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+# TODO is this file even used?
+
 """Generate a dot graph from the output of several profilers."""
 
 from __future__ import absolute_import
-import six
-from six.moves import map
-from six.moves import range
-from six.moves import zip
 __author__ = "Jose Fonseca"
 
 __version__ = "1.0"
@@ -241,7 +239,7 @@ class Profile(Object):
     def validate(self):
         """Validate the edges."""
 
-        for function in six.itervalues(self.functions):
+        for function in self.functions.values():
             for callee_id in function.calls.keys():
                 assert function.calls[callee_id].callee_id == callee_id
                 if callee_id not in self.functions:
@@ -253,11 +251,11 @@ class Profile(Object):
 
         # Apply the Tarjan's algorithm successively until all functions are visited
         visited = set()
-        for function in six.itervalues(self.functions):
+        for function in self.functions.values():
             if function not in visited:
                 self._tarjan(function, 0, [], {}, {}, visited)
         cycles = []
-        for function in six.itervalues(self.functions):
+        for function in self.functions.values():
             if function.cycle is not None and function.cycle not in cycles:
                 cycles.append(function.cycle)
         self.cycles = cycles
@@ -280,7 +278,7 @@ class Profile(Object):
         order += 1
         pos = len(stack)
         stack.append(function)
-        for call in six.itervalues(function.calls):
+        for call in function.calls.values():
             callee = self.functions[call.callee_id]
             # TODO: use a set to optimize lookup
             if callee not in orders:
@@ -304,10 +302,10 @@ class Profile(Object):
         for cycle in self.cycles:
             cycle_totals[cycle] = 0.0
         function_totals = {}
-        for function in six.itervalues(self.functions):
+        for function in self.functions.values():
             function_totals[function] = 0.0
-        for function in six.itervalues(self.functions):
-            for call in six.itervalues(function.calls):
+        for function in self.functions.values():
+            for call in function.calls.values():
                 if call.callee_id != function.id:
                     callee = self.functions[call.callee_id]
                     function_totals[callee] += call[event]
@@ -315,8 +313,8 @@ class Profile(Object):
                         cycle_totals[callee.cycle] += call[event]
 
         # Compute the ratios
-        for function in six.itervalues(self.functions):
-            for call in six.itervalues(function.calls):
+        for function in self.functions.values():
+            for call in function.calls.values():
                 assert call.ratio is None
                 if call.callee_id != function.id:
                     callee = self.functions[call.callee_id]
@@ -337,10 +335,10 @@ class Profile(Object):
 
         # Sanity checking
         assert outevent not in self
-        for function in six.itervalues(self.functions):
+        for function in self.functions.values():
             assert outevent not in function
             assert inevent in function
-            for call in six.itervalues(function.calls):
+            for call in function.calls.values():
                 assert outevent not in call
                 if call.callee_id != function.id:
                     assert call.ratio is not None
@@ -348,13 +346,13 @@ class Profile(Object):
         # Aggregate the input for each cycle
         for cycle in self.cycles:
             total = inevent.null()
-            for function in six.itervalues(self.functions):
+            for function in self.functions.values():
                 total = inevent.aggregate(total, function[inevent])
             self[inevent] = total
 
         # Integrate along the edges
         total = inevent.null()
-        for function in six.itervalues(self.functions):
+        for function in self.functions.values():
             total = inevent.aggregate(total, function[inevent])
             self._integrate_function(function, outevent, inevent)
         self[outevent] = total
@@ -365,7 +363,7 @@ class Profile(Object):
         else:
             if outevent not in function:
                 total = function[inevent]
-                for call in six.itervalues(function.calls):
+                for call in function.calls.values():
                     if call.callee_id != function.id:
                         total += self._integrate_call(call, outevent, inevent)
                 function[outevent] = total
@@ -386,7 +384,7 @@ class Profile(Object):
             total = inevent.null()
             for member in cycle.functions:
                 subtotal = member[inevent]
-                for call in six.itervalues(member.calls):
+                for call in member.calls.values():
                     callee = self.functions[call.callee_id]
                     if callee.cycle is not cycle:
                         subtotal += self._integrate_call(call, outevent, inevent)
@@ -395,9 +393,9 @@ class Profile(Object):
 
             # Compute the time propagated to callers of this cycle
             callees = {}
-            for function in six.itervalues(self.functions):
+            for function in self.functions.values():
                 if function.cycle is not cycle:
-                    for call in six.itervalues(function.calls):
+                    for call in function.calls.values():
                         callee = self.functions[call.callee_id]
                         if callee.cycle is cycle:
                             try:
@@ -408,7 +406,7 @@ class Profile(Object):
             for member in cycle.functions:
                 member[outevent] = outevent.null()
 
-            for callee, call_ratio in six.iteritems(callees):
+            for callee, call_ratio in callees:
                 ranks = {}
                 call_ratios = {}
                 partials = {}
@@ -423,7 +421,7 @@ class Profile(Object):
     def _rank_cycle_function(self, cycle, function, rank, ranks):
         if function not in ranks or ranks[function] > rank:
             ranks[function] = rank
-            for call in six.itervalues(function.calls):
+            for call in function.calls.values():
                 if call.callee_id != function.id:
                     callee = self.functions[call.callee_id]
                     if callee.cycle is cycle:
@@ -432,7 +430,7 @@ class Profile(Object):
     def _call_ratios_cycle(self, cycle, function, ranks, call_ratios, visited):
         if function not in visited:
             visited.add(function)
-            for call in six.itervalues(function.calls):
+            for call in function.calls.values():
                 if call.callee_id != function.id:
                     callee = self.functions[call.callee_id]
                     if callee.cycle is cycle:
@@ -443,7 +441,7 @@ class Profile(Object):
     def _integrate_cycle_function(self, cycle, function, partial_ratio, partials, ranks, call_ratios, outevent, inevent):
         if function not in partials:
             partial = partial_ratio*function[inevent]
-            for call in six.itervalues(function.calls):
+            for call in function.calls.values():
                 if call.callee_id != function.id:
                     callee = self.functions[call.callee_id]
                     if callee.cycle is not cycle:
@@ -470,7 +468,7 @@ class Profile(Object):
         """Aggregate an event for the whole profile."""
 
         total = event.null()
-        for function in six.itervalues(self.functions):
+        for function in self.functions.values():
             try:
                 total = event.aggregate(total, function[event])
             except UndefinedEvent:
@@ -480,11 +478,11 @@ class Profile(Object):
     def ratio(self, outevent, inevent):
         assert outevent not in self
         assert inevent in self
-        for function in six.itervalues(self.functions):
+        for function in self.functions.values():
             assert outevent not in function
             assert inevent in function
             function[outevent] = ratio(function[inevent], self[inevent])
-            for call in six.itervalues(function.calls):
+            for call in function.calls.values():
                 assert outevent not in call
                 if inevent in call:
                     call[outevent] = ratio(call[inevent], self[inevent])
@@ -494,13 +492,13 @@ class Profile(Object):
         """Prune the profile"""
 
         # compute the prune ratios
-        for function in six.itervalues(self.functions):
+        for function in self.functions.values():
             try:
                 function.weight = function[TOTAL_TIME_RATIO]
             except UndefinedEvent:
                 pass
 
-            for call in six.itervalues(function.calls):
+            for call in function.calls.values():
                 callee = self.functions[call.callee_id]
 
                 if TOTAL_TIME_RATIO in call:
@@ -521,17 +519,17 @@ class Profile(Object):
                     del self.functions[function_id]
 
         # prune the egdes
-        for function in six.itervalues(self.functions):
+        for function in self.functions.values():
             for callee_id in function.calls.keys():
                 call = function.calls[callee_id]
                 if callee_id not in self.functions or call.weight is not None and call.weight < edge_thres:
                     del function.calls[callee_id]
 
     def dump(self):
-        for function in six.itervalues(self.functions):
+        for function in self.functions.values():
             sys.stderr.write('Function %s:\n' % (function.name,))
             self._dump_events(function.events)
-            for call in six.itervalues(function.calls):
+            for call in function.calls.values():
                 callee = self.functions[call.callee_id]
                 sys.stderr.write('  Call %s:\n' % (callee.name,))
                 self._dump_events(call.events)
@@ -542,7 +540,7 @@ class Profile(Object):
                 sys.stderr.write('  Function %s\n' % (function.name,))
 
     def _dump_events(self, events):
-        for event, value in six.iteritems(events):
+        for event, value in events.items():
             sys.stderr.write('    %s: %s\n' % (event.name, event.format(value)))
 
 
@@ -806,7 +804,7 @@ class GprofParser(Parser):
         """Extract a structure from a match object, while translating the types in the process."""
         attrs = {}
         groupdict = mo.groupdict()
-        for name, value in six.iteritems(groupdict):
+        for name, value in groupdict.items():
             if value is None:
                 value = None
             elif self._int_re.match(value):
@@ -979,10 +977,10 @@ class GprofParser(Parser):
         profile[TIME] = 0.0
 
         cycles = {}
-        for index in six.iterkeys(self.cycles):
+        for index in self.cycles.keys():
             cycles[index] = Cycle()
 
-        for entry in six.itervalues(self.functions):
+        for entry in self.functions.values():
             # populate the function
             function = Function(entry.index, entry.name)
             function[TIME] = entry.self
@@ -1024,7 +1022,7 @@ class GprofParser(Parser):
 
             profile[TIME] = profile[TIME] + function[TIME]
 
-        for cycle in six.itervalues(cycles):
+        for cycle in cycles.values():
             profile.add_cycle(cycle)
 
         # Compute derived events
@@ -1346,7 +1344,7 @@ class OprofileParser(LineParser):
             self.update_subentries_dict(callees_total, callees)
 
     def update_subentries_dict(self, totals, partials):
-        for partial in six.itervalues(partials):
+        for partial in partials.values():
             try:
                 total = totals[partial.id]
             except KeyError:
@@ -1368,7 +1366,7 @@ class OprofileParser(LineParser):
 
         # populate the profile
         profile[SAMPLES] = 0
-        for _callers, _function, _callees in six.itervalues(self.entries):
+        for _callers, _function, _callees in self.entries.values():
             function = Function(_function.id, _function.name)
             function[SAMPLES] = _function.samples
             profile.add_function(function)
@@ -1380,10 +1378,10 @@ class OprofileParser(LineParser):
                 function.module = os.path.basename(_function.image)
 
             total_callee_samples = 0
-            for _callee in six.itervalues(_callees):
+            for _callee in _callees.values():
                 total_callee_samples += _callee.samples
 
-            for _callee in six.itervalues(_callees):
+            for _callee in _callees.values():
                 if not _callee.self:
                     call = Call(_callee.id)
                     call[SAMPLES2] = _callee.samples
@@ -1544,7 +1542,7 @@ class SysprofParser(XmlParser):
         profile = Profile()
 
         profile[SAMPLES] = 0
-        for id, object in six.iteritems(objects):
+        for id, object in objects,items():
             # Ignore fake objects (process names, modules, "Everything", "kernel", etc.)
             if object['self'] == 0:
                 continue
@@ -1554,7 +1552,7 @@ class SysprofParser(XmlParser):
             profile.add_function(function)
             profile[SAMPLES] += function[SAMPLES]
 
-        for id, node in six.iteritems(nodes):
+        for id, node in nodes.items():
             # Ignore fake calls
             if node['self'] == 0:
                 continue
@@ -1668,7 +1666,7 @@ class SharkParser(LineParser):
 
         profile = Profile()
         profile[SAMPLES] = 0
-        for _function, _callees in six.itervalues(self.entries):
+        for _function, _callees in self.entries.values():
             function = Function(_function.id, _function.name)
             function[SAMPLES] = _function.samples
             profile.add_function(function)
@@ -1677,7 +1675,7 @@ class SharkParser(LineParser):
             if _function.image:
                 function.module = os.path.basename(_function.image)
 
-            for _callee in six.itervalues(_callees):
+            for _callee in _callees.values():
                 call = Call(_callee.id)
                 call[SAMPLES] = _callee.samples
                 function.add_call(call)
@@ -1737,7 +1735,7 @@ class XPerfParser(Parser):
 
     def parse_row(self, row):
         fields = {}
-        for name, column in six.iteritems(self.column):
+        for name, column in self.column.items():
             value = row[column]
             for factory in int, float:
                 try:
@@ -2087,14 +2085,14 @@ class PstatsParser:
     def parse(self):
         self.profile[TIME] = 0.0
         self.profile[TOTAL_TIME] = self.stats.total_tt
-        for fn, (cc, nc, tt, ct, callers) in six.iteritems(self.stats.stats):
+        for fn, (cc, nc, tt, ct, callers) in self.stats.stats.items():
             callee = self.get_function(fn)
             callee.called = nc
             callee[TOTAL_TIME] = ct
             callee[TIME] = tt
             self.profile[TIME] += tt
             self.profile[TOTAL_TIME] = max(self.profile[TOTAL_TIME], ct)
-            for fn, value in six.iteritems(callers):
+            for fn, value in callers.items():
                 caller = self.get_function(fn)
                 call = Call(callee.id)
                 if isinstance(value, tuple):
@@ -2291,7 +2289,7 @@ class DotWriter:
         self.attr('node', fontname=fontname, shape="box", style="filled", fontcolor="white", width=0, height=0)
         self.attr('edge', fontname=fontname)
 
-        for function in six.itervalues(profile.functions):
+        for function in profile.functions.values():
             labels = []
             if function.process is not None:
                 labels.append(function.process)
@@ -2318,7 +2316,7 @@ class DotWriter:
                 fontsize = "%.2f" % theme.node_fontsize(weight),
             )
 
-            for call in six.itervalues(function.calls):
+            for call in function.calls.values():
                 callee = profile.functions[call.callee_id]
 
                 labels = []
@@ -2379,7 +2377,7 @@ class DotWriter:
             return
         self.write(' [')
         first = True
-        for name, value in six.iteritems(attrs):
+        for name, value in attrs.items():
             if first:
                 first = False
             else:
@@ -2392,7 +2390,7 @@ class DotWriter:
     def id(self, id):
         if isinstance(id, (int, float)):
             s = str(id)
-        elif isinstance(id, six.string_types):
+        elif isinstance(id, str):
             if id.isalnum() and not id.startswith('0x'):
                 s = id
             else:
@@ -2613,7 +2611,7 @@ class Main:
         profile = self.profile
         profile.prune(self.options.node_thres/100.0, self.options.edge_thres/100.0)
 
-        for function in six.itervalues(profile.functions):
+        for function in profile.functions.values():
             function.name = self.compress_function_name(function.name)
 
         dot.graph(profile, self.theme)

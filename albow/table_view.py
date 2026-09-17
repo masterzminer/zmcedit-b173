@@ -4,13 +4,11 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-import six
 
 from pygame import Rect
 from .layout import Column
 from .palette_view import PaletteView
 from .utils import blit_in_rect
-from six.moves import zip
 
 
 class TableView(Column):
@@ -80,7 +78,7 @@ class TableView(Column):
         self.draw_text_cell(surf, i, text, cell_rect, column.alignment, self.font)
 
     def draw_text_cell(self, surf, i, data, cell_rect, align, font):
-        buf = font.render(six.text_type(data), True, self.fg_color)
+        buf = font.render(str(data), True, self.fg_color)
         blit_in_rect(surf, buf, cell_rect, align)
 
     def row_is_selected(self, n):
@@ -115,7 +113,7 @@ class TableColumn(object):
         self.width = width
         self.alignment = align
         if fmt:
-            if isinstance(fmt, (str, six.text_type)):
+            if isinstance(fmt, str):
                 self.format_string = fmt
             else:
                 self.formatter = fmt

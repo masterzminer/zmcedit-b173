@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 from pygame import Rect
 from .widget import Widget
-from six.moves import range
 
 
 class GridView(Widget):

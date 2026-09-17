@@ -3,8 +3,6 @@ from __future__ import print_function
 from .mclevelbase import *
 from .level import FakeChunk
 import struct
-import six
-from six.moves import range
 
 #values are usually little-endian, unlike Minecraft PC
 
@@ -348,7 +346,7 @@ class PocketWorld(ChunkedLevelMixin, MCLevel):
         return all([os.path.exists(os.path.join(filename, f)) for f in clp])    
         
     def saveInPlace(self):
-        for chunk in six.itervalues(self._loadedChunks):
+        for chunk in self._loadedChunks.values():
             if chunk.dirty:
                 self.chunkFile.saveChunk(chunk)
                 chunk.dirty = False

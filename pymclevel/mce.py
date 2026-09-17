@@ -15,10 +15,6 @@ import operator
 import codecs
 
 from math import floor
-import six
-from six.moves import map
-from six.moves import range
-from six.moves import input
 try:
     import readline
 except:
@@ -706,7 +702,7 @@ class mce(object):
             else:
                 if command[0] == "free":
                     level.allChunks
-                    for (rx,rz), rf in six.iteritems(level.regionFiles):
+                    for (rx,rz), rf in level.regionFiles.items():
                         
                         runs = getFreeSectors(rf)
                         if len(runs):
@@ -740,7 +736,7 @@ class mce(object):
     """
         if self.level.version:
             self.level.preloadRegions()
-            for rf in six.itervalues(self.level.regionFiles):
+            for rf in self.level.regionFiles.values():
                 rf.repair()
 
 

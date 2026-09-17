@@ -63,7 +63,6 @@ TAG_Compound "MinecraftLevel"
 """
 from __future__ import absolute_import
 from .mclevelbase import *
-from six.moves import range
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug

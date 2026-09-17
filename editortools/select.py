@@ -18,10 +18,6 @@ from collections import defaultdict
 from .fill import FillTool, BlockFillOperation
 import tempfile
 from .toolbasics import *
-import six
-from six.moves import map
-from six.moves import range
-from six.moves import zip
 
 SelectSettings = config.Settings("Selection")
 SelectSettings.showPreviousSelection = SelectSettings("Show Previous Selection", True)
@@ -343,7 +339,7 @@ class SelectionTool(EditorTool):
                             d[item["id"].value] += item["Count"].value
 
                     if len(d):
-                        items = sorted((v, k) for (k, v) in six.iteritems(d))
+                        items = sorted((v, k) for (k, v) in d.items())
                         try:
                             top = pymclevel.items.items.findItem(items[0][1]).name
                         except Exception as e:

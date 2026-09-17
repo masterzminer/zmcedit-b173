@@ -7,8 +7,6 @@ from __future__ import absolute_import
 from .mclevelbase import *
 import shutil
 from .level import MCLevel, EntityLevel
-import six
-from six.moves import range
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -123,13 +121,13 @@ class MCSchematic (EntityLevel):
             self.root_tag = nbt.load(buf=data)
         except Exception as e:
             error(u"Malformed NBT data in schematic file: {0} ({1})".format(self.filename, e))
-            six.reraise(ChunkMalformed, (e,self.filename), sys.exc_info()[2])
+            raise(ChunkMalformed, (e,self.filename), sys.exc_info()[2])
 
         try:
             self.shapeChunkData()
         except KeyError as e:
             error(u"Incorrect schematic format in file: {0} ({1})".format(self.filename, e))
-            six.reraise(ChunkMalformed, (e,self.filename), sys.exc_info()[2])
+            raise(ChunkMalformed, (e,self.filename), sys.exc_info()[2])
         pass
 
         self.dataIsPacked = True

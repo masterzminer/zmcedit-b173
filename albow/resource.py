@@ -5,7 +5,6 @@ import os
 import sys
 import pygame
 from pygame.locals import RLEACCEL
-from six.moves import range
 
 #default_font_name = "Vera.ttf"
 optimize_images = True

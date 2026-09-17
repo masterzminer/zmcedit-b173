@@ -19,7 +19,6 @@ from .controls import Label
 
 from datetime import datetime, timedelta
 from albow.dialogs import wrapped_label
-from six.moves import filter
 start_time = datetime.now()
 
 mod_cmd = KMOD_LCTRL | KMOD_RCTRL | KMOD_LMETA | KMOD_RMETA

@@ -8,7 +8,6 @@ Startup, main menu, keyboard configuration, automatic updating.
 from __future__ import absolute_import
 import OpenGL
 import sys
-from six.moves import range
 if "-debug" not in sys.argv:
     OpenGL.ERROR_CHECKING = False
 

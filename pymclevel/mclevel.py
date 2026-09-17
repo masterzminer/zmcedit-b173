@@ -184,7 +184,6 @@ from .schematic import *
 from .pocket import *
 
 import sys
-import six
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -277,7 +276,7 @@ def fromFile(filename, loadInfinite=True):
             lev.compressed = compressed
             return lev
         except Exception as e2:
-            six.reraise(LoadingError, ("Multiple errors encountered", e, e2), sys.exc_info()[2])
+            raise(LoadingError, ("Multiple errors encountered", e, e2), sys.exc_info()[2])
 
     else:
         if MCIndevLevel._isTagLevel(root_tag):

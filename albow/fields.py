@@ -9,7 +9,6 @@ import pygame
 from pygame.locals import K_LEFT, K_RIGHT, K_TAB, K_c, K_v, SCRAP_TEXT
 from .widget import Widget, overridable_property
 from .controls import Control
-import six
 
 #---------------------------------------------------------------------------
 
@@ -279,9 +278,9 @@ class Field(Control, TextEditor):
             self.value = value
             self.insertion_point = None
             if notify:
-                self.change_text(six.text_type(value))
+                self.change_text(str(value))
             else:
-                self._text = six.text_type(value)
+                self._text = str(value)
             self.editing = False
 
         else:
@@ -299,7 +298,7 @@ class Field(Control, TextEditor):
 
 
 class TextField(Field):
-    type = six.text_type
+    type = str
     _value = u""
 
 

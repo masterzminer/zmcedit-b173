@@ -4,8 +4,6 @@ Created on Jul 22, 2011
 @author: Rio
 '''
 from __future__ import absolute_import
-import six
-from six.moves import map
 __all__ = ["MCJavaLevel"]
 from .mclevelbase import *
 from .level import MCLevel
@@ -69,7 +67,7 @@ class MCJavaLevel(MCLevel):
 
     def __init__(self, filename, data):
         self.filename = filename
-        if isinstance(data, six.string_types):
+        if isinstance(data, str):
             data = fromstring(data, dtype='uint8')
         self.filedata = data
 

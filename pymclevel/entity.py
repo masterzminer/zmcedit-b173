@@ -8,8 +8,6 @@ from __future__ import absolute_import
 from .nbt import *
 from . import nbt
 from copy import deepcopy
-from six.moves import map
-from six.moves import zip
 
 __all__ = "Entity, TileEntity".split(", ")
 

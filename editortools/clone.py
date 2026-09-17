@@ -17,8 +17,6 @@ from __future__ import print_function
 from .toolbasics import *
 from .select import SelectionOperation
 from pymclevel.pocket import PocketWorld
-from six.moves import map
-from six.moves import range
 
 CloneSettings = config.Settings("Clone")
 CloneSettings.copyAir = CloneSettings("Copy Air", True)

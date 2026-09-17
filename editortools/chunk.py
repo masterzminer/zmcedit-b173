@@ -17,7 +17,6 @@ from __future__ import print_function
 from .toolbasics import *
 from pymclevel.infiniteworld import MCServerChunkGenerator
 from albow.dialogs import Dialog
-import six
 
 
 class ChunkToolPanel(Panel):
@@ -136,7 +135,7 @@ class ChunkTool(EditorTool):
 
             import renderer
             sizedChunks = renderer.chunkMarkers(self._selectedChunks)
-            for size, chunks in six.iteritems(sizedChunks):
+            for size, chunks in sizedChunks.items():
                 if not len(chunks):
                     continue
                 chunks = array(chunks, dtype='float32')

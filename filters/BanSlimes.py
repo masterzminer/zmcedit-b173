@@ -5,7 +5,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from pymclevel import TAG_Long
-from six.moves import range
 
 # This mimics some of the functionality from the Java Random class.
 # Java Random source code can be found here: http://developer.classpath.org/doc/java/util/Random-source.html

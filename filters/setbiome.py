@@ -13,7 +13,6 @@ from pymclevel import TAG_Byte
 from pymclevel import TAG_Byte_Array
 from pymclevel import TAG_String
 from numpy import zeros
-from six.moves import range
 
 inputs = (
     ("Biome", ("Desert",

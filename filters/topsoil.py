@@ -4,7 +4,6 @@ from numpy import zeros
 import itertools
 from pymclevel import alphaMaterials
 from pymclevel.level import extractHeights
-from six.moves import map
 
 am = alphaMaterials
 

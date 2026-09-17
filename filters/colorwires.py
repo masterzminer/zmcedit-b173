@@ -1,4 +1,3 @@
-from six.moves import range
 def perform(level, box, options):
     groups = RedstoneGroups(level)
     

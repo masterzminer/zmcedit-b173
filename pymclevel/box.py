@@ -1,7 +1,5 @@
 from __future__ import absolute_import
 import itertools
-from six.moves import map
-from six.moves import range
 from functools import reduce
 
 class BoundingBox (object):

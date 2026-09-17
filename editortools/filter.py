@@ -16,8 +16,6 @@ from __future__ import print_function
 from .toolbasics import *
 from albow.dialogs import wrapped_label
 from albow import *
-import six
-from six.moves import map
 
 
 def alertFilterException(func):
@@ -106,7 +104,7 @@ class FilterModuleOptions(Widget):
 
                     rows.append(addNumField(page, optionName, val, min, max))
 
-                if isinstance(optionType[0], (str, six.text_type)):
+                if isinstance(optionType[0], str):
                     isChoiceButton = False
                     if len(optionType) == 3:
                         a,b,c = optionType
@@ -202,7 +200,7 @@ class FilterModuleOptions(Widget):
 
     @property
     def options(self):
-        return dict((k, v.get()) for k, v in six.iteritems(self.optionDict))
+        return dict((k, v.get()) for k, v in self.optionDict.items())
 
     @options.setter
     def options(self, val):
@@ -358,12 +356,12 @@ class FilterTool(EditorTool):
         filterModules = [module for module in filterModules if hasattr(module, "perform")]
 
         self.filterModules = dict((self.moduleDisplayName(x), x) for x in filterModules)
-        [reload(m) for m in six.itervalues(self.filterModules)]
+        [reload(m) for m in self.filterModules.values()]
         filterModules = (__import__(x[:-3]) for x in filterPyfiles)
 
     @property
     def filterNames(self):
-        return [self.moduleDisplayName(module) for module in six.itervalues(self.filterModules)]
+        return [self.moduleDisplayName(module) for module in self.filterModules.values()]
 
     def moduleDisplayName(self, module):
         return module.displayName if hasattr(module, 'displayName') else module.__name__.capitalize()

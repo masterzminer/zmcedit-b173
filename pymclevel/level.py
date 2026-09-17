@@ -11,10 +11,6 @@ from .mclevelbase import *
 import tempfile
 from collections import defaultdict
 from . import materials
-from six.moves import filter
-from six.moves import map
-from six.moves import range
-from six.moves import zip
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug

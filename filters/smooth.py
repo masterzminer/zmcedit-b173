@@ -2,7 +2,6 @@ from __future__ import absolute_import
 from numpy import zeros, array
 import itertools
 from pymclevel.level import extractHeights
-from six.moves import range
 
 terrainBlocktypes = [1, 2, 3, 7, 12, 13, 14, 15, 16, 56, 73, 74, 87, 88, 89]
 terrainBlockmask = zeros((256,), dtype='bool')

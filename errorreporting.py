@@ -24,7 +24,6 @@ import traceback
 import platform
 from datetime import datetime
 import os
-import six.moves.http_client
 
 
 def extract_tb(tb, limit=None):

@@ -7,8 +7,6 @@ from collections import defaultdict
 from pprint import pformat
 
 import sys, os
-import six
-from six.moves import range
 
 NOTEX = (0xB0, 0xE0)
 
@@ -127,7 +125,7 @@ class MCMaterials(object):
                 level.materials["Lapis Lazuli Block"] #in Classic
                     
            """
-        if isinstance(key, six.string_types):
+        if isinstance(key, str):
             for b in self.allBlocks:
                 if b.name == key: return b
             raise KeyError("No blocks named: " + key)

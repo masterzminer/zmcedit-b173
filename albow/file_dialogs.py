@@ -14,7 +14,6 @@ from albow.fields import TextField
 from albow.layout import Row, Column
 from albow.palette_view import PaletteView
 from albow.theme import ThemeProperty
-from six.moves import filter
 
 
 class DirPathView(Widget):

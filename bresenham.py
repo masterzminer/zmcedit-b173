@@ -1,5 +1,3 @@
-from six.moves import map
-from six.moves import range
 def bresenham(p1, p2):
     """Bresenham line algorithm
     adapted for 3d.  slooooow."""

@@ -49,9 +49,6 @@ import numpy
 from OpenGL import GL
 import pymclevel
 import sys
-import six
-from six.moves import range
-from six.moves import zip
 from functools import reduce
 #import time
 
@@ -119,7 +116,7 @@ class ChunkRenderer(object):
         if self.renderstateLists is not None:
             # print "Discarded {0}, gained {1} bytes".format(self.chunkPosition,self.bufferSize)
 
-            for k in states or six.iterkeys(self.renderstateLists):
+            for k in states or self.renderstateLists.keys():
                 a = self.renderstateLists.get(k, [])
                 # print a
                 for i in a:
@@ -1981,7 +1978,7 @@ class MCRenderer(object):
             self.visibleLayers.add(layer)
         else:
             self.visibleLayers.discard(layer)
-        for cr in six.itervalues(self.chunkRenderers):
+        for cr in self.chunkRenderers.values():
             cr.invalidLayers.add(layer)
 
         self.loadNearbyChunks()
@@ -2181,7 +2178,7 @@ class MCRenderer(object):
         (ox, oz) = origin
         bytes = 0
         # chunks = numpy.fromiter(self.chunkRenderers.iterkeys(), dtype='int32', count=len(self.chunkRenderers))
-        chunks = numpy.fromiter(six.iterkeys(self.chunkRenderers), dtype='i,i', count=len(self.chunkRenderers))
+        chunks = numpy.fromiter(self.chunkRenderers.keys(), dtype='i,i', count=len(self.chunkRenderers))
         chunks.dtype = 'int32'
         chunks.shape = len(self.chunkRenderers), 2
 
@@ -2289,10 +2286,10 @@ class MCRenderer(object):
         self.loadNearbyChunks()
 
     def invalidateAllChunks(self, layers=None):
-        self.invalidateChunks(six.iterkeys(self.chunkRenderers), layers)
+        self.invalidateChunks(self.chunkRenderers.keys(), layers)
 
     def forgetAllDisplayLists(self):
-        for cr in six.itervalues(self.chunkRenderers):
+        for cr in self.chunkRenderers.values():
             cr.forgetDisplayLists()
 
     def invalidateMasterList(self):
@@ -2406,7 +2403,7 @@ class MCRenderer(object):
 #            chunkColor = numpy.array(chunkColor, dtype='uint8')
 #
             # GL.glColorPointer(4, GL.GL_UNSIGNED_BYTE, 0, chunkColor)
-            for size, chunks in six.iteritems(sizedChunks):
+            for size, chunks in sizedChunks.items():
                 if not len(chunks):
                     continue
                 chunks = numpy.array(chunks, dtype='float32')
@@ -2494,7 +2491,7 @@ class MCRenderer(object):
             pass
 
         def callMasterLists(self):
-            for cr in six.itervalues(self.chunkRenderers):
+            for cr in self.chunkRenderers.values():
                 cr.debugDraw()
     else:
         def createMasterLists(self):
@@ -2504,7 +2501,7 @@ class MCRenderer(object):
                 chunksPerFrame = 80
                 shouldRecreateAgain = False
 
-                for ch in six.itervalues(self.chunkRenderers):
+                for ch in self.chunkRenderers.values():
                     if chunksPerFrame:
                         if ch.needsRedisplay:
                             chunksPerFrame -= 1
@@ -2631,7 +2628,7 @@ class MCRenderer(object):
                         while self.bufferUsage > (0.9 * (self.vertexBufferLimit << 20)):
                             deadChunk = None
                             deadDistance = self.chunkDistance(c)
-                            for cr in six.itervalues(self.chunkRenderers):
+                            for cr in self.chunkRenderers.values():
                                 dist = self.chunkDistance(cr.chunkPosition)
                                 if dist > deadDistance:
                                     deadChunk = cr

@@ -20,8 +20,8 @@ from __future__ import absolute_import
 import os
 import logging
 import collections
-import six.moves.configparser
 from cStringIO import StringIO
+import configparser
 
 import mcplatform
 
@@ -78,7 +78,7 @@ def loadConfig():
             k.keyorder = list(self.keyorder)
             return k
 
-    config = six.moves.configparser.RawConfigParser([], keyDict)
+    config = configparser.RawConfigParser([], keyDict)
     config.readfp(StringIO(configDefaults))
     try:
         config.read(configFilePath())

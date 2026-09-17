@@ -13,14 +13,8 @@ import struct
 import shutil
 import subprocess
 import sys
-import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 import tempfile
 from os.path import join, dirname, basename
-import six
-from six.moves import filter
-from six.moves import map
-from six.moves import range
-from six.moves import zip
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
 
@@ -152,7 +146,9 @@ this way.
     def downloadCurrentServer(self):
         print("Downloading the latest Minecraft Server...")
         try:
-            (filename, headers) = six.moves.urllib.request.urlretrieve("http://www.minecraft.net/download/minecraft_server.jar")
+            # TODO remove this, not going to support this port using the internet
+            # (filename, headers) = six.moves.urllib.request.urlretrieve("http://www.minecraft.net/download/minecraft_server.jar")
+            return
         except Exception as e:
             print("Error downloading server: {0!r}".format(e))
             return
@@ -219,7 +215,7 @@ def readProperties(filename):
 
 def saveProperties(filename, properties):
     with open(filename, "w") as f:
-        for k, v in six.iteritems(properties):
+        for k, v in properties.items():
             f.write("{0}={1}\n".format(k, v))
 
 def findJava():
@@ -413,7 +409,7 @@ class MCServerChunkGenerator(object):
         try:
             tempChunk = tempWorld.getChunk(cx, cz)
         except ChunkNotPresent as e:
-            six.reraise(ChunkNotPresent, "While generating a world in {0} using server {1} ({2!r})".format(tempWorld, self.serverJarFile, e), sys.exc_info()[2])
+            raise(ChunkNotPresent, "While generating a world in {0} using server {1} ({2!r})".format(tempWorld, self.serverJarFile, e), sys.exc_info()[2])
         
         tempChunk.decompress()
         tempChunk.unpackChunkData()
@@ -448,7 +444,7 @@ class MCServerChunkGenerator(object):
         return exhaust(self.createLevelIter(level, box, simulate, **kw))
         
     def createLevelIter(self, level, box, simulate = False, **kw):
-        if isinstance(level, six.string_types):
+        if isinstance(level, str):
             filename = level
             level = MCInfdevOldLevel(filename, create=True, **kw)
             
@@ -526,7 +522,7 @@ class MCServerChunkGenerator(object):
 
             
     def runServer(self, startingDir):
-        if isinstance(startingDir, six.text_type): startingDir = startingDir.encode(sys.getfilesystemencoding())
+        if isinstance(startingDir, str): startingDir = startingDir.encode(sys.getfilesystemencoding())
     
         return self._runServer(startingDir, self.serverJarFile)
 
@@ -750,14 +746,14 @@ class InfdevChunk(LightedChunk):
             except Exception as e:
                 error(u"Malformed NBT data in file: {0} ({1})".format(self.filename, e))
                 if self.world: self.world.malformedChunk(*self.chunkPosition);
-                six.reraise(ChunkMalformed, (e,), sys.exc_info()[2])
+                raise(ChunkMalformed, (e,), sys.exc_info()[2])
 
             try:
                 self.shapeChunkData()
             except KeyError as e:
                 error(u"Incorrect chunk format in file: {0} ({1})".format(self.filename, e))
                 if self.world: self.world.malformedChunk(*self.chunkPosition);
-                six.reraise(ChunkMalformed, (e,), sys.exc_info()[2])
+                raise(ChunkMalformed, (e,), sys.exc_info()[2])
 
             self.dataIsPacked = True
         self.world.chunkDidDecompress(self)
@@ -841,7 +837,7 @@ class InfdevChunk(LightedChunk):
             except Exception as e:
                 error(u"Incorrect chunk format in file: {0} ({1})".format(self.filename, e))
                 if self.world: self.world.malformedChunk(*self.chunkPosition);
-                six.reraise(ChunkMalformed, (e,), sys.exc_info()[2])
+                raise(ChunkMalformed, (e,), sys.exc_info()[2])
 
             self.world.chunkDidLoad(self)
             self.world.chunkDidDecompress(self)
@@ -1165,7 +1161,7 @@ class MCRegionFile(object):
                     self.setOffset(cx, cz, 0)
                     deleted += 1
 
-        for cPos, (format, foundData) in six.iteritems(lostAndFound):
+        for cPos, (format, foundData) in lostAndFound.items():
             cx, cz = cPos
             if self.getOffset(cx, cz) == 0:
                 info("Found chunk {found} and its slot is empty, recovering it".format(found=cPos))
@@ -1783,7 +1779,7 @@ class ChunkedLevelMixin(object):
         startTime = datetime.now()
 
         if dirtyChunks is None:
-            dirtyChunks = (ch for ch in six.itervalues(self._loadedChunks) if ch.needsLighting)
+            dirtyChunks = (ch for ch in self._loadedChunks.values() if ch.needsLighting)
         else:
             dirtyChunks = (self._getChunkUnloaded(*c) for c in dirtyChunks if self.containsChunk(*c))
 
@@ -2499,7 +2495,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
         self.compressAllChunks()
 
     def compressAllChunks(self):
-        for ch in six.itervalues(self._loadedChunks):
+        for ch in self._loadedChunks.values():
             ch.compress()
 
     def compressChunk(self, cx, cz):
@@ -2568,7 +2564,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
                     chunk.root_tag = nbt.load(buf=data)
 
         except Exception as e:
-            six.reraise(ChunkMalformed, "Chunk {0} had an error: {1!r}".format(chunk.chunkPosition, e), sys.exc_info()[2])
+            raise(ChunkMalformed, "Chunk {0} had an error: {1!r}".format(chunk.chunkPosition, e), sys.exc_info()[2])
 
 
     def _saveChunk(self, chunk):
@@ -2738,17 +2734,17 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
             self.markDirtyChunk(cx, cz)
 
     def saveInPlace(self):
-        for level in six.itervalues(self.dimensions):
+        for level in self.dimensions.values():
             level.saveInPlace(True)
 
         dirtyChunkCount = 0
         if self._loadedChunks:
-            for chunk in six.itervalues(self._loadedChunks):
+            for chunk in self._loadedChunks.values():
                 if chunk.dirty:
                     dirtyChunkCount += 1
                 chunk.save()
 
-        for path, tag in six.iteritems(self.playerTagCache):
+        for path, tag in self.playerTagCache.items():
             tag.saveGzipped(path)
 
         self.playerTagCache = {}

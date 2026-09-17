@@ -19,9 +19,6 @@ from mceutils import ChoiceButton
 from os.path import basename
 import tempfile
 from .toolbasics import *
-from six.moves import map
-from six.moves import range
-from six.moves import zip
 from functools import reduce
 
 BrushSettings = config.Settings("Brush")

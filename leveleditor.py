@@ -66,10 +66,6 @@ from glutils import gl, Texture
 from mcplatform import askSaveFile
 from pymclevel.infiniteworld import alphanum_key
 from renderer import MCRenderer
-import six
-from six.moves import map
-from six.moves import range
-from six.moves import zip
 
 # Label = GLLabel
 
@@ -1477,7 +1473,7 @@ class LevelEditor(GLViewport):
                     return len(c.compressedTag)
                 return 0
 
-            return numpy.sum(size(c) for c in six.itervalues(chunks))
+            return numpy.sum(size(c) for c in chunks.values())
 
         mbldReadout = SmallValueDisplay(width=60,
             get_value=lambda: "MBd: %0.1f" % (dataSize() / 1000000.),
@@ -1743,10 +1739,10 @@ class LevelEditor(GLViewport):
         def extendEntities():
             if entitySum:
                 rows.extend([("", "", ""), ("", "<Entities>", entitySum)])
-                rows.extend([(id[0], id[1], count) for (id, count) in sorted(six.iteritems(entityCounts))])
+                rows.extend([(id[0], id[1], count) for (id, count) in sorted(entityCounts.items())])
             if tileEntitySum:
                 rows.extend([("", "", ""), ("", "<TileEntities>", tileEntitySum)])
-                rows.extend([(id, id, count) for (id, count) in sorted(six.iteritems(tileEntityCounts))])
+                rows.extend([(id, id, count) for (id, count) in sorted(tileEntityCounts.items())])
         extendEntities()
 
         columns = [
@@ -1767,7 +1763,7 @@ class LevelEditor(GLViewport):
 
             def sortKey(x):
                 val = x[colnum]
-                if isinstance(val, six.string_types):
+                if isinstance(val, str):
                     alphanum_key(val)
                 return val
 
@@ -2007,7 +2003,7 @@ class LevelEditor(GLViewport):
 
             dimensionsMenu = [("Earth", "0")]
             dimensionsMenu += [((dim.displayName,str(dim.dimNo)+"/"+dim.dirname)) for dim in dimensions.values()]
-            for dim, name in six.iteritems(pymclevel.MCAlphaDimension.dimensionNames):
+            for dim, name in pymclevel.MCAlphaDimension.dimensionNames.items():
                 if dim not in dimensions:
                     dimensionsMenu.append((name, str(dim)))
 
@@ -2106,13 +2102,13 @@ class LevelEditor(GLViewport):
                 if level.parentWorld:
                     level = level.parentWorld
 
-                for level in itertools.chain(six.itervalues(level.dimensions), [level]):
+                for level in itertools.chain(level.dimensions.values(), [level]):
 
                     if "Canceled" == mceutils.showProgress("Lighting chunks", level.generateLightsIter(), cancel=True):
                         return
 
                     if self.level == level:
-                        needsRefresh = [c.chunkPosition for c in six.itervalues(level._loadedChunks) if c.dirty]
+                        needsRefresh = [c.chunkPosition for c in level._loadedChunks.values() if c.dirty]
                         self.invalidateChunks(needsRefresh)
 
             self.freezeStatus("Saving...")
@@ -2707,7 +2703,7 @@ class LevelEditor(GLViewport):
         self.mcedit.removeEditor()
 
     def repairRegions(self):
-        for rf in six.itervalues(self.level.regionFiles):
+        for rf in self.level.regionFiles.values():
             rf.repair()
 
         alert("Repairs complete.  See the console window for details.")

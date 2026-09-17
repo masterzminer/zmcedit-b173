@@ -4,7 +4,6 @@
 
 from __future__ import absolute_import
 from numpy import sign
-from six.moves import range
 
 displayName = "Create Busses"
 

@@ -15,10 +15,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 from __future__ import absolute_import
 from __future__ import print_function
 from .toolbasics import *
-import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 from pymclevel.box import FloatBox
-from six.moves import map
-from six.moves import range
 
 
 class PlayerMoveOperation(Operation):

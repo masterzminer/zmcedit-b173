@@ -8,7 +8,6 @@ from __future__ import absolute_import
 from numpy import zeros, array
 import itertools
 from pymclevel import alphaMaterials
-from six.moves import range
 am = alphaMaterials
 
 # Consider below materials when determining terrain height

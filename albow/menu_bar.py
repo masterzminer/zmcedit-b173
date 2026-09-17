@@ -5,7 +5,6 @@
 from __future__ import absolute_import
 from pygame import Rect
 from .widget import Widget, overridable_property
-from six.moves import range
 
 
 class MenuBar(Widget):

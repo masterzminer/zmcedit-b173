@@ -166,10 +166,6 @@ from __future__ import generators
 
 from __future__ import absolute_import
 from __future__ import print_function
-from six.moves import map
-import six
-from six.moves import range
-from six.moves import zip
 from functools import reduce
 __version__ = "$URL: http://pypng.googlecode.com/svn/trunk/code/png.py $ $Rev: 201 $"
 
@@ -1130,7 +1126,7 @@ class Reader:
         if _guess is not None:
             if isarray(_guess):
                 kw["bytes"] = _guess
-            elif isinstance(_guess, (str, six.text_type)):
+            elif isinstance(_guess, str):
                 kw["filename"] = _guess
             elif hasattr(_guess, "read"):
                 kw["file"] = _guess
