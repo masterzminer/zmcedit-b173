@@ -2598,7 +2598,7 @@ class MCRenderer(object):
 
         addDebugString("CR: {0}, ".format(len(self.chunkRenderers),))
 
-    def next(self):
+    def __next__(self):
         next(self.chunkWorker)
 
     def makeWorkIterator(self):

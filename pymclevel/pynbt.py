@@ -188,7 +188,7 @@ class TAG_Byte_Array(TAG_Value):
     def load_from(cls, data, data_cursor):
         data = data[data_cursor:]
         (string_len,) = struct.unpack_from(">I", data)
-        value = fromstring(data[4:string_len + 4], 'uint8')
+        value = frombuffer(data[4:string_len + 4], 'uint8')
         self = cls(value)
         return self, data_cursor + string_len + 4
         
@@ -266,7 +266,12 @@ class TAG_String(TAG_Value):
     def load_from(cls, data, data_cursor):
         data = data[data_cursor:]
         (string_len,) = struct.unpack_from(">H", data)
-        value = data[2:string_len + 2].tobytes().decode("utf-8")
+
+        value = data[2:string_len + 2]
+        # TODO see if there's a way to not need this hack
+        if not (isinstance(value, bytes)):
+            value = value.tobytes()
+        value = value.decode("utf-8")
         self = cls(value)
         return self, data_cursor + string_len + 2
 
@@ -517,7 +522,7 @@ def load(filename="", buf=None):
     root TAG_Compound object. Argument can be a string containing a 
     filename or an array of integers containing TAG_Compound data. """
 
-    if filename and isinstance(filename, (str, str)):
+    if filename and isinstance(filename, str):
         return loadFile(filename)
     if isinstance(buf, str): buf = fromstring(buf, uint8)
     data = buf

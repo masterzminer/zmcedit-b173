@@ -1473,7 +1473,7 @@ class LevelEditor(GLViewport):
                     return len(c.compressedTag)
                 return 0
 
-            return numpy.sum(size(c) for c in chunks.values())
+            return sum(size(c) for c in chunks.values())
 
         mbldReadout = SmallValueDisplay(width=60,
             get_value=lambda: "MBd: %0.1f" % (dataSize() / 1000000.),
@@ -2091,7 +2091,7 @@ class LevelEditor(GLViewport):
         filename = self.level.filename
         s = os.path.split(filename)
         title = os.path.split(s[0])[1] + os.sep + s[1] + u" - MCEdit " + release.release
-        title = title.encode('ascii', 'replace')
+        # title = title.encode('ascii', 'replace')
         display.set_caption(title)
 
     @mceutils.alertException
@@ -3784,6 +3784,6 @@ class EditorToolbar(GLOrtho):
         if cursor:
             GL.glColor(1.0, 0.0, 0.0, 0.3)
             GL.glVertexPointer(2, GL.GL_FLOAT, 0, redOutBoxes)
-            GL.glDrawArrays(GL.GL_QUADS, 0, cursor / 2)
+            GL.glDrawArrays(GL.GL_QUADS, 0, cursor // 2)
 
         GL.glDisable(GL.GL_BLEND)

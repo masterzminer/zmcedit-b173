@@ -175,7 +175,7 @@ def drawCube(box, cubeType=GL.GL_QUADS, blockType=0, texture=None, textureVertic
         x2, y2, z,
         x2, y2, z2,
                             ), dtype='f4')
-    if textureVertices == None:
+    if textureVertices is None:
         textureVertices = numpy.array(
         (
         0, -dy * 16,

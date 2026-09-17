@@ -751,6 +751,7 @@ class InfdevChunk(LightedChunk):
             try:
                 self.shapeChunkData()
             except KeyError as e:
+                traceback.print_exc()
                 error(u"Incorrect chunk format in file: {0} ({1})".format(self.filename, e))
                 if self.world: self.world.malformedChunk(*self.chunkPosition);
                 raise(ChunkMalformed, (e,), sys.exc_info()[2])
@@ -835,6 +836,7 @@ class InfdevChunk(LightedChunk):
                 self.unpackChunkData()
 
             except Exception as e:
+                traceback.print_exc()
                 error(u"Incorrect chunk format in file: {0} ({1})".format(self.filename, e))
                 if self.world: self.world.malformedChunk(*self.chunkPosition);
                 raise(ChunkMalformed, (e,), sys.exc_info()[2])
@@ -912,16 +914,16 @@ class InfdevChunk(LightedChunk):
         chunkSize = 16
         if not hasattr(self.world, 'HeightOverride'):
             length = chunkTag[Level][Blocks].value.ravel().shape[0]
-            height = length / (chunkSize * chunkSize)
+            height = length // (chunkSize * chunkSize)
             self.world.Height = height
             self.world.HeightOverride = True
             self.world._bounds = None
             
         chunkTag[Level][Blocks].value.shape = (chunkSize, chunkSize, self.world.Height)
         chunkTag[Level][HeightMap].value.shape = (chunkSize, chunkSize)
-        chunkTag[Level][SkyLight].value.shape = (chunkSize, chunkSize, self.world.Height / 2)
-        chunkTag[Level][BlockLight].value.shape = (chunkSize, chunkSize, self.world.Height / 2)
-        chunkTag[Level]["Data"].value.shape = (chunkSize, chunkSize, self.world.Height / 2)
+        chunkTag[Level][SkyLight].value.shape = (chunkSize, chunkSize, self.world.Height // 2)
+        chunkTag[Level][BlockLight].value.shape = (chunkSize, chunkSize, self.world.Height // 2)
+        chunkTag[Level]["Data"].value.shape = (chunkSize, chunkSize, self.world.Height // 2)
         if TileEntities not in chunkTag[Level]:
             chunkTag[Level][TileEntities] = TAG_List()
         if Entities not in chunkTag[Level]:
