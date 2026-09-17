@@ -1984,7 +1984,7 @@ class MCRenderer(object):
         self.loadNearbyChunks()
 
     def layerProperty(layer, default=True):  # @NoSelf
-        attr = intern("_draw" + layer)
+        attr = sys.intern("_draw" + layer)
 
         def _get(self):
             return getattr(self, attr, default)

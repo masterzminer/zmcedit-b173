@@ -6,6 +6,8 @@ from __future__ import absolute_import
 from __future__ import print_function
 from . import resource
 
+import sys
+
 debug_theme = False
 
 
@@ -13,7 +15,7 @@ class ThemeProperty(object):
 
     def __init__(self, name):
         self.name = name
-        self.cache_name = intern("_" + name)
+        self.cache_name = sys.intern("_" + name)
 
     def __get__(self, obj, owner):
         if debug_theme:

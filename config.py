@@ -220,7 +220,7 @@ def addObserver(section, name, target, attr=None, dtype=str, callback=None, defa
         attr = tokens[0] + "".join(t.title() for t in tokens[1:])
     log.debug("Subscribing %s.%s", target, attr)
 
-    attr = intern(attr)
+    attr = iter(attr)
     targetref = weakref.ref(target)
     observers.setdefault((targetref, attr), callback)
 

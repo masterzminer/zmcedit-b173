@@ -14,6 +14,7 @@ from . import theme
 from .theme import ThemeProperty, FontProperty
 
 from numpy import fromstring
+import sys
 
 debug_rect = False
 debug_tab = True
@@ -27,8 +28,8 @@ def overridable_property(name, doc=None):
     the underlying object to get and set the property value, so that
     the property's behaviour may be easily overridden by subclasses."""
 
-    getter_name = intern('get_' + name)
-    setter_name = intern('set_' + name)
+    getter_name = sys.intern('get_' + name)
+    setter_name = sys.intern('set_' + name)
     return property(
         lambda self: getattr(self, getter_name)(),
         lambda self, value: getattr(self, setter_name)(value),
