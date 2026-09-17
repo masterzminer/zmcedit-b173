@@ -8,7 +8,6 @@ Created on Jul 22, 2011
 import os
 import traceback
 from datetime import datetime
-from cStringIO import StringIO
 from copy import deepcopy
 import itertools
 from contextlib import closing, contextmanager

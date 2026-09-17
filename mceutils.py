@@ -23,7 +23,7 @@ Exception catching, some basic box drawing, texture pack loading, oddball UI ele
 from albow.controls import ValueDisplay
 from albow import alert, ask, Button, Column, Label, root, Row, ValueButton, Widget
 import config
-from cStringIO import StringIO
+from io import BytesIO
 from datetime import datetime
 import directories
 from errorreporting import reportCrash, reportException
@@ -313,7 +313,7 @@ def loadAlphaTerrainTexture():
         while len(data):
             alldata += data
             data = zipextfile.read()
-        return StringIO(alldata)
+        return BytesIO(alldata)
 
     if pngFile is not None:
         try:

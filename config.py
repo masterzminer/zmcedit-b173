@@ -20,7 +20,7 @@ Configuration settings and storage.
 import os
 import logging
 import collections
-from cStringIO import StringIO
+from io import BytesIO
 import configparser
 
 import mcplatform
@@ -79,7 +79,7 @@ def loadConfig():
             return k
 
     config = configparser.RawConfigParser([], keyDict)
-    config.readfp(StringIO(configDefaults))
+    config.readfp(BytesIO(configDefaults))
     try:
         config.read(configFilePath())
 

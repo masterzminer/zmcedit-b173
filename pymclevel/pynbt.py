@@ -24,7 +24,7 @@ import collections
 import itertools
 import struct
 import gzip
-from cStringIO import StringIO
+from io import BytesIO
 import os
 from contextlib import closing
 from numpy import array, zeros, uint8, fromstring
@@ -100,7 +100,7 @@ class TAG_Value(object):
         self.write_value(buf)
 
     def saveGzipped(self, filename, compresslevel=1):
-        sio = StringIO()
+        sio = BytesIO()
         #atomic write
         try: os.rename(filename, filename + ".old");
         except Exception as e:
