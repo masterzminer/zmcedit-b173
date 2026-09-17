@@ -41,8 +41,6 @@ modkeys = {
     K_LMETA:  'meta', K_RMETA:  'meta',
 }
 
-MUSIC_END_EVENT = USEREVENT + 1
-
 last_mouse_event = Event(0, pos=(0, 0), local=(0, 0))
 last_mouse_event_handler = None
 root_widget = None     # Root of the containment hierarchy
@@ -248,8 +246,6 @@ class RootWidget(Widget):
                                 event.dict['pos'] = last_mouse_event.pos
                                 event.dict['local'] = last_mouse_event.local
                                 last_mouse_event_handler.setup_cursor(event)
-                        elif type == MUSIC_END_EVENT:
-                            self.music_end()
                         elif type == USEREVENT:
                             make_scheduled_calls()
                             if not is_modal:
@@ -390,9 +386,6 @@ class RootWidget(Widget):
             GL.glClearColor(r, g, b, 0.0)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
-    def music_end(self):
-        from . import music
-        music.music_end()
 
 #---------------------------------------------------------------------------
 

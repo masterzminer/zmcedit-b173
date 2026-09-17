@@ -216,6 +216,3 @@ root.MenuBar.border_width = 0
 
 root.Menu = Theme('Menu', base=menu)
 root.Menu.border_width = 1
-
-root.MusicVolumeControl = Theme('MusicVolumeControl', base=framed)
-root.MusicVolumeControl.fg_color = (0x40, 0x40, 0x40)
