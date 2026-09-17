@@ -164,6 +164,11 @@ And now, my famous members
 # http://www.python.org/doc/2.2.3/whatsnew/node5.html
 
 
+# TODO figure out these libpng errors, also probably remove this implementation, surely there's a better way to handle png images
+# libpng warning: iCCP: known incorrect sRGB profile
+# libpng warning: iCCP: cHRM chunk does not match sRGB
+
+
 
 from functools import reduce
 __version__ = "$URL: http://pypng.googlecode.com/svn/trunk/code/png.py $ $Rev: 201 $"
@@ -2512,7 +2517,7 @@ def _dehex(s):
 
     # Remove all non-hexadecimal digits
     s = re.sub(r'[^a-fA-F\d]', '', s)
-    return s.decode('hex')
+    return bytes.fromhex(s)
 
 # Copies of PngSuite test files taken
 # from http://www.schaik.com/pngsuite/pngsuite_bas_png.html

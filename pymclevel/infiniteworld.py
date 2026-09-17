@@ -2118,6 +2118,16 @@ class ChunkedLevelMixin(object):
             ch.needsLighting = False
 
 
+def _dirhash(self):
+    n = self
+    n = n % 64
+    s = u""
+    if n >= 36:
+        s += u"1"
+        n -= 36
+    s += u"0123456789abcdefghijklmnopqrstuvwxyz"[n]
+    return s
+    
 class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
     materials = alphaMaterials
     isInfinite = True
@@ -2594,16 +2604,6 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
     def dirhash(self, n):
         return self.dirhashes[n % 64]
 
-    def _dirhash(self):
-        n = self
-        n = n % 64
-        s = u""
-        if n >= 36:
-            s += u"1"
-            n -= 36
-        s += u"0123456789abcdefghijklmnopqrstuvwxyz"[n]
-
-        return s
 
     dirhashes = [_dirhash(n) for n in range(64)]
 

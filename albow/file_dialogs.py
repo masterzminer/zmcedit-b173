@@ -137,7 +137,7 @@ class FileDialog(Dialog):
         self.add(cancel_button)
         self.shrink_wrap()
         self._directory = None
-        self.directory = os.getcwdu()
+        self.directory = os.getcwd()
         #print "FileDialog: cwd =", repr(self.directory) ###
         if self.saving:
             filename_box.focus()
@@ -150,7 +150,7 @@ class FileDialog(Dialog):
         while not os.path.exists(x):
             y = os.path.dirname(x)
             if y == x:
-                x = os.getcwdu()
+                x = os.getcwd()
                 break
             x = y
         if self._directory != x:

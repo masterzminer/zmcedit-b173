@@ -285,7 +285,7 @@ class TAG_String(TAG_Value):
     
             
 
-class TAG_Compound(TAG_Value, collections.MutableMapping):
+class TAG_Compound(TAG_Value, collections.abc.MutableMapping):
     """A heterogenous list of named tags. Names must be unique within
     the TAG_Compound. Add tags to the compound using the subscript
     operator [].    This will automatically name the tags."""
@@ -374,7 +374,7 @@ class TAG_Compound(TAG_Value, collections.MutableMapping):
         self[v.name] = v
 
 
-class TAG_List(TAG_Value, collections.MutableSequence):
+class TAG_List(TAG_Value, collections.abc.MutableSequence):
 
     """A homogenous list of unnamed data of a single TAG_* type. 
     Once created, the type can only be changed by emptying the list 

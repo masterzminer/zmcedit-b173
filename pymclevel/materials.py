@@ -150,19 +150,19 @@ class MCMaterials(object):
     
     def addYamlBlocksFromFile(self, filename):
         try:
-            import pkg_resources
+            from importlib import resources
 
-            f = pkg_resources.resource_stream(__name__, filename)
+            f = resources.files(__name__).joinpath(filename).open("rb")
         except (ImportError, IOError):
             root = os.environ.get("PYMCLEVEL_YAML_ROOT", "pymclevel") #fall back to cwd as last resort
             f = open(join(root, filename))
         try:
             info(u"Loading block info from %s", f)
-            blockyaml = yaml.load(f)
+            blockyaml = yaml.safe_load(f)
             self.addYamlBlocks(blockyaml)
  
         except Exception as e:
-            warn(u"Exception while loading block info from %s: %s", f, e)
+            print("Exception while loading block info from {f}: {e}")
             traceback.print_exc()
             
     def addYamlBlocks(self, blockyaml):
@@ -256,7 +256,7 @@ class MCMaterials(object):
         if texture:
             self.blockTextures[blockID, (blockData or slice(None))] = texture
 
-        if blockData is 0:
+        if blockData == 0:
             self.names[blockID] = [name] * 16
             self.type[blockID] = [type] * 16
         else:
@@ -311,9 +311,9 @@ Stem = (0xD0, 0x80)
 def defineShroomFaces(Shroom, id, name):
     for way, data in sorted(list(HugeMushroomTypes.items()), key=lambda a:a[1]):
         loway = way.lower()
-        if way is "Stem":
+        if way == "Stem":
             tex = [Stem, Stem, Pore, Pore, Stem, Stem]
-        elif way is "Pore":
+        elif way == "Pore":
             tex = Pore
         else:
             tex = [Pore] * 6

@@ -39,6 +39,7 @@ import release
 import shutil
 import sys
 import traceback
+import importlib
 
 pymclevel.MCInfdevOldLevel.loadedChunkLimit = 0
 
@@ -608,7 +609,7 @@ class MCEdit(GLViewport):
     editor = None
 
     def reloadEditor(self):
-        reload(leveleditor)
+        importlib.reload(leveleditor)
         level = None
 
         pos = None

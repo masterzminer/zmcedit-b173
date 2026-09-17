@@ -11,7 +11,7 @@ from .utils import frame_rect
 from . import theme
 from .theme import ThemeProperty, FontProperty
 
-from numpy import fromstring
+from numpy import frombuffer
 import sys
 
 debug_rect = False
@@ -750,7 +750,7 @@ class Widget(object):
             GL.glEnable(GL.GL_BLEND)
             GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
             GL.glDrawPixels(self.width, self.height,
-                GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, fromstring(data, dtype='uint8'))
+                GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, frombuffer(data, dtype='uint8'))
             GL.glPopAttrib()
             GL.glFlush()
 

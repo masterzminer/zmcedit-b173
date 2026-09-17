@@ -22,6 +22,7 @@ import logging
 import collections
 from io import BytesIO
 import configparser
+import sys
 
 import mcplatform
 
@@ -36,7 +37,7 @@ def configFilePath():
 
 def loadConfig():
 
-    class keyDict (collections.MutableMapping):
+    class keyDict (collections.abc.MutableMapping):
         def __init__(self, *args, **kwargs):
             self.dict = dict(*args, **kwargs)
             self.keyorder = []
@@ -79,7 +80,7 @@ def loadConfig():
             return k
 
     config = configparser.RawConfigParser([], keyDict)
-    config.readfp(BytesIO(configDefaults))
+    config.read_string(configDefaults)
     try:
         config.read(configFilePath())
 
@@ -220,7 +221,7 @@ def addObserver(section, name, target, attr=None, dtype=str, callback=None, defa
         attr = tokens[0] + "".join(t.title() for t in tokens[1:])
     log.debug("Subscribing %s.%s", target, attr)
 
-    attr = iter(attr)
+    attr = sys.intern(attr)
     targetref = weakref.ref(target)
     observers.setdefault((targetref, attr), callback)
 

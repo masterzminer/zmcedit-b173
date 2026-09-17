@@ -35,7 +35,7 @@ if sys.platform == "win32":
         plat = "win-amd64"
     sys.path.append(join(directories.dataDir, "pymclevel", "build", "lib." + plat + "-2.6").encode(enc))
 
-os.environ["YAML_ROOT"] = join(directories.dataDir, "pymclevel").encode(enc)
+os.environ["YAML_ROOT"] = join(directories.dataDir, "pymclevel")
 
 from pygame import display
 
@@ -421,12 +421,12 @@ else:
     portable = False
 
 filtersDir = os.path.join(directories.dataDir, "filters")
-if filtersDir not in [s.decode(sys.getfilesystemencoding())
+if filtersDir not in [s
                       if isinstance(s, str)
                       else s
                       for s in sys.path]:
-
-    sys.path.append(filtersDir.encode(sys.getfilesystemencoding()))
+                          
+    sys.path.append(filtersDir)
 
 if portable:
     serverJarStorageDir = (os.path.join(parentDir, "ServerJarStorage"))

@@ -1845,7 +1845,15 @@ class LevelEditor(GLViewport):
     longDistanceMode = Settings.longDistanceMode.configProperty()
 
     def genSixteenBlockTexture(self):
-        has12 = GL.glGetString(GL.GL_VERSION) >= "1.2"
+
+        version = GL.glGetString(GL.GL_VERSION)
+
+        if isinstance(version, bytes):
+            version = version.decode("ascii")
+
+        major, minor = map(int, version.split(".", 2)[:2])
+        has12 = (major, minor) >= (1, 2)
+
         if has12:
             maxLevel = 2
             mode = GL.GL_LINEAR_MIPMAP_NEAREST
@@ -2340,7 +2348,7 @@ class LevelEditor(GLViewport):
         nearbyPoints = (randPoints[:, 0] < r) & (randPoints[:, 1] < r) & (randPoints[:, 2] < r)
         randPoints[nearbyPoints] += r
 
-        randPoints[:starCount / 2, 0] = -randPoints[:starCount / 2, 0]
+        randPoints[:starCount // 2, 0] = -randPoints[:starCount // 2, 0]
         randPoints[::2, 1] = -randPoints[::2, 1]
         randPoints[::4, 2] = -randPoints[::4, 2]
         randPoints[1::4, 2] = -randPoints[1::4, 2]
@@ -2386,7 +2394,7 @@ class LevelEditor(GLViewport):
         GL.glColor(.5, .5, .5, 1.)
 
         GL.glVertexPointer(3, GL.GL_FLOAT, 0, self.starVertices)
-        GL.glDrawArrays(GL.GL_QUADS, 0, len(self.starVertices) / 3)
+        GL.glDrawArrays(GL.GL_QUADS, 0, len(self.starVertices) // 3)
 
         self.mainViewport.cameraPosition = pos
         self.mainViewport.setModelview()
@@ -3148,7 +3156,7 @@ class LevelEditor(GLViewport):
         if not self.level:
             return
 
-        if key.get_mods() & (mcplatform.cmd_name is "Cmd" and KMOD_META or KMOD_CTRL):
+        if key.get_mods() & (mcplatform.cmd_name == "Cmd" and KMOD_META or KMOD_CTRL):
             self.showControls()
         else:
             self.hideControls()
