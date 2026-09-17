@@ -58,7 +58,7 @@ class FileListView(PaletteView):
             return os.path.isdir(path) or self.client.filter(path)
 
         try:
-            names = [name for name in os.listdir(dir) if list(filter(name))]
+            names = os.listdir(dir)
                 #if not name.startswith(".") and filter(name)]
         except EnvironmentError as e:
             alert(u"%s: %s" % (dir, e))
@@ -75,7 +75,7 @@ class FileListView(PaletteView):
     def draw_item(self, surf, item_no, rect):
         font = self.font
         color = self.fg_color
-        buf = self.font.render(self.names[item_no], True, color)
+        buf = self.font.render(self.names[int(item_no)], True, color)
         surf.blit(buf, rect)
 
     def click_item(self, item_no, e):

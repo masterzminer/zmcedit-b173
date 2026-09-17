@@ -1070,11 +1070,11 @@ class MCRegionFile(object):
             offsetsData = f.read(self.SECTOR_BYTES)
             modTimesData = f.read(self.SECTOR_BYTES)
 
-            self.freeSectors = [True] * (filesize / self.SECTOR_BYTES)
+            self.freeSectors = [True] * (filesize // self.SECTOR_BYTES)
             self.freeSectors[0:2] = False, False
 
-            self.offsets = fromstring(offsetsData, dtype='>u4')
-            self.modTimes = fromstring(modTimesData, dtype='>u4')
+            self.offsets = frombuffer(offsetsData, dtype='>u4')
+            self.modTimes = frombuffer(modTimesData, dtype='>u4')
 
         needsRepair = False
 
@@ -2333,11 +2333,13 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
 
         self.loadLevelDat(create, random_seed, last_played)
 
-        #attempt to support yMod
-        try:
-            self.Height = self.root_tag["Data"]["YLimit"].value
-        except:
-            pass
+        # TODO probably remove this, looks like part of supporting the anvil format
+        # #attempt to support yMod
+        # try:
+        #     self.Height = self.root_tag["Data"]["YLimit"].value
+        # except:
+        #     traceback.print_exc()
+        #     pass
 
         self.playersDir = os.path.join(self.worldDir, "players")
 

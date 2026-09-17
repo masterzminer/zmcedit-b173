@@ -155,6 +155,7 @@ class FileOpener(albow.Widget):
             if filename:
                 self.mcedit.loadFile(filename)
         except Exception as e:
+            traceback.print_exc()
             logging.error('Error during proptOpenAndLoad: {0!r}'.format(e))
 
     def createNewWorld(self):
@@ -683,10 +684,10 @@ class MCEdit(GLViewport):
         for i in range(self.numRecentWorlds):
             if config.config.has_option("Recent Worlds", str(i)):
                 try:
-                    filename = (config.config.get("Recent Worlds", str(i)).decode('utf-8'))
+                    filename = config.config.get("Recent Worlds", str(i))
                     worlds.append(self.removeLevelDat(filename))
                 except Exception as e:
-                    logging.error(repr(e))
+                    traceback.print_exc()
 
         return list((f for f in worlds if f and os.path.exists(f)))
 
@@ -776,8 +777,7 @@ class MCEdit(GLViewport):
             try:
                 self.editor.loadFile(filename)
             except Exception as e:
-                logging.error('Failed to load file {0}: {1!r}'.format(
-                    filename, e))
+                traceback.print_exc()
                 return None
 
             self.remove(self.fileOpener)

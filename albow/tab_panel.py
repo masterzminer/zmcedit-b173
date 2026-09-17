@@ -14,7 +14,7 @@ from pygame.locals import SRCALPHA
 from .widget import Widget
 from .theme import ThemeProperty, FontProperty
 from .utils import brighten
-from numpy import fromstring
+from numpy import frombuffer
 
 
 class TabPanel(Widget):
@@ -213,7 +213,7 @@ class TabPanel(Widget):
             glPushAttrib(GL_COLOR_BUFFER_BIT)
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
             glDrawPixels(self.width, self.height,
-                GL_RGBA, GL_UNSIGNED_BYTE, fromstring(data, dtype='uint8'))
+                GL_RGBA, GL_UNSIGNED_BYTE, frombuffer(data, dtype='uint8'))
             glPopAttrib()
             glFlush()
 

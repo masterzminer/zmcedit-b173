@@ -27,7 +27,7 @@ import gzip
 from io import BytesIO
 import os
 from contextlib import closing
-from numpy import array, zeros, uint8, fromstring
+from numpy import array, zeros, uint8, fromstring, frombuffer
 TAGfmt = ">b"
 
 class NBTFormatError(RuntimeError): pass
@@ -260,13 +260,13 @@ class TAG_String(TAG_Value):
 
     tag = 8
     fmt = ">h%ds"
-    dataType = lambda self, s: isinstance(s, str) and s.encode('utf-8') or s
+    dataType = lambda self, s: s.decode("utf-8") if isinstance(s, bytes) else s
 
     @classmethod
     def load_from(cls, data, data_cursor):
         data = data[data_cursor:]
         (string_len,) = struct.unpack_from(">H", data)
-        value = data[2:string_len + 2].tostring()
+        value = data[2:string_len + 2].tobytes().decode("utf-8")
         self = cls(value)
         return self, data_cursor + string_len + 2
 
@@ -276,12 +276,12 @@ class TAG_String(TAG_Value):
         self.value = value
 
     def write_value(self, buf):
-        u8value = self._value
-        buf.write(struct.pack(self.fmt % (len(u8value),), len(u8value), u8value))
+        u8value = self.value.encode("utf-8")
+        buf.write(struct.pack(self.fmt % len(u8value), len(u8value), u8value))
 
     @property
     def unicodeValue(self):
-        return self.value.decode('utf-8')
+        return self.value
     
             
 
@@ -329,7 +329,7 @@ class TAG_Compound(TAG_Value, collections.abc.MutableMapping):
     def __init__(self, value=[], name=""):
 
         self.name = name
-        if value.__class__ == ''.__class__:
+        if isinstance(value, str):
             self.name = value
             value = []
         self.value = value
@@ -342,10 +342,9 @@ class TAG_Compound(TAG_Value, collections.abc.MutableMapping):
 
     "collection functions"
     def __getitem__(self, k):
-        #hits=filter(lambda x:x.name==k, self.value);
-        #if(len(hits)): return hits[0];
         for key in self.value:
-                if key.name == k: return key
+            if key.name == k:
+                return key
         raise KeyError("Key {0} not found in tag {1}".format(k, self))
 
     def __iter__(self):             return map(lambda x:x.name, self.value);
@@ -501,7 +500,7 @@ def loadFile(filename):
     except IOError:
         print("File %s not zipped" % filename)
 
-    return load(buf=fromstring(data, 'uint8'))
+    return load(buf=frombuffer(data, 'uint8'))
 
 
 def load_named(data, data_cursor, tag_type):
