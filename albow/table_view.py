@@ -2,8 +2,8 @@
 #   Albow - Table View
 #
 
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 
 from pygame import Rect
 from .layout import Column

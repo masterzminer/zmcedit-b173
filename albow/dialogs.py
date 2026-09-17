@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 import textwrap
 from pygame import Rect, event
 from pygame.locals import *

@@ -18,8 +18,8 @@ glutils.py
 Pythonesque wrappers around certain OpenGL functions.
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 from OpenGL import GL
 from OpenGL.GL.ARB import window_pos
 import numpy

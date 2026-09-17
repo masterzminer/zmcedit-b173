@@ -7,8 +7,8 @@ Requires mcInterface.py in the same folder.'''
 
 # This is the name of the map to edit.
 # Make a backup if you are experimenting!
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 LOADNAME = "LevelSave"
 
 # How many trees do you want to add?

@@ -2,7 +2,7 @@
 #   Albow - Text Screen
 #
 
-from __future__ import absolute_import
+
 from pygame import Rect
 from pygame.locals import *
 from .screen import Screen

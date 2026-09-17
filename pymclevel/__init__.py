@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 from .mclevel import fromFile, loadWorld, loadWorldNumber, saveFileDir, minecraftDir
 from .indev import *
 from .infiniteworld import *

@@ -18,8 +18,8 @@ mceutils.py
 Exception catching, some basic box drawing, texture pack loading, oddball UI elements
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 from albow.controls import ValueDisplay
 from albow import alert, ask, Button, Column, Label, root, Row, ValueButton, Widget
 import config

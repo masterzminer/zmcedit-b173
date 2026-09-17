@@ -4,7 +4,7 @@ DeCliff filter contributed by Minecraft Forums user "DrRomz"
 Originally posted here:
 http://www.minecraftforum.net/topic/13807-mcedit-minecraft-world-editor-compatible-with-mc-beta-18/page__st__3940__p__7648793#entry7648793
 """
-from __future__ import absolute_import
+
 from numpy import zeros, array
 import itertools
 from pymclevel import alphaMaterials

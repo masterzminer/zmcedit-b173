@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 from pygame import draw, Surface
 from pygame.locals import SRCALPHA
 

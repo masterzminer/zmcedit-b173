@@ -5,7 +5,7 @@
 #
 # If you modify and redistribute this code, please credit SethBling
 
-from __future__ import absolute_import
+
 from pymclevel import MCSchematic
 from pymclevel import TAG_Compound
 from pymclevel import TAG_Short

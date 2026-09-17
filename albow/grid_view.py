@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 from pygame import Rect
 from .widget import Widget
 

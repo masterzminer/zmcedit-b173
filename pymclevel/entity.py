@@ -4,7 +4,7 @@ Created on Jul 23, 2011
 @author: Rio
 '''
 #from mclevelbase import *
-from __future__ import absolute_import
+
 from .nbt import *
 from . import nbt
 from copy import deepcopy

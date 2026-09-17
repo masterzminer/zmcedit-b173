@@ -16,7 +16,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 config.py
 Configuration settings and storage.
 """
-from __future__ import absolute_import
+
 import os
 import logging
 import collections

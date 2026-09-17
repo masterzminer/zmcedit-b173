@@ -1,5 +1,5 @@
 
-from __future__ import absolute_import
+
 from numpy import zeros
 import itertools
 from pymclevel import alphaMaterials

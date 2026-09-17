@@ -2,8 +2,8 @@
 # please give credit to SethBling.
 # http://youtube.com/SethBling
 
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 from pymclevel import TAG_Long
 
 # This mimics some of the functionality from the Java Random class.

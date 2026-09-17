@@ -1,6 +1,4 @@
-from __future__ import division
-from __future__ import absolute_import
-from __future__ import print_function
+
 import sys
 from pygame import Rect, Surface, draw, image
 from pygame.locals import K_RETURN, K_KP_ENTER, K_ESCAPE, K_TAB, \

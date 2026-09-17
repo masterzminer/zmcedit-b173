@@ -23,7 +23,7 @@ imported from editortools/
 
 """
 
-from __future__ import absolute_import
+
 import gc
 import os
 import csv

@@ -4,8 +4,7 @@
 #
 #-------------------------------------------------------------------------
 
-from __future__ import division
-from __future__ import absolute_import
+
 from OpenGL import GL, GLU
 from .widget import Widget
 

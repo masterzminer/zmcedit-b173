@@ -10,7 +10,7 @@ Based on code from:
     http://www.markmorley.com/opengl/frustumculling.html
 """
 
-from __future__ import absolute_import
+
 import logging
 import numpy
 from OpenGL import GL

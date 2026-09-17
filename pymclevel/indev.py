@@ -61,7 +61,7 @@ TAG_Compound "MinecraftLevel"
    }
 }
 """
-from __future__ import absolute_import
+
 from .mclevelbase import *
 
 log = logging.getLogger(__name__)

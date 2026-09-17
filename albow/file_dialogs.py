@@ -3,7 +3,7 @@
 #   Albow - File Dialogs
 #
 
-from __future__ import absolute_import
+
 import os
 from pygame import draw, Rect
 from pygame.locals import *

@@ -3,7 +3,7 @@ Created on Jul 22, 2011
 
 @author: Rio
 '''
-from __future__ import absolute_import
+
 from .mclevelbase import *
 import shutil
 from .level import MCLevel, EntityLevel

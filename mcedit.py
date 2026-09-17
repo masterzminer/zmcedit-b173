@@ -5,7 +5,7 @@ mcedit.py
 
 Startup, main menu, keyboard configuration, automatic updating.
 """
-from __future__ import absolute_import
+
 import OpenGL
 import sys
 if "-debug" not in sys.argv:

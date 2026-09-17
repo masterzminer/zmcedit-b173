@@ -7,8 +7,8 @@ Created on Jul 23, 2011
 #from infiniteworld import MCInfdevOldLevel
 #from schematic import MCSchematic
 #import errorreporting # annotate tracebacks with call arguments
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 try:
     from pymclevel import *
 except ImportError:

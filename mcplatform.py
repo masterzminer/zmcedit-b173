@@ -18,8 +18,8 @@ mcplatform.py
 Platform-specific functions, folder paths, and the whole fixed/portable nonsense.
 """
 
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 import directories
 import os
 from os.path import dirname, exists, join

@@ -18,7 +18,7 @@ glbackground.py
 A UI element that only draws a single OpenGL quad.
 """
 
-from __future__ import absolute_import
+
 from albow.openglwidgets import GLOrtho
 from OpenGL.GL import glEnable, glColor, glVertexPointer, glDrawArrays, glDisable, GL_BLEND, GL_FLOAT, GL_QUADS
 from numpy import array

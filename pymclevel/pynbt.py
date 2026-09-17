@@ -18,8 +18,8 @@ http://www.minecraft.net/docs/NBT.txt
 
 Copyright 2010 David Rio Vierra
 """
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 import collections
 import itertools
 import struct

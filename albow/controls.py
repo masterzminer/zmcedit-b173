@@ -2,7 +2,7 @@
 #   Albow - Controls
 #
 
-from __future__ import absolute_import
+
 from pygame import Rect, draw
 from .widget import Widget, overridable_property
 from .theme import ThemeProperty

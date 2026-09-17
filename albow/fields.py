@@ -2,8 +2,8 @@
 #   Albow - Fields
 #
 
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 from pygame import draw
 import pygame
 from pygame.locals import K_LEFT, K_RIGHT, K_TAB, K_c, K_v, SCRAP_TEXT

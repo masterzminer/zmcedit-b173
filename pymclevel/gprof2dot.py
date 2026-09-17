@@ -20,7 +20,7 @@
 
 """Generate a dot graph from the output of several profilers."""
 
-from __future__ import absolute_import
+
 __author__ = "Jose Fonseca"
 
 __version__ = "1.0"

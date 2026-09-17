@@ -3,7 +3,7 @@ Created on Jul 22, 2011
 
 @author: Rio
 '''
-from __future__ import absolute_import
+
 __all__ = ["MCJavaLevel"]
 from .mclevelbase import *
 from .level import MCLevel

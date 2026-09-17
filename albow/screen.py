@@ -2,7 +2,7 @@
 #   Albow - Screen
 #
 
-from __future__ import absolute_import
+
 from .widget import Widget
 
 #------------------------------------------------------------------------------

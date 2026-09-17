@@ -169,7 +169,7 @@ def fillBlocks(self, box, blockType, blockData = 0):
 
 Copyright 2010 David Rio Vierra
 """
-from __future__ import absolute_import
+
 import os
 import logging
 from numpy import fromstring

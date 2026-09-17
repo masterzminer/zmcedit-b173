@@ -2,7 +2,7 @@
 # please give credit to SethBling.
 # http://youtube.com/SethBling
 
-from __future__ import absolute_import
+
 from pymclevel import TAG_Compound
 from pymclevel import TAG_Int
 from pymclevel import TAG_Short
