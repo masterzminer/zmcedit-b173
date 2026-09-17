@@ -24,3 +24,6 @@ RELEASE-VERSION
 
 .DS_Store
 .idea
+
+
+.venv
