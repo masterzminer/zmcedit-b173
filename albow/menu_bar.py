@@ -2,8 +2,10 @@
 #    Albow - Menu bar
 #
 
+from __future__ import absolute_import
 from pygame import Rect
-from widget import Widget, overridable_property
+from .widget import Widget, overridable_property
+from six.moves import range
 
 
 class MenuBar(Widget):
@@ -58,7 +60,7 @@ class MenuBar(Widget):
 
     def handle_command_key(self, e):
         menus = self.menus
-        for m in xrange(len(menus) - 1, -1, -1):
+        for m in range(len(menus) - 1, -1, -1):
             menu = menus[m]
             i = menu.find_item_for_key(e)
             if i >= 0:

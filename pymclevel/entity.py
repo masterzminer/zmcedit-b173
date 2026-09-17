@@ -4,9 +4,12 @@ Created on Jul 23, 2011
 @author: Rio
 '''
 #from mclevelbase import *
-from nbt import *
-import nbt
+from __future__ import absolute_import
+from .nbt import *
+from . import nbt
 from copy import deepcopy
+from six.moves import map
+from six.moves import zip
 
 __all__ = "Entity, TileEntity".split(", ")
 
@@ -54,7 +57,7 @@ class TileEntity(object):
         ),
     }
     
-    knownIDs = baseStructures.keys()
+    knownIDs = list(baseStructures.keys())
     maxItems = {
         "Furnace" : 3,
         "Chest" : 27,
@@ -153,7 +156,7 @@ class Entity(object):
     @classmethod
     def pos(cls, tag):
         if Pos not in tag:
-            raise InvalidEntity, tag
+            raise InvalidEntity(tag)
         return [a.value for a in tag[Pos]]
 
     @classmethod
@@ -164,7 +167,7 @@ class Entity(object):
     def copyWithOffset(cls, entity, copyOffset):
         eTag = deepcopy(entity)
 
-        positionTags = map(lambda p, co: nbt.TAG_Double(p.value + co), eTag["Pos"], copyOffset)
+        positionTags = list(map(lambda p, co: nbt.TAG_Double(p.value + co), eTag["Pos"], copyOffset))
         eTag["Pos"] = TAG_List(positionTags)
 
         if eTag["id"].value == "Painting":

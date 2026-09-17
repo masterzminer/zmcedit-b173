@@ -2,11 +2,13 @@
 #   Albow - Controls
 #
 
+from __future__ import absolute_import
 from pygame import Rect, draw
-from widget import Widget, overridable_property
-from theme import ThemeProperty
-from utils import blit_in_rect, frame_rect
-import resource
+from .widget import Widget, overridable_property
+from .theme import ThemeProperty
+from .utils import blit_in_rect, frame_rect
+from . import resource
+import six
 
 #---------------------------------------------------------------------------
 
@@ -248,7 +250,7 @@ class Image(Widget):
     def __init__(self, image=None, rect=None, **kwds):
         Widget.__init__(self, rect, **kwds)
         if image:
-            if isinstance(image, basestring):
+            if isinstance(image, six.string_types):
                 image = resource.get_image(image)
             w, h = image.get_size()
             d = 2 * self.margin

@@ -12,11 +12,17 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 from editortools.clone import BlockCopyOperation
 from mceutils import ChoiceButton
 from os.path import basename
 import tempfile
-from toolbasics import *
+from .toolbasics import *
+from six.moves import map
+from six.moves import range
+from six.moves import zip
+from functools import reduce
 
 BrushSettings = config.Settings("Brush")
 BrushSettings.brushSizeL = BrushSettings("Brush Shape L", 3)
@@ -35,7 +41,7 @@ class BrushMode(object):
     def dirtyBoxForPointAndOptions(self, point, options={}):
         # also used to position the preview reticle
         size = options['brushSize']
-        origin = map(lambda x, s: x - (s >> 1), point, size)
+        origin = list(map(lambda x, s: x - (s >> 1), point, size))
         return BoundingBox(origin, size)
 
     def performAtPoint(self, op, point, dirtyBox):
@@ -177,7 +183,7 @@ class Modes:
                 replaceWith = op.options['replaceBlockInfo']
                 # xxx pasted from fill.py
                 if op.blockInfo.wildcard:
-                    print "Wildcard replace"
+                    print("Wildcard replace")
                     blocksToReplace = []
                     for i in range(16):
                         blocksToReplace.append(op.editor.level.materials.blockWithID(op.blockInfo.ID, i))
@@ -286,8 +292,8 @@ class Modes:
                         blockmask[blocktype.ID] = True
                         blocktypeMask = blockmask[blocks]
 
-                    except Exception, e:
-                        print repr(e), " while using blockmask from filters.topsoil"
+                    except Exception as e:
+                        print(repr(e), " while using blockmask from filters.topsoil")
                         blocktypeMask = blocks != 0
 
                 else:
@@ -304,7 +310,7 @@ class Modes:
                 # masked_blocks = ma.masked_array(blocks, brushMask, hard_mask=True)
                 # masked_data = ma.masked_array(data, brushMask, hard_mask=True)
 
-                for x, z in itertools.product(*map(xrange, heightmap.shape)):
+                for x, z in itertools.product(*list(map(xrange, heightmap.shape))):
                     h = heightmap[x, z]
                     if h >= box.height:
                         continue
@@ -650,7 +656,7 @@ class BrushToolOptions(ToolOptions):
         self.shrink_wrap()
         return
 
-from clone import CloneTool
+from .clone import CloneTool
 
 
 class BrushTool(CloneTool):
@@ -779,7 +785,7 @@ class BrushTool(CloneTool):
         if clipFilename:
             try:
                 self.loadLevel(fromFile(clipFilename))
-            except Exception, e:
+            except Exception as e:
                 alert("Failed to load file %s" % clipFilename)
                 self.brushMode = "Fill"
                 return
@@ -816,7 +822,7 @@ class BrushTool(CloneTool):
                 blockdata = self.editor.level.blockDataAt(*pos)
                 return "Click to use {0} ({1}:{2})".format(self.editor.level.materials.names[blockID][blockdata], blockID, blockdata)
 
-            except Exception, e:
+            except Exception as e:
                 return repr(e)
 
         if self.brushMode.name == "Flood Fill":
@@ -828,7 +834,7 @@ class BrushTool(CloneTool):
                 blockdata = self.editor.level.blockDataAt(*pos)
                 return "Click to replace {0} ({1}:{2})".format(self.editor.level.materials.names[blockID][blockdata], blockID, blockdata)
 
-            except Exception, e:
+            except Exception as e:
                 return repr(e)
 
     def swapBrushStyles(self):
@@ -1087,7 +1093,7 @@ class BrushTool(CloneTool):
     def getReticlePoint(self, pos, direction):
         if len(self.draggedPositions):
             direction = self.draggedDirection
-        return map(lambda a, b: a + (b * self.getReticleOffset()), pos, direction)
+        return list(map(lambda a, b: a + (b * self.getReticleOffset()), pos, direction))
 
     def drawToolReticle(self):
         for pos in self.draggedPositions:
@@ -1109,8 +1115,8 @@ class BrushTool(CloneTool):
             if reticlePoint != pos:
                 glColor4f(1.0, 1.0, 0.0, 0.7)
                 with gl.glBegin(GL_LINES):
-                    glVertex3f(*map(lambda a: a + 0.5, reticlePoint))  # center of reticle block
-                    glVertex3f(*map(lambda a, b: a + 0.5 + b * 0.5, pos, direction))  # top side of surface block
+                    glVertex3f(*[a + 0.5 for a in reticlePoint])  # center of reticle block
+                    glVertex3f(*list(map(lambda a, b: a + 0.5 + b * 0.5, pos, direction)))  # top side of surface block
 
             if self.previewDirty:
                 self.setupPreview()
@@ -1120,8 +1126,8 @@ class BrushTool(CloneTool):
             if key.get_mods() & KMOD_SHIFT and self.lastPosition and self.brushMode.name != "Flood Fill":
                 glColor4f(1.0, 1.0, 1.0, 0.7)
                 with gl.glBegin(GL_LINES):
-                    glVertex3f(*map(lambda a: a + 0.5, self.lastPosition))
-                    glVertex3f(*map(lambda a: a + 0.5, reticlePoint))
+                    glVertex3f(*[a + 0.5 for a in self.lastPosition])
+                    glVertex3f(*[a + 0.5 for a in reticlePoint])
 
     def updateOffsets(self):
         pass

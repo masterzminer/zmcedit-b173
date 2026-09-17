@@ -12,6 +12,8 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 from OpenGL.GL import *
 from pymclevel import *
 import pymclevel
@@ -38,6 +40,9 @@ from glbackground import *
 from albow.dialogs import Dialog
 from pymclevel.mclevelbase import exhaust
 from albow.root import Cancel
+import six
+from six.moves import map
+from six.moves import range
 
 
 class NudgeButton(GLBackground):
@@ -74,15 +79,15 @@ class NudgeButton(GLBackground):
             self.nudge((0, -1, 0))
 
         Z = self.get_root().mcedit.editor.mainViewport.cameraVector  # xxx mouthful
-        absZ = map(abs, Z)
+        absZ = list(map(abs, Z))
         if absZ[0] < absZ[2]:
             forward = (0, 0, (-1 if Z[2] < 0 else 1))
         else:
             forward = ((-1 if Z[0] < 0 else 1), 0, 0)
 
-        back = map(int.__neg__, forward)
+        back = list(map(int.__neg__, forward))
         left = forward[2], forward[1], -forward[0]
-        right = map(int.__neg__, left)
+        right = list(map(int.__neg__, left))
 
         if keyname == config.config.get("Keys", "Forward"):
             self.nudge(forward)
@@ -379,7 +384,7 @@ class BlockButton(ButtonBase, Panel):
 
         self.recentBlockView.right = self.width
         self.add(self.recentBlockView)
-        print self.rect, self.recentBlockView.rect
+        print(self.rect, self.recentBlockView.rect)
 
     recentBlockView = None
 
@@ -568,8 +573,8 @@ class BlockPicker(Dialog):
             return
         except ValueError:
             pass
-        except Exception, e:
-            print repr(e)
+        except Exception as e:
+            print(repr(e))
 
         blocks = self.materials.allBlocks
 
@@ -640,7 +645,7 @@ class EditorTool(object):
     def drawTerrainPreview(self, origin):
         if self.previewRenderer is None:
             return
-        self.previewRenderer.origin = map(lambda a, b: a - b, origin, self.level.bounds.origin)
+        self.previewRenderer.origin = list(map(lambda a, b: a - b, origin, self.level.bounds.origin))
 
         glPolygonOffset(DepthOffset.ClonePreview, DepthOffset.ClonePreview)
         glEnable(GL_POLYGON_OFFSET_FILL)
@@ -701,7 +706,7 @@ class EditorTool(object):
     def findBestTrackingPlane(self, face):
         cv = list(self.editor.mainViewport.cameraVector)
         cv[face >> 1] = 0
-        cv = map(abs, cv)
+        cv = list(map(abs, cv))
 
         return cv.index(max(cv))
 
@@ -762,7 +767,7 @@ class EditorTool(object):
                     if normal[dim]:
                         scale = d / normal[dim]
 
-                        point = map(lambda a, p: (a * scale + p), normal, p0)
+                        point = list(map(lambda a, p: (a * scale + p), normal, p0))
     #                    glVertex3f(*point)
 
                         if pointInBounds(point, dim1) and pointInBounds(point, dim2):
@@ -774,7 +779,7 @@ class EditorTool(object):
             return None, None
 
         cp = self.editor.mainViewport.cameraPosition
-        distances = dict((sum(map(lambda a, b: (b - a) ** 2, cp, point)), (face, point)) for face, point in points.iteritems())
+        distances = dict((sum(map(lambda a, b: (b - a) ** 2, cp, point)), (face, point)) for face, point in six.iteritems(points))
         if not len(distances):
             return None, None
 
@@ -783,7 +788,7 @@ class EditorTool(object):
         #    minmax = max
         # else:
 
-        face, point = distances[min(distances.iterkeys())]
+        face, point = distances[min(six.iterkeys(distances))]
 
         # if the point is near the edge of the face, and the edge is facing away,
         # return the away-facing face
@@ -811,7 +816,7 @@ class EditorTool(object):
 
             if dot(facenormal, cv) > 0 or cameraBehind:
                 # the face adjacent to the clicked edge faces away from the cam
-                return distances[max(distances.iterkeys())]
+                return distances[max(six.iterkeys(distances))]
 
         return face, point
 
@@ -843,7 +848,7 @@ class EditorTool(object):
 
             p2[i] += 1
 
-        size = map(lambda a, b: a - b, p2, p1)
+        size = list(map(lambda a, b: a - b, p2, p1))
 
         box = BoundingBox(p1, size)
 

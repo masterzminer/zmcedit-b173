@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 from pygame import Rect, draw
-from grid_view import GridView
-from utils import frame_rect
-from theme import ThemeProperty
+from .grid_view import GridView
+from .utils import frame_rect
+from .theme import ThemeProperty
 
 
 class PaletteView(GridView):

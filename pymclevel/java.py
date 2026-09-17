@@ -3,16 +3,19 @@ Created on Jul 22, 2011
 
 @author: Rio
 '''
+from __future__ import absolute_import
+import six
+from six.moves import map
 __all__ = ["MCJavaLevel"]
-from mclevelbase import *
-from level import MCLevel
+from .mclevelbase import *
+from .level import MCLevel
 
 import re
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
 
-from level import MCLevel
+from .level import MCLevel
 
 class MCJavaLevel(MCLevel):
 
@@ -34,7 +37,7 @@ class MCJavaLevel(MCLevel):
     def guessSize(self, data):
         if data.shape[0] <= (32 * 32 * 64) * 2:
             warn(u"Can't guess the size of a {0} byte level".format(data.shape[0]))
-            raise IOError, "MCJavaLevel attempted for smaller than 64 blocks cubed"
+            raise IOError("MCJavaLevel attempted for smaller than 64 blocks cubed")
         if data.shape[0] > (32 * 32 * 64) * 2:
             Width = 64
             Length = 64
@@ -66,14 +69,14 @@ class MCJavaLevel(MCLevel):
 
     def __init__(self, filename, data):
         self.filename = filename
-        if isinstance(data, basestring):
+        if isinstance(data, six.string_types):
             data = fromstring(data, dtype='uint8')
         self.filedata = data
 
         #try to take x,z,y from the filename
         r = re.findall("\d+", os.path.basename(filename))
         if r and len(r) >= 3:
-            (w, l, h) = map(int, r[-3:])
+            (w, l, h) = list(map(int, r[-3:]))
             if w * l * h > data.shape[0]:
                 info("Not enough blocks for size " + str((w, l, h)))
                 w, l, h = self.guessSize(data)
@@ -84,7 +87,7 @@ class MCJavaLevel(MCLevel):
 
         blockCount = h * l * w
         if blockCount > data.shape[0]:
-            raise ValueError, "Level file does not contain enough blocks! (size {s}) Try putting the size into the filename, e.g. server_level_{w}_{l}_{h}.dat".format(w=w, l=l, h=h, s=data.shape)
+            raise ValueError("Level file does not contain enough blocks! (size {s}) Try putting the size into the filename, e.g. server_level_{w}_{l}_{h}.dat".format(w=w, l=l, h=h, s=data.shape))
 
         blockOffset = data.shape[0] - blockCount
         blocks = data[blockOffset:blockOffset + blockCount]
@@ -98,7 +101,7 @@ class MCJavaLevel(MCLevel):
             blocks = data[blockOffset:blockOffset + blockCount]
 
             if blockOffset <= -data.shape[0]:
-                raise IOError, "Can't find a valid array of blocks <= #%d" % maxBlockType
+                raise IOError("Can't find a valid array of blocks <= #%d" % maxBlockType)
 
         self.Blocks = blocks
         self.blockOffset = blockOffset
@@ -120,13 +123,13 @@ class MCJavaLevel(MCLevel):
 
         try:
             os.rename(self.filename, self.filename + ".old")
-        except Exception, e:
+        except Exception as e:
             pass;
 
         try:
             with open(self.filename, 'wb') as f:
                 f.write(s.getvalue())
-        except Exception, e:
+        except Exception as e:
             info(u"Error while saving java level in place: {0}".format(e))
             try:os.remove(self.filename);
             except: pass
@@ -134,7 +137,7 @@ class MCJavaLevel(MCLevel):
 
         try:
             os.remove(self.filename + ".old")
-        except Exception, e:
+        except Exception as e:
             pass;
 
 class MCSharpLevel(MCLevel):

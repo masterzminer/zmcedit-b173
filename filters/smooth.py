@@ -1,6 +1,8 @@
+from __future__ import absolute_import
 from numpy import zeros, array
 import itertools
 from pymclevel.level import extractHeights
+from six.moves import range
 
 terrainBlocktypes = [1, 2, 3, 7, 12, 13, 14, 15, 16, 56, 73, 74, 87, 88, 89]
 terrainBlockmask = zeros((256,), dtype='bool')
@@ -21,7 +23,7 @@ def perform(level, box, options):
     schema.removeEntitiesInBox(schema.bounds)
     schema.removeTileEntitiesInBox(schema.bounds)
 
-    for i in xrange(repeatCount):
+    for i in range(repeatCount):
 
         terrainBlocks = terrainBlockmask[schema.Blocks]
 
@@ -39,7 +41,7 @@ def perform(level, box, options):
 
         newHeightmap = array(newHeightmap, dtype='uint16')
 
-        for x, z in itertools.product(xrange(1, schema.Width - 1), xrange(1, schema.Length - 1)):
+        for x, z in itertools.product(range(1, schema.Width - 1), range(1, schema.Length - 1)):
             oh = heightmap[x, z]
             nh = newHeightmap[x - 1, z - 1]
             d = nh - oh

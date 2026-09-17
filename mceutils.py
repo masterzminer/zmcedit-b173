@@ -18,6 +18,8 @@ mceutils.py
 Exception catching, some basic box drawing, texture pack loading, oddball UI elements
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 from albow.controls import ValueDisplay
 from albow import alert, ask, Button, Column, Label, root, Row, ValueButton, Widget
 import config
@@ -25,7 +27,7 @@ from cStringIO import StringIO
 from datetime import datetime
 import directories
 from errorreporting import reportCrash, reportException
-import httplib
+import six.moves.http_client
 import mcplatform
 import numpy
 from OpenGL import GL, GLU
@@ -38,6 +40,7 @@ import release
 import sys
 import traceback
 import zipfile
+import six
 
 
 def alertException(func):
@@ -46,7 +49,7 @@ def alertException(func):
             return func(*args, **kw)
         except root.Cancel:
             alert("Canceled.")
-        except Exception, e:
+        except Exception as e:
             if ask("Error during {0}: {1!r}".format(func, e)[:1000], ["Report Error", "Okay"], default=1, cancel=0) == "Report Error":
                 reportException(e)
 
@@ -272,16 +275,16 @@ def loadAlphaTerrainTexture():
         skin = config.config.get("Settings", "MCEdit Skin")
         if skin is None or skin == "[Current]":
             optionsFile = os.path.join(mcplatform.minecraftDir, "options.txt")
-            for line in file(optionsFile):
+            for line in open(optionsFile):
                 if line.startswith("skin:"):
                     skin = line[5:].strip('\n')
 
         if skin and skin != "[Default]":
-            print "Loading texture pack {0}...".format(skin)
+            print("Loading texture pack {0}...".format(skin))
             try:
                 if skin == "Default":
                     pack = os.path.join(mcplatform.minecraftDir, "bin", "minecraft.jar")
-                    print "Loading textures from minecraft.jar"
+                    print("Loading textures from minecraft.jar")
                 else:
                     pack = os.path.join(mcplatform.texturePacksDir, skin)
                 zf = zipfile.ZipFile(pack, "r")
@@ -297,11 +300,11 @@ def loadAlphaTerrainTexture():
                     grassColorFile = zf.open("misc/grasscolor.png")
                 zf.close()
 
-            except Exception, e:
-                print repr(e), "while reading terrain.png from ", repr(pack)
+            except Exception as e:
+                print(repr(e), "while reading terrain.png from ", repr(pack))
 
-    except Exception, e:
-        print repr(e), "while loading texture pack info."
+    except Exception as e:
+        print(repr(e), "while loading texture pack info.")
 
     texW, texH, terraindata = loadPNGFile("terrain.png")
 
@@ -318,8 +321,8 @@ def loadAlphaTerrainTexture():
         try:
             texW, texH, terraindata = loadPNGData(slurpZipExt(pngFile))
 
-        except Exception, e:
-            print repr(e), "while loading texture pack"
+        except Exception as e:
+            print(repr(e), "while loading texture pack")
 
     if customWaterFile is not None:
         s, t = pymclevel.materials.alphaMaterials.blockTextures[pymclevel.materials.alphaMaterials.Water.ID, 0, 0]
@@ -415,8 +418,8 @@ def loadPNGTexture(filename):
         tex = glutils.Texture(functools.partial(loadTextureFunc, w, h, ndata))
         tex.data = ndata
         return tex
-    except Exception, e:
-        print "Exception loading ", filename, ": ", repr(e)
+    except Exception as e:
+        print("Exception loading ", filename, ": ", repr(e))
         return glutils.Texture()
 
 
@@ -430,7 +433,7 @@ def normalize(x):
     size = numpy.sqrt(l)
     if size <= 0.0:
         return [0, 0, 0]
-    return map(lambda a: a / size, x)
+    return [a / size for a in x]
 
 
 def normalize_size(x):
@@ -456,7 +459,7 @@ class HotkeyColumn(Widget):
 
         Widget.__init__(self)
         for (hotkey, title, action) in items:
-            if isinstance(title, (str, unicode)):
+            if isinstance(title, (str, six.text_type)):
                 button = Button(title, action=action)
             else:
                 button = ValueButton(ref=title, action=action, width=200)
@@ -623,7 +626,7 @@ def showProgress(progressText, progressIterator, cancel=False):
 
             try:
                 while datetime.now() < frameStart + frameInterval:
-                    amount = progressIterator.next()
+                    amount = next(progressIterator)
                     if self.firstDraw is False:
                         self.firstDraw = True
                         break
@@ -646,7 +649,7 @@ def showProgress(progressText, progressIterator, cancel=False):
                 if amount is None:
                     self.progressBar.width = maxwidth
                     self.progressBar.bg_color = (255, 255, 25, 255)
-                elif isinstance(amount, basestring):
+                elif isinstance(amount, six.string_types):
                     self.statusText = amount
                 else:
                     self.progressAmount = amount

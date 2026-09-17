@@ -2,6 +2,7 @@
 #   Albow - Sound utilities
 #
 
+from __future__ import absolute_import
 import pygame
 from pygame import mixer
 

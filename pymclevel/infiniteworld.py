@@ -3,7 +3,9 @@ Created on Jul 22, 2011
 
 @author: Rio
 '''
-from mclevelbase import *
+from __future__ import absolute_import
+from __future__ import print_function
+from .mclevelbase import *
 from collections import deque
 import time
 import zlib
@@ -11,13 +13,18 @@ import struct
 import shutil
 import subprocess
 import sys
-import urllib
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 import tempfile
 from os.path import join, dirname, basename
+import six
+from six.moves import filter
+from six.moves import map
+from six.moves import range
+from six.moves import zip
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
 
-from level import LightedChunk, EntityLevel, computeChunkHeightMap
+from .level import LightedChunk, EntityLevel, computeChunkHeightMap
 
 #infinite
 Level = 'Level'
@@ -100,7 +107,7 @@ class ServerJarStorage(object):
             os.makedirs(self.cacheDir)
         readme = os.path.join(self.cacheDir, "README.TXT")
         if not os.path.exists(readme):
-            with file(readme, "w") as f:
+            with open(readme, "w") as f:
                 f.write("""
 About this folder:
 
@@ -130,24 +137,24 @@ this way.
             for f in cacheDirList:
                 p = os.path.join(self.cacheDir, f)
                 if f.startswith("minecraft_server") and f.endswith(".jar") and os.path.isfile(p):
-                    print "Unclassified minecraft_server.jar found in cache dir. Discovering version number..."
+                    print("Unclassified minecraft_server.jar found in cache dir. Discovering version number...")
                     self.cacheNewVersion(p)
                     os.remove(p)
 
 
-        print "Minecraft_Server.jar storage initialized."
-        print u"Each server is stored in a subdirectory of {0} named with the server's version number".format(self.cacheDir)
+        print("Minecraft_Server.jar storage initialized.")
+        print(u"Each server is stored in a subdirectory of {0} named with the server's version number".format(self.cacheDir))
 
 
-        print "Cached servers: ", self.versions
+        print("Cached servers: ", self.versions)
 
 
     def downloadCurrentServer(self):
-        print "Downloading the latest Minecraft Server..."
+        print("Downloading the latest Minecraft Server...")
         try:
-            (filename, headers) = urllib.urlretrieve("http://www.minecraft.net/download/minecraft_server.jar")
-        except Exception, e:
-            print "Error downloading server: {0!r}".format(e)
+            (filename, headers) = six.moves.urllib.request.urlretrieve("http://www.minecraft.net/download/minecraft_server.jar")
+        except Exception as e:
+            print("Error downloading server: {0!r}".format(e))
             return
         
         self.cacheNewVersion(filename, allowDuplicate=False)
@@ -157,7 +164,7 @@ this way.
         it into the proper subfolder of the server jar cache folder"""
 
         version = MCServerChunkGenerator._serverVersionFromJarFile(filename)
-        print "Found version ", version
+        print("Found version ", version)
         versionDir = os.path.join(self.cacheDir, version)
 
         i = 1
@@ -179,7 +186,7 @@ this way.
         return os.path.join(self.cacheDir, v, "minecraft_server.jar").encode(sys.getfilesystemencoding())
     def checksumForVersion(self, v):
         jf = self.jarfileForVersion(v)
-        with file(jf, "rb") as f:
+        with open(jf, "rb") as f:
             import hashlib
             return hashlib.md5(f.read()).hexdigest()
 
@@ -192,7 +199,7 @@ this way.
 
     def getJarfile(self, version=None):
         if len(self.versions) == 0:
-            print "No servers found in cache."
+            print("No servers found in cache.")
             self.downloadCurrentServer()
 
         version = version or self.latestVersion
@@ -205,14 +212,14 @@ class VersionNotFound(RuntimeError): pass
 def readProperties(filename):
     if not os.path.exists(filename): return {}
     
-    with file(filename) as f:
+    with open(filename) as f:
         properties = dict((line.split("=", 2) for line in (l.strip() for l in f) if not line.startswith("#")))
 
     return properties
 
 def saveProperties(filename, properties):
-    with file(filename, "w") as f:
-        for k, v in properties.iteritems():
+    with open(filename, "w") as f:
+        for k, v in six.iteritems(properties):
             f.write("{0}={1}\n".format(k, v))
 
 def findJava():
@@ -238,11 +245,11 @@ def findJava():
                                 w = l.split(None, 2)
                                 javaHome = w[-1]
                                 javaExe = os.path.join(javaHome, "bin", "java.exe")
-                                print "RegQuery: java.exe found at ", javaExe
+                                print("RegQuery: java.exe found at ", javaExe)
                                 break
 
-            except Exception, e:
-                print "Error while locating java.exe using the Registry: ", repr(e)
+            except Exception as e:
+                print("Error while locating java.exe using the Registry: ", repr(e))
     else:
         javaExe = which("java")
     
@@ -285,11 +292,11 @@ class MCServerChunkGenerator(object):
         self.jarStorage = jarStorage or self.getDefaultJarStorage()
 
         if self.javaExe is None:
-            raise JavaNotFound, "Could not find java. Please check that java is installed correctly. (Could not find java in your PATH environment variable.)"
+            raise JavaNotFound("Could not find java. Please check that java is installed correctly. (Could not find java in your PATH environment variable.)")
         if jarfile is None:
             jarfile = self.jarStorage.getJarfile(version)
         if jarfile is None:
-            raise VersionNotFound, "Could not find minecraft_server.jar for version {0}. Please make sure that a minecraft_server.jar is placed under {1} in a subfolder named after the server's version number.".format(version or "(latest)", self.jarStorage.cacheDir)
+            raise VersionNotFound("Could not find minecraft_server.jar for version {0}. Please make sure that a minecraft_server.jar is placed under {1} in a subfolder named after the server's version number.".format(version or "(latest)", self.jarStorage.cacheDir))
         self.serverJarFile = jarfile
         self.serverVersion = version or self._serverVersion()
 
@@ -312,7 +319,7 @@ class MCServerChunkGenerator(object):
         readme = os.path.join(self.worldCacheDir, "README.TXT")
 
         if not os.path.exists(readme):
-            with file(readme, "w") as f:
+            with open(readme, "w") as f:
                 f.write("""
     About this folder:
     
@@ -390,7 +397,7 @@ class MCServerChunkGenerator(object):
             if "FAILED TO BIND" in line:
                 proc.kill()
                 proc.wait()
-                raise RuntimeError, "Server failed to bind to port!"
+                raise RuntimeError("Server failed to bind to port!")
                 
         stdout, _ = proc.communicate()
         
@@ -405,8 +412,8 @@ class MCServerChunkGenerator(object):
         if level.containsChunk(cx, cz): return
         try:
             tempChunk = tempWorld.getChunk(cx, cz)
-        except ChunkNotPresent, e:
-            raise ChunkNotPresent, "While generating a world in {0} using server {1} ({2!r})".format(tempWorld, self.serverJarFile, e), sys.exc_traceback
+        except ChunkNotPresent as e:
+            six.reraise(ChunkNotPresent, "While generating a world in {0} using server {1} ({2!r})".format(tempWorld, self.serverJarFile, e), sys.exc_info()[2])
         
         tempChunk.decompress()
         tempChunk.unpackChunkData()
@@ -441,7 +448,7 @@ class MCServerChunkGenerator(object):
         return exhaust(self.createLevelIter(level, box, simulate, **kw))
         
     def createLevelIter(self, level, box, simulate = False, **kw):
-        if isinstance(level, basestring):
+        if isinstance(level, six.string_types):
             filename = level
             level = MCInfdevOldLevel(filename, create=True, **kw)
             
@@ -449,8 +456,8 @@ class MCServerChunkGenerator(object):
         minRadius = self.minRadius
         
         genPositions = list(itertools.product(
-                       xrange(box.mincx, box.maxcx, minRadius * 2),
-                       xrange(box.mincz, box.maxcz, minRadius * 2)))
+                       range(box.mincx, box.maxcx, minRadius * 2),
+                       range(box.mincz, box.maxcz, minRadius * 2)))
         
         for i, (cx,cz) in enumerate(genPositions):
             info("Generating at %s" % ((cx,cz),))
@@ -488,7 +495,7 @@ class MCServerChunkGenerator(object):
             
             #boxedChunks = [cPos for cPos in chunks if inBox(cPos)]
             
-            print "Generating {0} chunks out of {1} starting from {2}".format("XXX", len(chunks), (centercx, centercz))
+            print("Generating {0} chunks out of {1} starting from {2}".format("XXX", len(chunks), (centercx, centercz)))
             yield startLength - len(chunks), startLength
 
             #chunks = [c for c in chunks if not inBox(c)]
@@ -498,8 +505,8 @@ class MCServerChunkGenerator(object):
             
             i=0
             for cx, cz in itertools.product(
-                            xrange(centercx-maxRadius, centercx+maxRadius),
-                            xrange(centercz-maxRadius, centercz+maxRadius)):
+                            range(centercx-maxRadius, centercx+maxRadius),
+                            range(centercz-maxRadius, centercz+maxRadius)):
                 if level.containsChunk(cx,cz):
                     chunks.discard((cx,cz))
                 elif ((cx,cz) in chunks
@@ -512,14 +519,14 @@ class MCServerChunkGenerator(object):
                     yield startLength - len(chunks), startLength
             
             if length == len(chunks):
-                print "No chunks were generated. Aborting."
+                print("No chunks were generated. Aborting.")
                 break
                 
         level.saveInPlace()
 
             
     def runServer(self, startingDir):
-        if isinstance(startingDir, unicode): startingDir = startingDir.encode(sys.getfilesystemencoding())
+        if isinstance(startingDir, six.text_type): startingDir = startingDir.encode(sys.getfilesystemencoding())
     
         return self._runServer(startingDir, self.serverJarFile)
 
@@ -586,7 +593,7 @@ def ZeroChunk(height=512):
         z = _zeros[height] = _ZeroChunk(height)
     return z
 
-from level import ChunkBase
+from .level import ChunkBase
 
 class _ZeroChunk(ChunkBase):
     " a placebo for neighboring-chunk routines "
@@ -740,17 +747,17 @@ class InfdevChunk(LightedChunk):
             try:
                 self._decompressChunk()
 
-            except Exception, e:
+            except Exception as e:
                 error(u"Malformed NBT data in file: {0} ({1})".format(self.filename, e))
                 if self.world: self.world.malformedChunk(*self.chunkPosition);
-                raise ChunkMalformed, (e,), sys.exc_info()[2]
+                six.reraise(ChunkMalformed, (e,), sys.exc_info()[2])
 
             try:
                 self.shapeChunkData()
-            except KeyError, e:
+            except KeyError as e:
                 error(u"Incorrect chunk format in file: {0} ({1})".format(self.filename, e))
                 if self.world: self.world.malformedChunk(*self.chunkPosition);
-                raise ChunkMalformed, (e,), sys.exc_info()[2]
+                six.reraise(ChunkMalformed, (e,), sys.exc_info()[2])
 
             self.dataIsPacked = True
         self.world.chunkDidDecompress(self)
@@ -831,10 +838,10 @@ class InfdevChunk(LightedChunk):
                 self.shapeChunkData()
                 self.unpackChunkData()
 
-            except Exception, e:
+            except Exception as e:
                 error(u"Incorrect chunk format in file: {0} ({1})".format(self.filename, e))
                 if self.world: self.world.malformedChunk(*self.chunkPosition);
-                raise ChunkMalformed, (e,), sys.exc_info()[2]
+                six.reraise(ChunkMalformed, (e,), sys.exc_info()[2])
 
             self.world.chunkDidLoad(self)
             self.world.chunkDidDecompress(self)
@@ -1028,7 +1035,7 @@ class MCRegionFile(object):
 
     @property
     def file(self):
-        openfile = lambda:file(self.path, "rb+")
+        openfile = lambda:open(self.path, "rb+")
         if MCRegionFile.holdFileOpen:
             if self._file is None:
                 self._file = openfile()
@@ -1049,7 +1056,7 @@ class MCRegionFile(object):
         self.regionCoords = regionCoords
         self._file = None
         if not os.path.exists(path):
-            file(path, "w").close()
+            open(path, "w").close()
 
         with self.file as f:
 
@@ -1079,10 +1086,10 @@ class MCRegionFile(object):
             sector = offset >> 8
             count = offset & 0xff
 
-            for i in xrange(sector, sector + count):
+            for i in range(sector, sector + count):
                 if i >= len(self.freeSectors):
                     #raise RegionMalformed, "Region file offset table points to sector {0} (past the end of the file)".format(i)
-                    print  "Region file offset table points to sector {0} (past the end of the file)".format(i)
+                    print("Region file offset table points to sector {0} (past the end of the file)".format(i))
                     needsRepair = True
                     break
                 if self.freeSectors[i] is False:
@@ -1123,12 +1130,12 @@ class MCRegionFile(object):
                 try:
 
                     if sectorStart + sectorCount > len(self.freeSectors):
-                        raise RegionMalformed, "Offset {start}:{end} ({offset}) at index {index} pointed outside of the file".format(
-                            start=sectorStart, end=sectorStart + sectorCount, index=index, offset=offset)
+                        raise RegionMalformed("Offset {start}:{end} ({offset}) at index {index} pointed outside of the file".format(
+                            start=sectorStart, end=sectorStart + sectorCount, index=index, offset=offset))
 
                     compressedData = self._readChunk(cx, cz)
                     if compressedData is None:
-                        raise RegionMalformed, "Failed to read chunk data for {0}".format((cx, cz))
+                        raise RegionMalformed("Failed to read chunk data for {0}".format((cx, cz)))
 
                     format, data = self.decompressSectors(compressedData)
                     chunkTag = nbt.load(buf=data)
@@ -1137,7 +1144,7 @@ class MCRegionFile(object):
                     zPos = lev["zPos"].value
                     overlaps = False
 
-                    for i in xrange(sectorStart, sectorStart + sectorCount):
+                    for i in range(sectorStart, sectorStart + sectorCount):
                         if _freeSectors[i] is False:
                             overlaps = True
                         _freeSectors[i] = False
@@ -1147,18 +1154,18 @@ class MCRegionFile(object):
                         lostAndFound[xPos, zPos] = (format, compressedData)
 
                         if (xPos, zPos) != (cx, cz):
-                            raise RegionMalformed, "Chunk {found} was found in the slot reserved for {expected}".format(found=(xPos, zPos), expected=(cx, cz))
+                            raise RegionMalformed("Chunk {found} was found in the slot reserved for {expected}".format(found=(xPos, zPos), expected=(cx, cz)))
                         else:
-                            raise RegionMalformed, "Chunk {found} (in slot {expected}) has overlapping sectors with another chunk!".format(found=(xPos, zPos), expected=(cx, cz))
+                            raise RegionMalformed("Chunk {found} (in slot {expected}) has overlapping sectors with another chunk!".format(found=(xPos, zPos), expected=(cx, cz)))
 
 
 
-                except Exception, e:
+                except Exception as e:
                     info("Unexpected chunk data at sector {sector} ({exc})".format(sector=sectorStart, exc=e))
                     self.setOffset(cx, cz, 0)
                     deleted += 1
 
-        for cPos, (format, foundData) in lostAndFound.iteritems():
+        for cPos, (format, foundData) in six.iteritems(lostAndFound):
             cx, cz = cPos
             if self.getOffset(cx, cz) == 0:
                 info("Found chunk {found} and its slot is empty, recovering it".format(found=cPos))
@@ -1170,7 +1177,7 @@ class MCRegionFile(object):
     def extractAllChunks(self, folder):
         if not os.path.exists(folder):
             os.mkdir(folder)
-        for cx, cz in itertools.product(range(32), range(32)):
+        for cx, cz in itertools.product(list(range(32)), list(range(32))):
             sectors = self._readChunk(cx, cz)
             if sectors is not None:
                 format, compressedData = self.unpackSectors(sectors)
@@ -1182,7 +1189,7 @@ class MCRegionFile(object):
                 gzdata = InfdevChunk.compressTagGzip(chunkTag)
                 #print chunkTag.pretty_string()
 
-                with file(os.path.join(folder, "c.{0}.{1}.dat".format(base36(xPos), base36(zPos))), "wb") as f:
+                with open(os.path.join(folder, "c.{0}.{1}.dat".format(base36(xPos), base36(zPos))), "wb") as f:
                     f.write(gzdata)
 
     def _readChunk(self, cx, cz):
@@ -1209,7 +1216,7 @@ class MCRegionFile(object):
         cx, cz = chunk.chunkPosition
 
         data = self._readChunk(cx, cz)
-        if data is None: raise ChunkNotPresent, (cx, cz, self)
+        if data is None: raise ChunkNotPresent(cx, cz, self)
         chunk.compressedTag = data[5:]
 
         format, data = self.decompressSectors(data)
@@ -1228,7 +1235,7 @@ class MCRegionFile(object):
         if format == self.VERSION_DEFLATE:
             return inflate(data)
 
-        raise IOError, "Unknown compress format: {0}".format(format)
+        raise IOError("Unknown compress format: {0}".format(format))
 
     def decompressSectors(self, data):
         format, data = self.unpackSectors(data)
@@ -1260,7 +1267,7 @@ class MCRegionFile(object):
             # we need to allocate new sectors
 
             # mark the sectors previously used for this chunk as free 
-            for i in xrange(sectorNumber, sectorNumber + sectorsAllocated):
+            for i in range(sectorNumber, sectorNumber + sectorsAllocated):
                 self.freeSectors[i] = True
 
             runLength = 0
@@ -1743,10 +1750,10 @@ class ChunkedLevelMixin(object):
 
                 def include(tileEntity):
                     p = TileEntity.pos(tileEntity)
-                    x, y, z = map(lambda a, b, c:(a - b) - c, p, point, box.origin)
+                    x, y, z = list(map(lambda a, b, c:(a - b) - c, p, point, box.origin))
                     return not ((p in box) and mask[x, z, y])
 
-                chunk.TileEntities.value[:] = filter(include, chunk.TileEntities)
+                chunk.TileEntities.value[:] = list(filter(include, chunk.TileEntities))
 
 
 
@@ -1776,7 +1783,7 @@ class ChunkedLevelMixin(object):
         startTime = datetime.now()
 
         if dirtyChunks is None:
-            dirtyChunks = (ch for ch in self._loadedChunks.itervalues() if ch.needsLighting)
+            dirtyChunks = (ch for ch in six.itervalues(self._loadedChunks) if ch.needsLighting)
         else:
             dirtyChunks = (self._getChunkUnloaded(*c) for c in dirtyChunks if self.containsChunk(*c))
 
@@ -1953,8 +1960,8 @@ class ChunkedLevelMixin(object):
                     neighboringChunks = {}
                     try:
                         chunk.load()
-                    except (ChunkNotPresent, ChunkMalformed), e:
-                        print "Chunk error during relight, chunk skipped: ", e
+                    except (ChunkNotPresent, ChunkMalformed) as e:
+                        print("Chunk error during relight, chunk skipped: ", e)
                         continue
 
                     for dir, dx, dz in ((FaceXDecreasing, -1, 0),
@@ -2183,7 +2190,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
     SizeOnDisk = TagProperty('SizeOnDisk', TAG_Long)
     RandomSeed = TagProperty('RandomSeed', TAG_Long)
     Time = TagProperty('Time', TAG_Long); """ Age of the world in ticks. 20 ticks per second; 24000 ticks per day."""
-    LastPlayed = TagProperty('LastPlayed', TAG_Long, lambda self:long(time.time() * 1000))
+    LastPlayed = TagProperty('LastPlayed', TAG_Long, lambda self:int(time.time() * 1000))
 
     LevelName = TagProperty('LevelName', TAG_String, lambda self:self.displayName)
     
@@ -2215,7 +2222,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
     def create(self, filename, random_seed, last_played):
 
         if filename == None:
-            raise ValueError, "Can't create an Infinite level without a filename!"
+            raise ValueError("Can't create an Infinite level without a filename!")
         #create a new level
         root_tag = TAG_Compound()
         root_tag[Data] = TAG_Compound()
@@ -2224,15 +2231,15 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
         root_tag[Data][SpawnZ] = TAG_Int(0)
 
         if last_played is None:
-            last_played = long(time.time() * 1000)
+            last_played = int(time.time() * 1000)
         if random_seed is None:
-            random_seed = long(random.random() * 0xffffffffffffffffL) - 0x8000000000000000L
+            random_seed = int(random.random() * 0xffffffffffffffff) - 0x8000000000000000
 
         self.root_tag = root_tag
         root_tag[Data]['version'] = TAG_Int(19132)
 
-        self.LastPlayed = long(last_played)
-        self.RandomSeed = long(random_seed)
+        self.LastPlayed = int(last_played)
+        self.RandomSeed = int(random_seed)
         self.SizeOnDisk = 0
         self.Time = 1
         self.LevelName = os.path.basename(self.worldDir)
@@ -2289,7 +2296,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
         self.players = []
         if not os.path.exists(filename):
             if not create:
-                raise IOError, 'File not found'
+                raise IOError('File not found')
 
             self.worldDir = filename
             os.mkdir(self.worldDir)
@@ -2301,7 +2308,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
             if os.path.basename(filename) in ("level.dat", "level.dat_old"):
                 self.worldDir = os.path.dirname(filename)
             else:
-                raise IOError, 'File is not a Minecraft Alpha world'
+                raise IOError('File is not a Minecraft Alpha world')
 
         self.filename = os.path.join(self.worldDir, "level.dat")
         self.regionDir = os.path.join(self.worldDir, "region")
@@ -2344,16 +2351,16 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
         else:
             try:
                 self.root_tag = nbt.load(self.filename)
-            except Exception, e:
+            except Exception as e:
                 filename_old = os.path.join(self.worldDir, "level.dat_old")
                 info("Error loading level.dat, trying level.dat_old ({0})".format(e))
                 try:
                     self.root_tag = nbt.load(filename_old)
                     info("level.dat restored from backup.")
                     self.saveInPlace()
-                except Exception, e:
+                except Exception as e:
                     traceback.print_exc()
-                    print repr(e)
+                    print(repr(e))
                     info("Error loading level.dat_old. Initializing with defaults.")
                     self.create(self.filename, random_seed, last_played)
 
@@ -2367,7 +2374,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
                     info("Found dimension {0}".format(dirname))
                     dim = MCAlphaDimension(self, dimNo)
                     self.dimensions[dimNo] = dim
-                except Exception, e:
+                except Exception as e:
                     error(u"Error loading dimension {0}: {1}".format(dirname, e))
 
     def getDimension(self, dimNo):
@@ -2409,7 +2416,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
         if len(bits) < 4 or bits[0] != 'r' or bits[3] != "mcr": return None
 
         try:
-            rx, rz = map(int, bits[1:3])
+            rx, rz = list(map(int, bits[1:3]))
         except ValueError:
             return None
 
@@ -2471,14 +2478,14 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
                             #return os.path.join(self.worldDir, dirname, subdirname, filename);
 
                         #fullpaths = map(fullname, filenames);
-                        bits = map(lambda x:x.split('.'), filenames)
+                        bits = [x.split('.') for x in filenames]
 
-                        chunkfilenames = filter(lambda x:(len(x) == 4 and x[0].lower() == 'c' and x[3].lower() == 'dat'), bits)
+                        chunkfilenames = [x for x in bits if (len(x) == 4 and x[0].lower() == 'c' and x[3].lower() == 'dat')]
 
                         for c in chunkfilenames:
                             try:
                                 cx, cz = (decbase36(c[1]), decbase36(c[2]))
-                            except Exception, e:
+                            except Exception as e:
                                 info(u'Skipped file {0} ({1})'.format(u'.'.join(c), e))
                                 continue
 
@@ -2492,7 +2499,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
         self.compressAllChunks()
 
     def compressAllChunks(self):
-        for ch in self._loadedChunks.itervalues():
+        for ch in six.itervalues(self._loadedChunks):
             ch.compress()
 
     def compressChunk(self, cx, cz):
@@ -2554,14 +2561,14 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
                 regionFile.loadChunk(chunk)
 
             else:
-                with file(chunk.filename, 'rb') as f:
+                with open(chunk.filename, 'rb') as f:
                     cdata = f.read()
                     chunk.compressedTag = cdata
                     data = gunzip(cdata)
                     chunk.root_tag = nbt.load(buf=data)
 
-        except Exception, e:
-            raise ChunkMalformed, "Chunk {0} had an error: {1!r}".format(chunk.chunkPosition, e), sys.exc_info()[2]
+        except Exception as e:
+            six.reraise(ChunkMalformed, "Chunk {0} had an error: {1!r}".format(chunk.chunkPosition, e), sys.exc_info()[2])
 
 
     def _saveChunk(self, chunk):
@@ -2580,7 +2587,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
                 os.mkdir(dir1)
 
             chunk.compress()
-            with file(chunk.filename, 'wb') as f:
+            with open(chunk.filename, 'wb') as f:
                 f.write(chunk.compressedTag)
 
     def discardAllChunks(self):
@@ -2640,7 +2647,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
             chunk.packChunkData()
             data = chunk.compressTagGzip(chunk.root_tag)
 
-        with file(outputFile, "wb") as f:
+        with open(outputFile, "wb") as f:
             f.write(data)
 
 
@@ -2659,7 +2666,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
 
     @property
     def loadedChunks(self):
-        return self._loadedChunks.keys()
+        return list(self._loadedChunks.keys())
 
     @property
     def chunkCount(self):
@@ -2684,7 +2691,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
         raise ChunkMalformed"""
 
         if not self.containsChunk(cx, cz) :
-            raise ChunkNotPresent, (cx, cz)
+            raise ChunkNotPresent(cx, cz)
 
         if not (cx, cz) in self._loadedChunks:
             self._loadedChunks[cx, cz] = InfdevChunk(self, (cx, cz))
@@ -2717,7 +2724,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
         c = self._getChunkUnloaded(cx, cz)
         c.load()
         if not (cx, cz) in self._loadedChunks:
-            raise ChunkMalformed, "Chunk {0} malformed".format((cx, cz))
+            raise ChunkMalformed("Chunk {0} malformed".format((cx, cz)))
             self.world.malformedChunk(*self.chunkPosition)
 
         return c
@@ -2731,17 +2738,17 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
             self.markDirtyChunk(cx, cz)
 
     def saveInPlace(self):
-        for level in self.dimensions.itervalues():
+        for level in six.itervalues(self.dimensions):
             level.saveInPlace(True)
 
         dirtyChunkCount = 0
         if self._loadedChunks:
-            for chunk in self._loadedChunks.itervalues():
+            for chunk in six.itervalues(self._loadedChunks):
                 if chunk.dirty:
                     dirtyChunkCount += 1
                 chunk.save()
 
-        for path, tag in self.playerTagCache.iteritems():
+        for path, tag in six.iteritems(self.playerTagCache):
             tag.saveGzipped(path)
 
         self.playerTagCache = {}
@@ -2751,11 +2758,11 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
 
     def addEntity(self, entityTag):
         assert isinstance(entityTag, TAG_Compound)
-        x, y, z = map(lambda x:int(floor(x)), Entity.pos(entityTag))
+        x, y, z = [int(floor(x)) for x in Entity.pos(entityTag)]
 
         try:
             chunk = self.getChunk(x >> 4, z >> 4)
-        except (ChunkNotPresent, ChunkMalformed), e:
+        except (ChunkNotPresent, ChunkMalformed) as e:
             return None
             # raise Error, can't find a chunk?
         chunk.addEntity(entityTag)
@@ -2824,7 +2831,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
             self._bounds = None
 
     def createChunk(self, cx, cz):
-        if self.containsChunk(cx, cz): raise ValueError, "{0}:Chunk {1} already present!".format(self, (cx, cz))
+        if self.containsChunk(cx, cz): raise ValueError("{0}:Chunk {1} already present!".format(self, (cx, cz)))
         if self._allChunks is not None:
             self._allChunks.add((cx, cz))
 
@@ -2878,7 +2885,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
         info(u"Deleting {0} chunks in {1}".format((box.maxcx - box.mincx) * (box.maxcz - box.mincz), ((box.mincx, box.mincz), (box.maxcx, box.maxcz))))
         i = 0
         ret = []
-        for cx, cz in itertools.product(xrange(box.mincx, box.maxcx), xrange(box.mincz, box.maxcz)):
+        for cx, cz in itertools.product(range(box.mincx, box.maxcx), range(box.mincz, box.maxcz)):
             i += 1
             if self.containsChunk(cx, cz):
                 self.deleteChunk(cx, cz)
@@ -2925,7 +2932,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
             if player in self.root_tag["Data"]:
                 #single-player world
                 return self.root_tag["Data"]["Player"]
-            raise PlayerNotFound, player
+            raise PlayerNotFound(player)
         else:
             playerFilePath = self.getPlayerPath(player)
             if os.path.exists(playerFilePath):
@@ -2937,7 +2944,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
                 return playerTag
 
             else:
-                raise PlayerNotFound, "{0}".format(player)
+                raise PlayerNotFound("{0}".format(player))
                 #return None
 
     def getPlayerDimension(self, player="Player"):
@@ -2961,7 +2968,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
         playerTag = self.getPlayerTag(player)
         posList = playerTag["Pos"]
 
-        pos = map(lambda x:x.value, posList)
+        pos = [x.value for x in posList]
         return pos
 
     def setPlayerOrientation(self, yp, player="Player"):
@@ -2969,7 +2976,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
 
     def getPlayerOrientation(self, player="Player"):
         """ returns (yaw, pitch) """
-        yp = map(lambda x:x.value, self.getPlayerTag(player)["Rotation"])
+        yp = [x.value for x in self.getPlayerTag(player)["Rotation"]]
         y, p = yp
         if p == 0: p = 0.000000001;
         if p == 180.0:  p -= 0.000000001;
@@ -3080,8 +3087,8 @@ class ZipSchematic (MCInfdevOldLevel):
                 self.Width = schematicDat['Width'].value
                 self.Height = schematicDat['Height'].value
                 self.Length = schematicDat['Length'].value
-        except Exception, e:
-            print "Exception reading schematic.dat, skipping: {0!r}".format(e)
+        except Exception as e:
+            print("Exception reading schematic.dat, skipping: {0!r}".format(e))
             self.Width = 0
             self.Height = 128
             self.Length = 0
@@ -3112,14 +3119,14 @@ class ZipSchematic (MCInfdevOldLevel):
         if self.version:
             return MCInfdevOldLevel._saveChunk(self, chunk)
         else:
-            raise NotImplementedError, "Cannot save chunk-format zipfiles!"
+            raise NotImplementedError("Cannot save chunk-format zipfiles!")
 
     def saveInPlace(self):
         self.saveToFile(self.filename)
         
     def saveToFile(self, filename):
         tempfile = filename + ".new"
-        from schematic import zipdir
+        from .schematic import zipdir
         zipdir(self.worldDir, tempfile)
         
         if os.path.exists(filename):
@@ -3148,7 +3155,7 @@ class ZipSchematic (MCInfdevOldLevel):
             if len(c) == 4 and c[0].lower() == 'c' and c[3].lower() == 'dat':
                 try:
                     cx, cz = (decbase36(c[1]), decbase36(c[2]))
-                except Exception, e:
+                except Exception as e:
                     info('Skipped file {0} ({1})'.format('.'.join(c), e))
                     continue
                 #self._loadedChunks[ (cx, cz) ] = InfdevChunk(self, (cx, cz));
@@ -3162,7 +3169,7 @@ class ZipSchematic (MCInfdevOldLevel):
 
     def loadLevelDat(self, create=False, random_seed=None, last_played=None):
         if create:
-            raise NotImplementedError, "Cannot save zipfiles yet!"
+            raise NotImplementedError("Cannot save zipfiles yet!")
 
         with closing(self.zipfile.open("level.dat")) as f:
             with closing(gzip.GzipFile(fileobj=StringIO(f.read()))) as g:

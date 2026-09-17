@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 import pygame
 from pygame.locals import RLEACCEL
+from six.moves import range
 
 #default_font_name = "Vera.ttf"
 optimize_images = True
@@ -78,11 +81,11 @@ def get_font(size, *names, **kwds):
     if not font:
         try:
             font = pygame.font.Font(path, size)
-        except Exception, e:
+        except Exception as e:
             try:
                 font = pygame.font.Font(path.encode(sys.getfilesystemencoding()), size)
-            except Exception, e:
-                print "Couldn't get font {0}, using sysfont".format((path, size))
+            except Exception as e:
+                print("Couldn't get font {0}, using sysfont".format((path, size)))
                 font = pygame.font.SysFont("Courier New", size)
         font_cache[key] = font
     return font
@@ -121,12 +124,12 @@ def get_sound(*names, **kwds):
     if not sound:
         try:
             from pygame.mixer import Sound
-        except ImportError, e:
+        except ImportError as e:
             no_sound(e)
             return dummy_sound
         try:
             sound = Sound(path)
-        except pygame.error, e:
+        except pygame.error as e:
             missing_sound(e, path)
             return dummy_sound
         sound_cache[path] = sound
@@ -135,13 +138,13 @@ def get_sound(*names, **kwds):
 
 def no_sound(e):
     global sound_cache
-    print "albow.resource.get_sound: %s" % e
-    print "albow.resource.get_sound: Sound not available, continuing without it"
+    print("albow.resource.get_sound: %s" % e)
+    print("albow.resource.get_sound: Sound not available, continuing without it")
     sound_cache = None
 
 
 def missing_sound(e, name):
-    print "albow.resource.get_sound: %s: %s" % (name, e)
+    print("albow.resource.get_sound: %s: %s" % (name, e))
 
 
 def get_text(*names, **kwds):
@@ -160,8 +163,8 @@ def load_cursor(path):
     data = []
     mask = []
     rowbytes = (width + 7) // 8
-    xr = xrange(width)
-    yr = xrange(height)
+    xr = range(width)
+    yr = range(height)
     for y in yr:
         bit = 0x80
         db = mb = 0

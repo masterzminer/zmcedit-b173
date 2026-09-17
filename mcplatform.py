@@ -18,6 +18,8 @@ mcplatform.py
 Platform-specific functions, folder paths, and the whole fixed/portable nonsense.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 import directories
 import os
 from os.path import dirname, exists, join
@@ -99,8 +101,8 @@ def Lion():
         lionver = distutils.version.StrictVersion('10.7')
         curver = distutils.version.StrictVersion(platform.release())
         return curver >= lionver
-    except Exception, e:
-        print "Error getting system version: ", repr(e)
+    except Exception as e:
+        print("Error getting system version: ", repr(e))
         return False
 
 lastSchematicsDir = None
@@ -176,8 +178,8 @@ def askOpenFileWin32(title, schematics, initialDir):
             Title=title,
             Filter=f,
             )
-    except Exception, e:
-        print "Open File: ", e
+    except Exception as e:
+        print("Open File: ", e)
         pass
     else:
         return filename
@@ -219,8 +221,8 @@ def askSaveFile(initialDir, title, defaultName, filetype, suffix):
                 Title=title,
                 Filter=filetype,
                 )
-        except Exception, e:
-            print "Error getting file name: ", e
+        except Exception as e:
+            print("Error getting file name: ", e)
             return
 
         try:
@@ -298,11 +300,11 @@ def documents_folder():
             objShell = win32com.client.Dispatch("WScript.Shell")
             docsFolder = objShell.SpecialFolders("MyDocuments")
 
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
             try:
                 docsFolder = shell.SHGetFolderPath(0, shellcon.CSIDL_PERSONAL, 0, 0)
-            except Exception, e:
+            except Exception as e:
                 userprofile = os.environ['USERPROFILE'].decode(sys.getfilesystemencoding())
                 docsFolder = os.path.join(userprofile, "Documents")
 
@@ -329,8 +331,8 @@ def platform_open(path):
         else:
             os.system('xdg-open "' + path + '"')
 
-    except Exception, e:
-        print "platform_open failed on {0}: {1}".format(sys.platform, e)
+    except Exception as e:
+        print("platform_open failed on {0}: {1}".format(sys.platform, e))
 
 win32_window_size = True
 
@@ -351,8 +353,8 @@ if sys.platform == "darwin":
     if os.path.exists(oldPath):
         try:
             os.rename(oldPath, fixedConfigFilePath)
-        except Exception, e:
-            print repr(e)
+        except Exception as e:
+            print(repr(e))
 
     portableConfigFilePath = os.path.join(folderContainingAppPackage, ini)
     portableSchematicsDir = os.path.join(folderContainingAppPackage, u"MCEdit-schematics")
@@ -375,7 +377,7 @@ def move_displace(src, dst):
     dstFolder = os.path.basename(os.path.dirname(dst))
     if not os.path.exists(dst):
 
-        print "Moving {0} to {1}".format(os.path.basename(src), dstFolder)
+        print("Moving {0} to {1}".format(os.path.basename(src), dstFolder))
         shutil.move(src, dst)
     else:
         olddst = dst + ".old"
@@ -384,7 +386,7 @@ def move_displace(src, dst):
             olddst = dst + ".old" + str(i)
             i += 1
 
-        print "{0} already found in {1}! Renamed it to {2}.".format(os.path.basename(src), dstFolder, dst)
+        print("{0} already found in {1}! Renamed it to {2}.".format(os.path.basename(src), dstFolder, dst))
         os.rename(dst, olddst)
         shutil.move(src, dst)
 
@@ -407,13 +409,13 @@ def portableConfigExists():
         or (sys.platform != 'darwin' and not os.path.exists(fixedConfigFilePath)))  # no mcedit.ini in Documents folder (except on OS X when we always want it in Library/Preferences
 
 if "-fixed" not in sys.argv and ("-portable" in sys.argv or portableConfigExists()):
-    print "Running in portable mode. MCEdit-schematics and mcedit.ini are stored alongside " + (sys.platform == "darwin" and "the MCEdit app bundle" or "MCEditData")
+    print("Running in portable mode. MCEdit-schematics and mcedit.ini are stored alongside " + (sys.platform == "darwin" and "the MCEdit app bundle" or "MCEditData"))
     portable = True
     schematicsDir = portableSchematicsDir
     configFilePath = portableConfigFilePath
 
 else:
-    print "Running in fixed install mode. MCEdit-schematics and mcedit.ini are in your Documents folder."
+    print("Running in fixed install mode. MCEdit-schematics and mcedit.ini are in your Documents folder.")
     configFilePath = fixedConfigFilePath
     schematicsDir = fixedSchematicsDir
     portable = False

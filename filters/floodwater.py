@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from numpy import *
 from pymclevel import alphaMaterials, faceDirections, FaceYIncreasing
 from collections import deque
@@ -28,7 +30,7 @@ def perform(level, box, options):
             y = y + (point[1] + box.miny)
             coords.append(transpose((x, y, z)))
 
-        print "Stacking coords..."
+        print("Stacking coords...")
         coords = vstack(tuple(coords))
 
         def processCoords(coords):
@@ -56,10 +58,10 @@ def perform(level, box, options):
                 start = datetime.datetime.now()
 
                 num = len(coords)
-                print "Did {0} coords in ".format(num),
+                print("Did {0} coords in ".format(num), end=' ')
                 coords = processCoords(coords)
                 d = datetime.datetime.now() - start
-                print d
+                print(d)
                 yield "Did {0} coords in {1}".format(num, d)
 
         level.showProgress("Spreading water...", spread(coords), cancel=True)

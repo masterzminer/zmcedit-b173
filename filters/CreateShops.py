@@ -2,6 +2,7 @@
 # please give credit to SethBling.
 # http://youtube.com/SethBling
 
+from __future__ import absolute_import
 from pymclevel import TAG_Compound
 from pymclevel import TAG_Int
 from pymclevel import TAG_Short
@@ -10,6 +11,7 @@ from pymclevel import TAG_String
 from pymclevel import TAG_Float
 from pymclevel import TAG_Double
 from pymclevel import TAG_List
+from six.moves import range
 
 Professions = {
 	"Farmer (brown)": 0,

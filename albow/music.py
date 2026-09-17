@@ -5,6 +5,8 @@
 #---------------------------------------------------------------------------
 
 from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 from random import randrange
 
@@ -12,14 +14,14 @@ try:
     from pygame.mixer import music
 except ImportError:
     music = None
-    print "Music not available"
+    print("Music not available")
 
 if music:
-    import root
+    from . import root
     music.set_endevent(root.MUSIC_END_EVENT)
 
-from resource import resource_path
-from root import schedule
+from .resource import resource_path
+from .root import schedule
 
 #---------------------------------------------------------------------------
 
@@ -127,9 +129,9 @@ def start_next_music():
     #print "albow.music: start_next_music" ###
     global current_music, next_change_delay
     if music_enabled and current_playlist:
-        next_music = current_playlist.next()
+        next_music = next(current_playlist)
         if next_music:
-            print "albow.music: loading", repr(next_music)  ###
+            print("albow.music: loading", repr(next_music))  ###
             music.load(next_music)
             music.play()
             next_change_delay = change_delay

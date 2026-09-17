@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from esky import bdist_esky
 from setuptools import setup
 

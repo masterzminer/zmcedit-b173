@@ -5,6 +5,8 @@
    Needs the dummy mcInterface for MCEdit, and the default Forester script.
 '''
 
+from __future__ import absolute_import
+from __future__ import print_function
 from pymclevel.materials import alphaMaterials
 import Forester
 import mcInterface
@@ -93,7 +95,7 @@ def perform(level, box, options):
     Forester.X = x_center
     Forester.Z = z_center
     Forester.RADIUS = planting_radius
-    print("Plant radius = " + str(planting_radius))
+    print(("Plant radius = " + str(planting_radius)))
 
     # set the Forester settings that are not in the inputs
     # and should be a specific value

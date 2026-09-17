@@ -11,18 +11,22 @@ ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
 WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
-from toolbasics import *
+from __future__ import absolute_import
+from __future__ import print_function
+from .toolbasics import *
 from albow.dialogs import wrapped_label
 from albow import *
+import six
+from six.moves import map
 
 
 def alertFilterException(func):
     def _func(*args, **kw):
         try:
             func(*args, **kw)
-        except Exception, e:
+        except Exception as e:
             alert(u"Exception during filter operation. See console for details.\n\n{0}".format(e))
-            print traceback.format_exc()
+            print(traceback.format_exc())
 
     return _func
 
@@ -54,7 +58,7 @@ class FilterModuleOptions(Widget):
         self.optionDict = {}
         pageTabContents = []
         
-        print "Creating options for ", module
+        print("Creating options for ", module)
         if hasattr(module, "inputs"):
             if isinstance(module.inputs, list):
                 for tabData in module.inputs:
@@ -78,7 +82,7 @@ class FilterModuleOptions(Widget):
                 pages.show_page(pages.pages[0])                
 
         for eachPage in pages.pages:
-            self.optionDict = dict(self.optionDict.items() + eachPage.optionDict.items())
+            self.optionDict = dict(list(self.optionDict.items()) + list(eachPage.optionDict.items()))
 
     def makeTabPage(self, tool, inputs):
         page = Widget()
@@ -93,7 +97,7 @@ class FilterModuleOptions(Widget):
 
         for optionName, optionType in inputs:
             if isinstance(optionType, tuple):
-                if isinstance(optionType[0], (int, long, float)):
+                if isinstance(optionType[0], (int, int, float)):
                     if len(optionType) > 2:
                         val, min, max = optionType
                     elif len(optionType) == 2:
@@ -102,7 +106,7 @@ class FilterModuleOptions(Widget):
 
                     rows.append(addNumField(page, optionName, val, min, max))
 
-                if isinstance(optionType[0], (str, unicode)):
+                if isinstance(optionType[0], (str, six.text_type)):
                     isChoiceButton = False
                     if len(optionType) == 3:
                         a,b,c = optionType
@@ -134,7 +138,7 @@ class FilterModuleOptions(Widget):
                         isChoiceButton = True
 
                     if isChoiceButton:
-                        choiceButton = ChoiceButton(map(str, optionType))
+                        choiceButton = ChoiceButton(list(map(str, optionType)))
                         page.optionDict[optionName] = AttrRef(choiceButton, 'selectedChoice')
 
                         rows.append(Row((Label(optionName), choiceButton)))
@@ -198,7 +202,7 @@ class FilterModuleOptions(Widget):
 
     @property
     def options(self):
-        return dict((k, v.get()) for k, v in self.optionDict.iteritems())
+        return dict((k, v.get()) for k, v in six.iteritems(self.optionDict))
 
     @options.setter
     def options(self, val):
@@ -237,7 +241,7 @@ class FilterToolPanel(Panel):
             module = self.tool.filterModules[self.selectedFilterName]
             try:
                 self.filterOptionsPanel = FilterModuleOptions(self.tool, module)
-            except Exception, e:
+            except Exception as e:
                 alert("Error creating filter inputs for {0}: {1}".format(module, e))
                 traceback.print_exc()
                 self.tool.filterModules.pop(self.selectedFilterName)
@@ -348,18 +352,18 @@ class FilterTool(EditorTool):
     def reloadFilters(self):
         filterDir = mcplatform.filtersDir
         filterFiles = os.listdir(filterDir)
-        filterPyfiles = filter(lambda x: x.endswith(".py"), filterFiles)
+        filterPyfiles = [x for x in filterFiles if x.endswith(".py")]
 
         filterModules = (__import__(x[:-3]) for x in filterPyfiles)
-        filterModules = filter(lambda module: hasattr(module, "perform"), filterModules)
+        filterModules = [module for module in filterModules if hasattr(module, "perform")]
 
         self.filterModules = dict((self.moduleDisplayName(x), x) for x in filterModules)
-        [reload(m) for m in self.filterModules.itervalues()]
+        [reload(m) for m in six.itervalues(self.filterModules)]
         filterModules = (__import__(x[:-3]) for x in filterPyfiles)
 
     @property
     def filterNames(self):
-        return [self.moduleDisplayName(module) for module in self.filterModules.itervalues()]
+        return [self.moduleDisplayName(module) for module in six.itervalues(self.filterModules)]
 
     def moduleDisplayName(self, module):
         return module.displayName if hasattr(module, 'displayName') else module.__name__.capitalize()

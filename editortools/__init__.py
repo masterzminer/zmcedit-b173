@@ -12,14 +12,15 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
-from toolbasics import *
-from select import SelectionTool
-from brush import BrushTool
-from fill import FillTool
-from clone import CloneTool, ConstructionTool
-from filter import FilterTool
-from player import PlayerPositionTool, PlayerSpawnPositionTool
-from chunk import ChunkTool
+from __future__ import absolute_import
+from .toolbasics import *
+from .select import SelectionTool
+from .brush import BrushTool
+from .fill import FillTool
+from .clone import CloneTool, ConstructionTool
+from .filter import FilterTool
+from .player import PlayerPositionTool, PlayerSpawnPositionTool
+from .chunk import ChunkTool
 """
 class CameraTool(EditorTool):
     snapshotCounter = 0;

@@ -12,10 +12,16 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 from collections import defaultdict
-from fill import FillTool, BlockFillOperation
+from .fill import FillTool, BlockFillOperation
 import tempfile
-from toolbasics import *
+from .toolbasics import *
+import six
+from six.moves import map
+from six.moves import range
+from six.moves import zip
 
 SelectSettings = config.Settings("Selection")
 SelectSettings.showPreviousSelection = SelectSettings("Show Previous Selection", True)
@@ -195,7 +201,7 @@ class NudgeBlocksOperation (Operation):
         self.editor = editor
         self.sourceBox = sourceBox
         self.destBox = BoundingBox(sourceBox.origin, sourceBox.size)
-        self.destBox.origin = map(operator.add, self.destBox.origin, direction)
+        self.destBox.origin = list(map(operator.add, self.destBox.origin, direction))
         self.nudgeSelection = NudgeSelectionOperation(editor.selectionTool, direction)
 
     def dirtyBox(self):
@@ -268,7 +274,7 @@ class SelectionTool(EditorTool):
             text += "TileEntity:\n"
             try:
                 text += "{id}: {pos}\n".format(id=t["id"].value, pos=[t[a].value for a in "xyz"])
-            except Exception, e:
+            except Exception as e:
                 text += repr(e)
             if "Items" not in t:
                 text += str(t)
@@ -301,7 +307,7 @@ class SelectionTool(EditorTool):
 
                 return self.worldTooltipForBlock(pos) or size
 
-        except Exception, e:
+        except Exception as e:
             return repr(e)
 
     def worldTooltipForBlock(self, pos):
@@ -337,10 +343,10 @@ class SelectionTool(EditorTool):
                             d[item["id"].value] += item["Count"].value
 
                     if len(d):
-                        items = sorted((v, k) for (k, v) in d.iteritems())
+                        items = sorted((v, k) for (k, v) in six.iteritems(d))
                         try:
                             top = pymclevel.items.items.findItem(items[0][1]).name
-                        except Exception, e:
+                        except Exception as e:
                             top = repr(e)
                         return "{0} contains {len} items. (Mostly {top}) \n\nDouble-click to edit {0}.".format(containerID, len=len(d), top=top)
                     else:
@@ -387,7 +393,7 @@ class SelectionTool(EditorTool):
     @alertException
     def nudgeBlocks(self, dir):
         if key.get_mods() & KMOD_SHIFT:
-            dir = map(operator.mul, dir, (16, 16, 16))
+            dir = list(map(operator.mul, dir, (16, 16, 16)))
         op = NudgeBlocksOperation(self.editor, self.selectionBox(), dir)
 
         self.performWithRetry(op)
@@ -396,12 +402,12 @@ class SelectionTool(EditorTool):
 
     def nudgeSelection(self, dir):
         if key.get_mods() & KMOD_SHIFT:
-            dir = map(operator.mul, dir, (16, 16, 16))
+            dir = list(map(operator.mul, dir, (16, 16, 16)))
 
         points = self.getSelectionPoints()
         bounds = self.editor.level.bounds
 
-        inbounds = [map(operator.add, dir, p) in bounds for p in points]
+        inbounds = [list(map(operator.add, dir, p)) in bounds for p in points]
         if not all(inbounds):
             return
 
@@ -413,8 +419,8 @@ class SelectionTool(EditorTool):
         if self.selectionBox() is None:
             return
         if key.get_mods() & KMOD_SHIFT:
-            n = map(operator.mul, n, (16, 16, 16))
-        self.setSelectionPoint(p, map(operator.add, self.getSelectionPoint(p), n))
+            n = list(map(operator.mul, n, (16, 16, 16)))
+        self.setSelectionPoint(p, list(map(operator.add, self.getSelectionPoint(p), n)))
 
     def nudgeBottomLeft(self, n):
         return self.nudgePoint(0, n)
@@ -437,7 +443,7 @@ class SelectionTool(EditorTool):
         if self.nudgePanel is None:
             self.nudgePanel = Panel()
 
-            self.nudgePanel.bg_color = map(lambda x: x * 0.5, self.selectionColor) + [0.5, ]
+            self.nudgePanel.bg_color = [x * 0.5 for x in self.selectionColor] + [0.5, ]
 
             self.bottomLeftNudge = bottomLeftNudge = NudgeButton()
             bottomLeftNudge.nudge = self.nudgeBottomLeft
@@ -662,7 +668,7 @@ class SelectionTool(EditorTool):
 
         mouseVector = self.editor.mainViewport.mouseVector
         scale = distance / (mouseVector[dim] or 0.0001)
-        point = map(lambda a, b: a * scale + b, mouseVector, pos)
+        point = list(map(lambda a, b: a * scale + b, mouseVector, pos))
         return point
 
     def draggingSelectionBox(self):
@@ -694,7 +700,7 @@ class SelectionTool(EditorTool):
 
         o, m = box.origin, box.maximum
         (m, o)[side][dragdim] = int(floor(point[dragdim] + 0.5))
-        m = map(lambda a: a - 1, m)
+        m = [a - 1 for a in m]
         return o, m
 
     def option1(self):
@@ -862,7 +868,7 @@ class SelectionTool(EditorTool):
 
         pos, direction = self.editor.blockFaceUnderCursor
         x, y, z = pos
-        selectionColor = map(lambda a: a * a * a * a, self.selectionColor)
+        selectionColor = [a * a * a * a for a in self.selectionColor]
 
         # draw a colored box representing the possible selection
         otherCorner = self.dragStartPoint
@@ -894,7 +900,7 @@ class SelectionTool(EditorTool):
         pos, direction = self.editor.blockFaceUnderCursor
 
         # draw a selection-colored box for the cursor reticle
-        selectionColor = map(lambda a: a * a * a * a, self.selectionColor)
+        selectionColor = [a * a * a * a for a in self.selectionColor]
         r, g, b = selectionColor
         alpha = 0.3
 
@@ -927,7 +933,7 @@ class SelectionTool(EditorTool):
             self.setSelectionPoints(self.selectionPointsFromBox(box))
 
     def selectionPointsFromBox(self, box):
-        return (box.origin, map(lambda x: x - 1, box.maximum))
+        return (box.origin, [x - 1 for x in box.maximum])
 
     def selectNone(self):
         self.setSelectionPoints(None)
@@ -1049,14 +1055,14 @@ class SelectionTool(EditorTool):
 
         self.editor.mouseLookOff()
 
-        print "Clipping: ", shape
+        print("Clipping: ", shape)
 
         fileFormat = "schematic"
         if box.volume > self.maxBlocks:
             fileFormat = "schematic.zip"
 
         if fileFormat == "schematic.zip":
-            missingChunks = filter(lambda x: not self.editor.level.containsChunk(*x), box.chunkPositions)
+            missingChunks = [x for x in box.chunkPositions if not self.editor.level.containsChunk(*x)]
             if len(missingChunks):
                 if not ((box.origin[0] & 0xf == 0) and (box.origin[2] & 0xf == 0)):
                     if ask("This is an uneven selection with missing chunks. Expand the selection to chunk edges, or copy air within the missing chunks?", ["Expand Selection", "Copy Air"]) == "Expand Selection":
@@ -1112,7 +1118,7 @@ class NudgeSelectionOperation (Operation):
         self.direction = direction
         self.oldPoints = selectionTool.getSelectionPoints()
 
-        self.newPoints = map(lambda p: map(operator.add, p, direction), self.oldPoints)
+        self.newPoints = [list(map(operator.add, p, direction)) for p in self.oldPoints]
 
     def perform(self, recordUndo=True):
         self.selectionTool.setSelectionPoints(self.newPoints)

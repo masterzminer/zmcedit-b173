@@ -1,4 +1,8 @@
+from __future__ import absolute_import
 import itertools
+from six.moves import map
+from six.moves import range
+from functools import reduce
 
 class BoundingBox (object):
     type = int
@@ -96,7 +100,7 @@ class BoundingBox (object):
     length = property(getLength, setLength, None, "The dimension along the Z axis")
 
 
-    def getMaximum(self): return map(lambda a, b:a + b, self._origin, self._size)
+    def getMaximum(self): return list(map(lambda a, b:a + b, self._origin, self._size))
 
     maximum = property(getMaximum, None, None, "The endpoint of the box; origin plus size.")
 
@@ -106,7 +110,7 @@ class BoundingBox (object):
     @property
     def chunkPositions(self):
         #iterate through all of the chunk positions within this selection box
-        return itertools.product(xrange(self.mincx, self.maxcx), xrange(self.mincz, self.maxcz))
+        return itertools.product(range(self.mincx, self.maxcx), range(self.mincz, self.maxcz))
 
     @property
     def chunkCount(self):

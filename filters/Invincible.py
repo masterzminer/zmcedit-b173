@@ -2,6 +2,7 @@
 # please give credit to SethBling.
 # http://youtube.com/SethBling
 
+from __future__ import absolute_import
 from pymclevel import TAG_List
 from pymclevel import TAG_Byte
 from pymclevel import TAG_Int

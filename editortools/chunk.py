@@ -12,9 +12,12 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
-from toolbasics import *
+from __future__ import absolute_import
+from __future__ import print_function
+from .toolbasics import *
 from pymclevel.infiniteworld import MCServerChunkGenerator
 from albow.dialogs import Dialog
+import six
 
 
 class ChunkToolPanel(Panel):
@@ -133,7 +136,7 @@ class ChunkTool(EditorTool):
 
             import renderer
             sizedChunks = renderer.chunkMarkers(self._selectedChunks)
-            for size, chunks in sizedChunks.iteritems():
+            for size, chunks in six.iteritems(sizedChunks):
                 if not len(chunks):
                     continue
                 chunks = array(chunks, dtype='float32')
@@ -236,8 +239,8 @@ class ChunkTool(EditorTool):
                 if self.editor.level.containsChunk(cx, cz):
                     try:
                         self.editor.level.deleteChunk(cx, cz)
-                    except Exception, e:
-                        print "Error during chunk delete: ", e
+                    except Exception as e:
+                        print("Error during chunk delete: ", e)
 
         with setWindowCaption("DELETING - "):
             showProgress("Deleting chunks...", _destroyChunks())
@@ -259,8 +262,8 @@ class ChunkTool(EditorTool):
                     try:
                         self.editor.level.deleteChunk(*cPos)
 
-                    except Exception, e:
-                        print "Error during chunk delete: ", e
+                    except Exception as e:
+                        print("Error during chunk delete: ", e)
 
                 yield i, self.editor.level.chunkCount
 
@@ -442,7 +445,7 @@ def GeneratorPanel():
                     else:
                         version = None
                     gen = MCServerChunkGenerator(version=version)
-                except Exception, e:
+                except Exception as e:
                     traceback.print_exc()
                     alert("Failed to start the chunk generator. {0!r}".format(e))
                     yield "Failed"
@@ -477,8 +480,8 @@ def GeneratorPanel():
                     #for cx, cz in :
                     try:
                         level.createChunk(cx, cz)
-                    except ValueError, e:  # chunk already present
-                        print e
+                    except ValueError as e:  # chunk already present
+                        print(e)
                         continue
                     else:
                         ch = level.getChunk(cx, cz)

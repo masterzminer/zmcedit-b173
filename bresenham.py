@@ -1,3 +1,5 @@
+from six.moves import map
+from six.moves import range
 def bresenham(p1, p2):
     """Bresenham line algorithm
     adapted for 3d.  slooooow."""
@@ -43,6 +45,6 @@ def bresenham(p1, p2):
                 d[j] = d[j] - (2 * dl[longestAxis])
 
         p[longestAxis] = p[longestAxis] + sp[longestAxis]
-        d = map(lambda a, b: a + 2 * b, d, dl)
+        d = list(map(lambda a, b: a + 2 * b, d, dl))
 
     return coords  # added by me

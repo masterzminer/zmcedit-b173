@@ -4,15 +4,16 @@
 #
 ################################################################
 
+from __future__ import absolute_import
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from albow import *
 from pygame import Rect, Surface, draw, image
 from pygame.locals import SRCALPHA
-from widget import Widget
-from theme import ThemeProperty, FontProperty
-from utils import brighten
+from .widget import Widget
+from .theme import ThemeProperty, FontProperty
+from .utils import brighten
 from numpy import fromstring
 
 

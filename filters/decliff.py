@@ -4,9 +4,11 @@ DeCliff filter contributed by Minecraft Forums user "DrRomz"
 Originally posted here:
 http://www.minecraftforum.net/topic/13807-mcedit-minecraft-world-editor-compatible-with-mc-beta-18/page__st__3940__p__7648793#entry7648793
 """
+from __future__ import absolute_import
 from numpy import zeros, array
 import itertools
 from pymclevel import alphaMaterials
+from six.moves import range
 am = alphaMaterials
 
 # Consider below materials when determining terrain height
@@ -214,7 +216,7 @@ def perform(level, box, options):
 
     # OK, newHeightMap has new height for each column
     # so it's just a matter of moving everything up/down
-    for x, z in itertools.product(xrange(1, schema.Width - 1), xrange(1, schema.Length - 1)):
+    for x, z in itertools.product(range(1, schema.Width - 1), range(1, schema.Length - 1)):
 
         if schema.Width > schema.Length:
             oh = heightmap[x, z]

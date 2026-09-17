@@ -12,7 +12,11 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
-from toolbasics import *
+from __future__ import absolute_import
+from __future__ import print_function
+from .toolbasics import *
+import six
+from six.moves import range
 
 FillSettings = config.Settings("Fill")
 FillSettings.chooseBlockImmediately = FillSettings("Choose Block Immediately", True)
@@ -226,7 +230,7 @@ class FillTool(EditorTool):
 
             if self.replacing:
                 if self.blockInfo.wildcard:
-                    print "Wildcard replace"
+                    print("Wildcard replace")
                     blocksToReplace = []
                     for i in range(16):
                         blocksToReplace.append(self.editor.level.materials.blockWithID(self.blockInfo.ID, i))
@@ -270,7 +274,7 @@ class FillTool(EditorTool):
         blockTextures = self.editor.level.materials.blockTextures[:, 0]
 
         if hasattr(self, 'blockTextures'):
-            for tex in self.blockTextures.itervalues():
+            for tex in six.itervalues(self.blockTextures):
                 tex.delete()
 
         self.blockTextures = {}
@@ -340,7 +344,7 @@ class FillTool(EditorTool):
                 blockdata = self.editor.level.blockDataAt(*pos)
                 return "Click to use {0} ({1}:{2})".format(self.editor.level.materials.blockWithID(blockID, blockdata).name, blockID, blockdata)
 
-            except Exception, e:
+            except Exception as e:
                 return repr(e)
 
     def mouseUp(self, *args):

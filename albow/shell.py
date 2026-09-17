@@ -2,7 +2,8 @@
 #   Albow - Shell
 #
 
-from root import RootWidget
+from __future__ import absolute_import
+from .root import RootWidget
 
 #------------------------------------------------------------------------------
 

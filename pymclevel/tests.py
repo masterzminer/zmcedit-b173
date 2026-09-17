@@ -7,10 +7,13 @@ Created on Jul 23, 2011
 #from infiniteworld import MCInfdevOldLevel
 #from schematic import MCSchematic
 #import errorreporting # annotate tracebacks with call arguments
+from __future__ import absolute_import
+from __future__ import print_function
+from six.moves import range
 try:
     from pymclevel import *
 except ImportError:
-    from __init__ import *
+    from .__init__ import *
 
 import itertools
 import traceback
@@ -24,7 +27,7 @@ import time
 
 import numpy
 from numpy import *
-from infiniteworld import MCServerChunkGenerator
+from .infiniteworld import MCServerChunkGenerator
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -68,14 +71,14 @@ class TestNBT(unittest.TestCase):
         level = nbt.load("testfiles/hell.mclevel")
 
         """The root tag must have a name, and so must any tag within a TAG_Compound"""
-        print level.name
+        print(level.name)
     
         """Use the [] operator to look up subtags of a TAG_Compound."""
-        print level["Environment"]["SurroundingGroundHeight"].value
+        print(level["Environment"]["SurroundingGroundHeight"].value)
 
         """Numeric, string, and bytearray types have a value 
   that can be accessed and changed. """
-        print level["Map"]["Blocks"].value
+        print(level["Map"]["Blocks"].value)
     
         return level
 
@@ -168,7 +171,7 @@ class TestNBT(unittest.TestCase):
         newlevel = nbt.load(buf=sio.getvalue())
     
         n = newlevel["Map"]["Spawn"][0].name
-        if n: print "Named list element failed: %s" % n;
+        if n: print("Named list element failed: %s" % n);
         
         """
         attempt to delete non-existent TAG_Compound elements
@@ -189,7 +192,7 @@ class TestNBT(unittest.TestCase):
         for i in range(20):
             for f in files[:40]:
                 n = nbt.load(f)
-        print "Duration: ", time.time() - startTime
+        print("Duration: ", time.time() - startTime)
         #print "NBT: ", n
         
 class TestIndevLevel(unittest.TestCase):
@@ -259,7 +262,7 @@ class TestAlphaLevel(unittest.TestCase):
 
     def testGetEntities(self):
         level = self.alphalevel.level
-        print len(level.getEntitiesInBox(level.bounds))
+        print(len(level.getEntitiesInBox(level.bounds)))
 
     def testCreateChunks(self):
         indevlevel = self.indevlevel.level
@@ -290,7 +293,7 @@ class TestAlphaLevel(unittest.TestCase):
     def testRecreateChunks(self):
         level = self.alphalevel.level
 
-        for x, z in itertools.product(xrange(-1, 3), xrange(-1, 2)):
+        for x, z in itertools.product(range(-1, 3), range(-1, 2)):
             level.deleteChunk(x, z)
             level.createChunk(x, z)
 
@@ -382,7 +385,7 @@ class TestSchematics(unittest.TestCase):
 
         info("Schematic from alpha")
         level = self.alphalevel.level
-        for cx, cz in itertools.product(xrange(0, 4), xrange(0, 4)):
+        for cx, cz in itertools.product(range(0, 4), range(0, 4)):
             try:
                 level.createChunk(cx, cz)
             except ValueError:
@@ -424,7 +427,7 @@ class TestPocket(unittest.TestCase):
     def testPocket(self):
         level = self.level.level
 #        alphalevel = self.alphalevel.level
-        print "Chunk count", len(level.allChunks)
+        print("Chunk count", len(level.allChunks))
         chunk = level.getChunk(1,5)
         a = array(chunk.SkyLight)
         level.saveInPlace()
@@ -441,7 +444,7 @@ class TestServerGen(unittest.TestCase):
     
     def testCreate(self):
         gen = MCServerChunkGenerator()
-        print "Version: ", gen.serverVersion
+        print("Version: ", gen.serverVersion)
         
         def _testCreate(filename):
             gen.createLevel(filename, BoundingBox((-128, 0, -128), (128, 128, 128)))
@@ -450,7 +453,7 @@ class TestServerGen(unittest.TestCase):
         
     def testServerGen(self):
         gen = MCServerChunkGenerator()
-        print "Version: ", gen.serverVersion
+        print("Version: ", gen.serverVersion)
 
         level = self.alphalevel.level
 

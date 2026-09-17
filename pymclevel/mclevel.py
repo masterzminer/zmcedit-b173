@@ -169,20 +169,22 @@ def fillBlocks(self, box, blockType, blockData = 0):
 
 Copyright 2010 David Rio Vierra
 """
+from __future__ import absolute_import
 import os
 import logging
 from numpy import fromstring
-import nbt
+from . import nbt
 
-from mclevelbase import *
-from indev import *
-from infiniteworld import *
-from java import *
-from level import *
-from schematic import *
-from pocket import *
+from .mclevelbase import *
+from .indev import *
+from .infiniteworld import *
+from .java import *
+from .level import *
+from .schematic import *
+from .pocket import *
 
 import sys
+import six
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -201,9 +203,9 @@ def fromFile(filename, loadInfinite=True):
     info(u"Identifying " + filename)
 
     if not filename:
-        raise IOError, "File not found: " + filename
+        raise IOError("File not found: " + filename)
     if not os.path.exists(filename):
-        raise IOError, "File not found: " + filename
+        raise IOError("File not found: " + filename)
 
     if ZipSchematic._isLevel(filename):
         info("Zipfile found, attempting zipped infinite level")
@@ -219,23 +221,23 @@ def fromFile(filename, loadInfinite=True):
         if loadInfinite:
             return MCInfdevOldLevel(filename=filename)
         else:
-            raise ValueError, "Asked to load {0} which is an infinite level, loadInfinite was False".format(os.path.basename(filename))
+            raise ValueError("Asked to load {0} which is an infinite level, loadInfinite was False".format(os.path.basename(filename)))
 
     if os.path.isdir(filename):
-        raise ValueError, "Folder {0} was not identified as a Minecraft level.".format(os.path.basename(filename))
+        raise ValueError("Folder {0} was not identified as a Minecraft level.".format(os.path.basename(filename)))
 
-    f = file(filename, 'rb')
+    f = open(filename, 'rb')
     rawdata = f.read()
     f.close()
     if len(rawdata) < 4:
-        raise ValueError, "{0} is too small! ({1}) ".format(filename, len(rawdata))
+        raise ValueError("{0} is too small! ({1}) ".format(filename, len(rawdata)))
 
 
 
 
     data = fromstring(rawdata, dtype='uint8')
     if not data.any():
-        raise ValueError, "{0} contains only zeroes. This file is damaged beyond repair."
+        raise ValueError("{0} contains only zeroes. This file is damaged beyond repair.")
 
 
     if MCJavaLevel._isDataLevel(data):
@@ -249,7 +251,7 @@ def fromFile(filename, loadInfinite=True):
     unzippedData = None
     try:
         unzippedData = gunzip(rawdata)
-    except Exception, e:
+    except Exception as e:
         info(u"Exception during Gzip operation, assuming {0} uncompressed: {1!r}".format(filename, e))
         if unzippedData is None:
             compressed = False
@@ -266,7 +268,7 @@ def fromFile(filename, loadInfinite=True):
     try:
         root_tag = nbt.load(buf=data)
 
-    except Exception, e:
+    except Exception as e:
         info(u"Error during NBT load: {0!r}".format(e))
         info(traceback.format_exc())
         info(u"Fallback: Detected compressed flat block array, yzx ordered ")
@@ -274,8 +276,8 @@ def fromFile(filename, loadInfinite=True):
             lev = MCJavaLevel(filename, data)
             lev.compressed = compressed
             return lev
-        except Exception, e2:
-            raise LoadingError, ("Multiple errors encountered", e, e2), sys.exc_info()[2]
+        except Exception as e2:
+            six.reraise(LoadingError, ("Multiple errors encountered", e, e2), sys.exc_info()[2])
 
     else:
         if MCIndevLevel._isTagLevel(root_tag):
@@ -289,7 +291,7 @@ def fromFile(filename, loadInfinite=True):
             info(u"Detected INVEdit inventory file")
             return INVEditChest(root_tag=root_tag, filename=filename)
 
-    raise IOError, "Cannot detect file type."
+    raise IOError("Cannot detect file type.")
 
 
 def loadWorld(name):

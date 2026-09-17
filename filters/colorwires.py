@@ -1,9 +1,10 @@
+from six.moves import range
 def perform(level, box, options):
     groups = RedstoneGroups(level)
     
-    for x in xrange(box.minx, box.maxx):
-        for y in xrange(box.miny, box.maxy):
-            for z in xrange(box.minz, box.maxz):
+    for x in range(box.minx, box.maxx):
+        for y in range(box.miny, box.maxy):
+            for z in range(box.minz, box.maxz):
                 groups.testblock((x, y, z))
 
     groups.changeBlocks()
@@ -32,8 +33,9 @@ class RedstoneGroups:
             self.testneighbors(pos)
             self.currentgroup = self.currentgroup + 1
 
-    def testneighbors(self, (x, y, z)):
-        for dy in xrange(-1, 2, 1):
+    def testneighbors(self, xxx_todo_changeme):
+        (x, y, z) = xxx_todo_changeme
+        for dy in range(-1, 2, 1):
             if y + dy >= 0 and y + dy <= 255:
                 self.testneighbor((x, y, z), (x-1, y+dy, z))
                 self.testneighbor((x, y, z), (x+1, y+dy, z))
@@ -48,10 +50,13 @@ class RedstoneGroups:
             self.group[pos2] = self.currentgroup
             self.testneighbors(pos2)
 
-    def getBlockAt(self, (x, y, z)):
+    def getBlockAt(self, xxx_todo_changeme1):
+        (x, y, z) = xxx_todo_changeme1
         return self.level.blockAt(x, y, z)
 
-    def repeaterAlignedWith(self, (x1, y1, z1), (x2, y2, z2)):
+    def repeaterAlignedWith(self, xxx_todo_changeme2, xxx_todo_changeme3):
+        (x1, y1, z1) = xxx_todo_changeme2
+        (x2, y2, z2) = xxx_todo_changeme3
         blockid = self.getBlockAt((x1, y1, z1))
         if blockid != 93 and blockid != 94:
             return False
@@ -65,7 +70,9 @@ class RedstoneGroups:
 
         return True
 
-    def repeaterPointingTowards(self, (x1, y1, z1), (x2, y2, z2)):
+    def repeaterPointingTowards(self, xxx_todo_changeme4, xxx_todo_changeme5):
+        (x1, y1, z1) = xxx_todo_changeme4
+        (x2, y2, z2) = xxx_todo_changeme5
         blockid = self.getBlockAt((x1, y1, z1))
         if blockid != 93 and blockid != 94:
             return False
@@ -83,7 +90,9 @@ class RedstoneGroups:
 
         return False
 
-    def repeaterPointingAway(self, (x1, y1, z1), (x2, y2, z2)):
+    def repeaterPointingAway(self, xxx_todo_changeme6, xxx_todo_changeme7):
+        (x1, y1, z1) = xxx_todo_changeme6
+        (x2, y2, z2) = xxx_todo_changeme7
         blockid = self.getBlockAt((x1, y1, z1))
         if blockid != 93 and blockid != 94:
             return False
@@ -102,7 +111,9 @@ class RedstoneGroups:
         return False
     
 
-    def connected(self, (x1, y1, z1), (x2, y2, z2)):
+    def connected(self, xxx_todo_changeme8, xxx_todo_changeme9):
+        (x1, y1, z1) = xxx_todo_changeme8
+        (x2, y2, z2) = xxx_todo_changeme9
         blockid1 = self.level.blockAt(x1, y1, z1)
         blockid2 = self.level.blockAt(x2, y2, z2)
 

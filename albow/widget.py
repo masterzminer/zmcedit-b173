@@ -1,4 +1,6 @@
 from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 from pygame import Rect, Surface, draw, image
 from pygame.locals import K_RETURN, K_KP_ENTER, K_ESCAPE, K_TAB, \
@@ -6,12 +8,13 @@ from pygame.locals import K_RETURN, K_KP_ENTER, K_ESCAPE, K_TAB, \
 from pygame.mouse import set_cursor
 from pygame.cursors import arrow as arrow_cursor
 from pygame.transform import rotozoom
-from vectors import add, subtract
-from utils import frame_rect
-import theme
-from theme import ThemeProperty, FontProperty
+from .vectors import add, subtract
+from .utils import frame_rect
+from . import theme
+from .theme import ThemeProperty, FontProperty
 
 from numpy import fromstring
+import six
 
 debug_rect = False
 debug_tab = True
@@ -98,7 +101,7 @@ class Widget(object):
         self.set(**kwds)
 
     def set(self, **kwds):
-        for name, value in kwds.iteritems():
+        for name, value in six.iteritems(kwds):
             if not hasattr(self, name):
                 raise TypeError("Unexpected keyword argument '%s'" % name)
             setattr(self, name, value)
@@ -146,7 +149,8 @@ class Widget(object):
             anchor += chars[i]
         self.anchor = anchor + value
 
-    def _resized(self, (old_width, old_height)):
+    def _resized(self, xxx_todo_changeme):
+        (old_width, old_height) = xxx_todo_changeme
         new_width, new_height = self._rect.size
         dw = new_width - old_width
         dh = new_height - old_height
@@ -155,14 +159,14 @@ class Widget(object):
 
     def resized(self, dw, dh):
         if self.debug_resize:
-            print "Widget.resized:", self, "by", (dw, dh), "to", self.size
+            print("Widget.resized:", self, "by", (dw, dh), "to", self.size)
         for widget in self.subwidgets:
             widget.parent_resized(dw, dh)
 
     def parent_resized(self, dw, dh):
         debug_resize = self.debug_resize or self.parent.debug_resize
         if debug_resize:
-            print "Widget.parent_resized:", self, "by", (dw, dh)
+            print("Widget.parent_resized:", self, "by", (dw, dh))
         left, top, width, height = self._rect
         move = False
         resize = False
@@ -201,11 +205,11 @@ class Widget(object):
 
         if resize:
             if debug_resize:
-                print "Widget.parent_resized: changing rect to", (left, top, width, height)
+                print("Widget.parent_resized: changing rect to", (left, top, width, height))
             self.rect = (left, top, width, height)
         elif move:
             if debug_resize:
-                print "Widget.parent_resized: moving to", (left, top)
+                print("Widget.parent_resized: moving to", (left, top))
             self._rect.topleft = (left, top)
 
     rect = property(get_rect, set_rect)
@@ -273,12 +277,12 @@ class Widget(object):
     def _add(self, widget):
         self.subwidgets.append(widget)
         if hasattr(widget, "idleevent"):
-            print "Adding idle handler for ", widget
+            print("Adding idle handler for ", widget)
             self.get_root().add_idle_handler(widget)
 
     def _remove(self, widget):
         if hasattr(widget, "idleevent"):
-            print "Removing idle handler for ", widget
+            print("Removing idle handler for ", widget)
             self.get_root().remove_idle_handler(widget)
         self.subwidgets.remove(widget)
 
@@ -313,13 +317,13 @@ class Widget(object):
             for widget in self.subwidgets:
                 sub_rect = widget.rect
                 if debug_rect:
-                    print "Widget: Drawing subwidget %s of %s with rect %s" % (
-                        widget, self, sub_rect)
+                    print("Widget: Drawing subwidget %s of %s with rect %s" % (
+                        widget, self, sub_rect))
                 sub_rect = surf_rect.clip(sub_rect)
                 if sub_rect.width > 0 and sub_rect.height > 0:
                     try:
                         sub = surface.subsurface(sub_rect)
-                    except ValueError, e:
+                    except ValueError as e:
                         if str(e) == "subsurface rectangle outside surface area":
                             self.diagnose_subsurface_problem(surface, widget)
                         else:
@@ -587,7 +591,7 @@ class Widget(object):
         if width is not None:
             font = self.font
             d = 2 * self.margin
-            if isinstance(width, basestring):
+            if isinstance(width, six.string_types):
                 width, height = font.size(width)
                 width += d + 2
             else:
@@ -731,7 +735,7 @@ class Widget(object):
         else:
             try:
                 surface = Surface(self.size, SRCALPHA)
-            except Exception, e:
+            except Exception as e:
                 #size error?
                 return
             self.draw_all(surface)

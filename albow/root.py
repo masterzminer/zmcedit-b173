@@ -4,6 +4,8 @@
 #
 #---------------------------------------------------------------------------
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import pygame
 from pygame.locals import *
@@ -11,12 +13,13 @@ from pygame.locals import *
 from pygame.event import Event
 
 from glbackground import *
-import widget
-from widget import Widget
-from controls import Label
+from . import widget
+from .widget import Widget
+from .controls import Label
 
 from datetime import datetime, timedelta
 from albow.dialogs import wrapped_label
+from six.moves import filter
 start_time = datetime.now()
 
 mod_cmd = KMOD_LCTRL | KMOD_RCTRL | KMOD_LMETA | KMOD_RMETA
@@ -286,10 +289,10 @@ class RootWidget(Widget):
             if widget:
                 widget.idleevent(event)
             else:
-                print "Idle ref died!"
+                print("Idle ref died!")
             return bool(widget)
 
-        self.idle_handlers = filter(call, self.idle_handlers)
+        self.idle_handlers = list(filter(call, self.idle_handlers))
 
     def add_idle_handler(self, widget):
         from weakref import ref
@@ -389,7 +392,7 @@ class RootWidget(Widget):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
     def music_end(self):
-        import music
+        from . import music
         music.music_end()
 
 #---------------------------------------------------------------------------

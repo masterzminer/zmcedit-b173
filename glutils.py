@@ -18,6 +18,8 @@ glutils.py
 Pythonesque wrappers around certain OpenGL functions.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 from OpenGL import GL
 from OpenGL.GL.ARB import window_pos
 import numpy
@@ -216,7 +218,7 @@ class FramebufferTexture(Texture):
 
             status = FBO.glCheckFramebufferStatusEXT(FBO.GL_FRAMEBUFFER_EXT)
             if status != FBO.GL_FRAMEBUFFER_COMPLETE_EXT:
-                print "glCheckFramebufferStatusEXT", status
+                print("glCheckFramebufferStatusEXT", status)
                 self.enabled = False
                 return
 

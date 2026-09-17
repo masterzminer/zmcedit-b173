@@ -5,6 +5,7 @@
 #
 # If you modify and redistribute this code, please credit SethBling
 
+from __future__ import absolute_import
 from pymclevel import MCSchematic
 from pymclevel import TAG_Compound
 from pymclevel import TAG_Short
@@ -12,6 +13,7 @@ from pymclevel import TAG_Byte
 from pymclevel import TAG_Byte_Array
 from pymclevel import TAG_String
 from numpy import zeros
+from six.moves import range
 
 inputs = (
     ("Biome", ("Desert",
@@ -72,8 +74,8 @@ def perform(level, box, options):
     minx = int(box.minx/16)*16
     minz = int(box.minz/16)*16
 
-    for x in xrange(minx, box.maxx, 16):
-        for z in xrange(minz, box.maxz, 16):
+    for x in range(minx, box.maxx, 16):
+        for z in range(minz, box.maxz, 16):
             chunk = level.getChunk(x / 16, z / 16)
             chunk.decompress()
             chunk.dirty = True
@@ -82,8 +84,8 @@ def perform(level, box, options):
             chunkx = int(x/16)*16
             chunkz = int(z/16)*16
 
-            for bx in xrange(max(box.minx, chunkx), min(box.maxx, chunkx+16)):
-                for bz in xrange(max(box.minz, chunkz), min(box.maxz, chunkz+16)):
+            for bx in range(max(box.minx, chunkx), min(box.maxx, chunkx+16)):
+                for bz in range(max(box.minz, chunkz), min(box.maxz, chunkz+16)):
                     idx = 16*(bz-chunkz)+(bx-chunkx)
                     array[idx] = biome
 

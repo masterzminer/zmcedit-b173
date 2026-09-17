@@ -2,7 +2,9 @@
 #    Albow - Themes
 #
 
-import resource
+from __future__ import absolute_import
+from __future__ import print_function
+from . import resource
 
 debug_theme = False
 
@@ -15,14 +17,14 @@ class ThemeProperty(object):
 
     def __get__(self, obj, owner):
         if debug_theme:
-            print "%s(%r).__get__(%r)" % (self.__class__.__name__, self.name, obj)
+            print("%s(%r).__get__(%r)" % (self.__class__.__name__, self.name, obj))
         try:  ###
             cache_name = self.cache_name
             try:
                 return getattr(obj, cache_name)
-            except AttributeError, e:
+            except AttributeError as e:
                 if debug_theme:
-                    print e
+                    print(e)
                 value = self.get_from_theme(obj.__class__, self.name)
                 obj.__dict__[cache_name] = value
                 return value
@@ -30,12 +32,12 @@ class ThemeProperty(object):
             if debug_theme:
                 import traceback
                 traceback.print_exc()
-                print "-------------------------------------------------------"
+                print("-------------------------------------------------------")
             raise  ###
 
     def __set__(self, obj, value):
         if debug_theme:
-            print "Setting %r.%s = %r" % (obj, self.cache_name, value)  ###
+            print("Setting %r.%s = %r" % (obj, self.cache_name, value))  ###
         obj.__dict__[self.cache_name] = value
 
     def get_from_theme(self, cls, name):
@@ -69,7 +71,7 @@ class Theme(object):
 
     def lookup(self, cls, name):
         if debug_theme:
-            print "Theme(%r).lookup(%r, %r)" % (self.name, cls, name)
+            print("Theme(%r).lookup(%r, %r)" % (self.name, cls, name))
         for base_class in cls.__mro__:
             class_theme = getattr(self, base_class.__name__, None)
             if class_theme:
@@ -89,11 +91,11 @@ class Theme(object):
 
     def get_font(self, cls, name):
         if debug_theme:
-            print "Theme.get_font(%r, %r)" % (cls, name)
+            print("Theme.get_font(%r, %r)" % (cls, name))
         spec = self.get(cls, name)
         if spec:
             if debug_theme:
-                print "font spec =", spec
+                print("font spec =", spec)
             return resource.get_font(*spec)
 
 

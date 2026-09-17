@@ -17,12 +17,14 @@ errorreporting.py
 
 Patch the `traceback' module to print "self" with each stack frame.
 """
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import traceback
 import platform
 from datetime import datetime
 import os
-import httplib
+import six.moves.http_client
 
 
 def extract_tb(tb, limit=None):
@@ -122,12 +124,12 @@ def reportCrash(crashlog):
         if hasattr(sys, 'frozen') or sys.platform != "win32":
             crashlog = crashlog.replace(parentDir, "[MCEdit folder]")
             crashlog = crashlog.replace(minecraftDir, "[Minecraft folder]")
-    except Exception, e:
-        print repr(e), "while scrubbing user directories from crash log!"
+    except Exception as e:
+        print(repr(e), "while scrubbing user directories from crash log!")
 
     releaseString = releaseInfo()
     crashlog = releaseString + crashlog
-    print crashlog
+    print(crashlog)
 #    logfilename = "mcedit-{0}-crash.log".format(os.getpid())
 #    if not os.path.exists("logs"):
 #        try:
@@ -162,5 +164,5 @@ def reportException(exc):
     tb = traceback.format_exc()
     try:
         reportCrash(tb)
-    except Exception, e:
-        print "Error while reporting crash: ", repr(e)
+    except Exception as e:
+        print("Error while reporting crash: ", repr(e))

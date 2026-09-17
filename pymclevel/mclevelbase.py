@@ -3,6 +3,8 @@ Created on Jul 22, 2011
 
 @author: Rio
 '''
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import traceback
 from datetime import datetime
@@ -15,14 +17,14 @@ import gzip
 from numpy import *
 import logging
 
-import nbt
-from nbt import *
-from box import BoundingBox, FloatBox
-from materials import *
-import blockrotation
-from entity import *
+from . import nbt
+from .nbt import *
+from .box import BoundingBox, FloatBox
+from .materials import *
+from . import blockrotation
+from .entity import *
 
-from faces import *
+from .faces import *
 #String constants for common tag names
 
 log = logging.getLogger(__name__)
@@ -87,15 +89,15 @@ if sys.platform == "win32":
         import win32com.client
         objShell = win32com.client.Dispatch("WScript.Shell")
         appDataDir = objShell.SpecialFolders("AppData")
-    except Exception, e:
-        print "Error while getting AppData folder using WScript.Shell.SpecialFolders: {0!r}".format(e)
+    except Exception as e:
+        print("Error while getting AppData folder using WScript.Shell.SpecialFolders: {0!r}".format(e))
         try:
             from win32com.shell import shell, shellcon
             appDataDir = shell.SHGetPathFromIDListEx (
                 shell.SHGetSpecialFolderLocation (0, shellcon.CSIDL_APPDATA)
             )
-        except Exception, e:
-            print "Error while getting AppData folder using SHGetSpecialFolderLocation: {0!r}".format(e)
+        except Exception as e:
+            print("Error while getting AppData folder using SHGetSpecialFolderLocation: {0!r}".format(e))
             
             appDataDir = os.environ['APPDATA'].decode(sys.getfilesystemencoding())
 

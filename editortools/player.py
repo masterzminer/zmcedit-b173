@@ -12,9 +12,13 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
-from toolbasics import *
-import urllib
+from __future__ import absolute_import
+from __future__ import print_function
+from .toolbasics import *
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 from pymclevel.box import FloatBox
+from six.moves import map
+from six.moves import range
 
 
 class PlayerMoveOperation(Operation):
@@ -32,7 +36,7 @@ class PlayerMoveOperation(Operation):
                 self.undoPos = level.getPlayerPosition(self.player)
                 self.undoDim = level.getPlayerDimension(self.player)
                 self.undoYP = level.getPlayerOrientation(self.player)
-            except Exception, e:
+            except Exception as e:
                 info("Couldn't get player position! ({0!r})".format(e))
 
             yaw, pitch = self.yp
@@ -42,8 +46,8 @@ class PlayerMoveOperation(Operation):
             level.setPlayerDimension(level.dimNo, self.player)
             self.tool.markerList.invalidate()
 
-        except PlayerNotFound, e:
-            print "Player move failed: ", e
+        except PlayerNotFound as e:
+            print("Player move failed: ", e)
 
     def undo(self):
         if not (self.undoPos is None):
@@ -183,7 +187,7 @@ class PlayerPositionTool(EditorTool):
             cv = self.editor.mainViewport.cameraVector
 
             pos = self.editor.level.getPlayerPosition(player)
-            pos = map(lambda p, c: p - c * 5, pos, cv)
+            pos = list(map(lambda p, c: p - c * 5, pos, cv))
             self.editor.gotoDimension(self.editor.level.getPlayerDimension(player))
 
             self.editor.mainViewport.cameraPosition = pos
@@ -313,8 +317,8 @@ class PlayerPositionTool(EditorTool):
 
                 #glDisable(GL_BLEND)
 
-            except Exception, e:
-                print repr(e)
+            except Exception as e:
+                print(repr(e))
                 continue
 
         glDisable(GL_DEPTH_TEST)
@@ -413,7 +417,7 @@ class PlayerSpawnPositionTool(PlayerPositionTool):
         cv = self.editor.mainViewport.cameraVector
 
         pos = self.editor.level.playerSpawnPosition()
-        pos = map(lambda p, c: p - c * 5, pos, cv)
+        pos = list(map(lambda p, c: p - c * 5, pos, cv))
 
         self.editor.mainViewport.cameraPosition = pos
         self.editor.mainViewport.stopMoving()
@@ -426,7 +430,7 @@ class PlayerSpawnPositionTool(PlayerPositionTool):
 
     def drawToolReticle(self):
         pos, direction = self.editor.blockFaceUnderCursor
-        x, y, z = map(lambda p, d: p + d, pos, direction)
+        x, y, z = list(map(lambda p, d: p + d, pos, direction))
 
         color = (1.0, 1.0, 1.0, 0.5)
         if isinstance(self.editor.level, MCInfdevOldLevel) and self.spawnProtection:
@@ -442,7 +446,7 @@ class PlayerSpawnPositionTool(PlayerPositionTool):
         glEnable(GL_DEPTH_TEST)
         self.drawCage(x, y, z)
         self.drawCharacterHead(x + 0.5, y + 0.5, z + 0.5)
-        color2 = map(lambda a: a * 0.4, color)
+        color2 = [a * 0.4 for a in color]
         drawTerrainCuttingWire(BoundingBox((x, y, z), (1, 1, 1)), color2, color)
         glDisable(GL_DEPTH_TEST)
 
@@ -464,7 +468,7 @@ class PlayerSpawnPositionTool(PlayerPositionTool):
 
     @alertException
     def mouseDown(self, evt, pos, direction):
-        pos = map(lambda p, d: p + d, pos, direction)
+        pos = list(map(lambda p, d: p + d, pos, direction))
         op = PlayerSpawnMoveOperation(self, pos)
         try:
             op.perform()
@@ -473,7 +477,7 @@ class PlayerSpawnPositionTool(PlayerPositionTool):
             self.editor.addUnsavedEdit()
             self.markerList.invalidate()
 
-        except SpawnPositionInvalid, e:
+        except SpawnPositionInvalid as e:
             if "Okay" != ask(str(e), responses=["Okay", "Fix it for me!"]):
                 level = self.editor.level
                 status = ""
@@ -501,7 +505,7 @@ class PlayerSpawnPositionTool(PlayerPositionTool):
                 op = PlayerSpawnMoveOperation(self, pos)
                 try:
                     op.perform()
-                except SpawnPositionInvalid, e:
+                except SpawnPositionInvalid as e:
                     alert(str(e))
                     return
 

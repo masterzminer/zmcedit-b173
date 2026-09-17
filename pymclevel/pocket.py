@@ -1,6 +1,10 @@
-from mclevelbase import *
-from level import FakeChunk
+from __future__ import absolute_import
+from __future__ import print_function
+from .mclevelbase import *
+from .level import FakeChunk
 import struct
+import six
+from six.moves import range
 
 #values are usually little-endian, unlike Minecraft PC
 
@@ -11,7 +15,7 @@ class PocketChunksFile(object):
     
     @property
     def file(self):
-        openfile = lambda:file(self.path, "rb+")
+        openfile = lambda:open(self.path, "rb+")
         if PocketChunksFile.holdFileOpen:
             if self._file is None:
                 self._file = openfile()
@@ -28,7 +32,7 @@ class PocketChunksFile(object):
         self.path = path
         self._file = None
         if not os.path.exists(path):
-            file(path, "w").close()
+            open(path, "w").close()
 
         with self.file as f:
 
@@ -57,10 +61,10 @@ class PocketChunksFile(object):
             sector = offset >> 8
             count = offset & 0xff
 
-            for i in xrange(sector, sector + count):
+            for i in range(sector, sector + count):
                 if i >= len(self.freeSectors):
                     #raise RegionMalformed, "Region file offset table points to sector {0} (past the end of the file)".format(i)
-                    print  "Region file offset table points to sector {0} (past the end of the file)".format(i)
+                    print("Region file offset table points to sector {0} (past the end of the file)".format(i))
                     needsRepair = True
                     break
                 if self.freeSectors[i] is False:
@@ -187,7 +191,7 @@ class PocketChunksFile(object):
 
     def loadChunk(self, cx, cz, world):
         data = self._readChunk(cx, cz)
-        if data is None: raise ChunkNotPresent, (cx, cz, self)
+        if data is None: raise ChunkNotPresent(cx, cz, self)
         
         chunk = PocketChunk(cx, cz, data[4:], world)
         return chunk
@@ -214,7 +218,7 @@ class PocketChunksFile(object):
             # we need to allocate new sectors
 
             # mark the sectors previously used for this chunk as free 
-            for i in xrange(sectorNumber, sectorNumber + sectorsAllocated):
+            for i in range(sectorNumber, sectorNumber + sectorsAllocated):
                 self.freeSectors[i] = True
 
             runLength = 0
@@ -297,8 +301,8 @@ class PocketChunksFile(object):
         coords = ((i % 32, i // 32) for i in indexes)
         return coords
         
-from infiniteworld import ChunkedLevelMixin
-from level import MCLevel, LightedChunk
+from .infiniteworld import ChunkedLevelMixin
+from .level import MCLevel, LightedChunk
 
 class PocketWorld(ChunkedLevelMixin, MCLevel):
     Height = 128
@@ -324,7 +328,7 @@ class PocketWorld(ChunkedLevelMixin, MCLevel):
         
     def getChunk(self, cx, cz):
         for p in cx,cz:
-            if not 0 <= p <= 31: raise ChunkNotPresent, (cx,cz, self)
+            if not 0 <= p <= 31: raise ChunkNotPresent(cx,cz, self)
 
         c = self._loadedChunks.get( (cx,cz) )
         if c is None:
@@ -344,7 +348,7 @@ class PocketWorld(ChunkedLevelMixin, MCLevel):
         return all([os.path.exists(os.path.join(filename, f)) for f in clp])    
         
     def saveInPlace(self):
-        for chunk in self._loadedChunks.itervalues():
+        for chunk in six.itervalues(self._loadedChunks):
             if chunk.dirty:
                 self.chunkFile.saveChunk(chunk)
                 chunk.dirty = False

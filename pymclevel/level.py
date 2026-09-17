@@ -5,10 +5,16 @@ Created on Jul 22, 2011
 '''
 
 
-from mclevelbase import *
+from __future__ import absolute_import
+from __future__ import print_function
+from .mclevelbase import *
 import tempfile
 from collections import defaultdict
-import materials
+from . import materials
+from six.moves import filter
+from six.moves import map
+from six.moves import range
+from six.moves import zip
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -151,7 +157,7 @@ class MCLevel(object):
         if hasattr(cls, "_isLevel"):
             return cls._isLevel(filename)
 
-        with file(filename) as f:
+        with open(filename) as f:
             data = f.read()
 
         if hasattr(cls, "_isDataLevel"):
@@ -207,7 +213,7 @@ class MCLevel(object):
 
     @property
     def loadedChunks(self):
-        return itertools.product(xrange(0, self.Width + 15 >> 4), xrange(0, self.Length + 15 >> 4))
+        return itertools.product(range(0, self.Width + 15 >> 4), range(0, self.Length + 15 >> 4))
 
     @property
     def chunkCount(self):
@@ -390,7 +396,7 @@ class MCLevel(object):
 
         info(u"Filling blocks in {0} with {1}, replacing{2}".format(box, blockInfo, blocksToReplace))
 
-        slices = map(slice, box.origin, box.maximum)
+        slices = list(map(slice, box.origin, box.maximum))
         
         blocks = self.Blocks[slices[0], slices[2], slices[1]]
         if len(blocksToReplace):
@@ -438,9 +444,9 @@ class MCLevel(object):
 
     def copyBlocksFromFiniteToFinite(self, sourceLevel, sourceBox, destinationPoint, blocksToCopy):
         # assume destinationPoint is entirely within this level, and the size of sourceBox fits entirely within it.
-        sourcex, sourcey, sourcez = map(slice, sourceBox.origin, sourceBox.maximum)
-        destCorner2 = map(lambda a, b:a + b, sourceBox.size, destinationPoint)
-        destx, desty, destz = map(slice, destinationPoint, destCorner2)
+        sourcex, sourcey, sourcez = list(map(slice, sourceBox.origin, sourceBox.maximum))
+        destCorner2 = list(map(lambda a, b:a + b, sourceBox.size, destinationPoint))
+        destx, desty, destz = list(map(slice, destinationPoint, destCorner2))
 
         sourceData = None
         if hasattr(sourceLevel, 'Data'):
@@ -472,7 +478,7 @@ class MCLevel(object):
             typemask[blocksToCopy] = True
 
         for i, (chunk, slices, point) in enumerate(sourceLevel.getChunkSlices(sourceBox)):
-            point = map(lambda a, b:a + b, point, destinationPoint)
+            point = list(map(lambda a, b:a + b, point, destinationPoint))
             point = point[0], point[2], point[1]
             mask = slice(None, None)
 
@@ -501,7 +507,7 @@ class MCLevel(object):
 
         # if the destination box is outside the level, it and the source corners are moved inward to fit.
         # ValueError is raised if the source corners are outside sourceLevel
-        (x, y, z) = map(int, destinationPoint)
+        (x, y, z) = list(map(int, destinationPoint))
 
         sourceBox = BoundingBox(sourceBox.origin, sourceBox.size)
 
@@ -550,15 +556,15 @@ class MCLevel(object):
     def copyBlocksFromIter(self, sourceLevel, sourceBox, destinationPoint, blocksToCopy=None, entities=True, create=False):
         if (not sourceLevel.isInfinite) and not(
                sourceLevel.containsPoint(*sourceBox.origin) and
-               sourceLevel.containsPoint(*map(lambda x:x - 1, sourceBox.maximum))):
-            raise ValueError, "{0} cannot provide blocks between {1}".format(sourceLevel, sourceBox)
+               sourceLevel.containsPoint(*[x - 1 for x in sourceBox.maximum])):
+            raise ValueError("{0} cannot provide blocks between {1}".format(sourceLevel, sourceBox))
 
 
         sourceBox, destinationPoint = self.adjustCopyParameters(sourceLevel, sourceBox, destinationPoint)
         yield
         
         if min(sourceBox.size) <= 0:
-            print "Empty source box, aborting"
+            print("Empty source box, aborting")
             return
 
         info(u"Copying {0} blocks from {1} to {2}" .format (sourceBox.volume, sourceBox, destinationPoint))
@@ -616,7 +622,7 @@ class EntityLevel(MCLevel):
     def copyEntitiesFromInfiniteIter(self, sourceLevel, sourceBox, destinationPoint, entities):
         chunkCount = sourceBox.chunkCount
         i = 0
-        copyOffset = map(lambda x, y:x - y, destinationPoint, sourceBox.origin)
+        copyOffset = list(map(lambda x, y:x - y, destinationPoint, sourceBox.origin))
         e = t = 0
 
         for (chunk, slices, point) in sourceLevel.getChunkSlices(sourceBox):
@@ -658,7 +664,7 @@ class EntityLevel(MCLevel):
         else:
             entsCopied = 0
             tileEntsCopied = 0
-            copyOffset = map(lambda x, y:x - y, destinationPoint, sourcePoint0)
+            copyOffset = list(map(lambda x, y:x - y, destinationPoint, sourcePoint0))
             if entities:
                 for entity in sourceLevel.getEntitiesInBox(sourceBox):
                     eTag = Entity.copyWithOffset(entity, copyOffset)
@@ -751,7 +757,7 @@ class EntityLevel(MCLevel):
 
             return not ((tileEntityTag is a) or TileEntity.pos(a) == TileEntity.pos(tileEntityTag))
 
-        self.TileEntities.value[:] = filter(differentPosition, self.TileEntities)
+        self.TileEntities.value[:] = list(filter(differentPosition, self.TileEntities))
 
         self.TileEntities.append(tileEntityTag)
         self._fakeEntities = None
@@ -765,7 +771,7 @@ class EntityLevel(MCLevel):
             for i, e in enumerate((self.Entities, self.TileEntities)):
                 for ent in e:
                     x, y, z = [Entity, TileEntity][i].pos(ent)
-                    ecx, ecz = map(lambda x:(int(floor(x)) >> 4), (x, z))
+                    ecx, ecz = [(int(floor(x)) >> 4) for x in (x, z)]
 
                     self._fakeEntities[ecx, ecz][i].append(ent)
 
@@ -822,11 +828,11 @@ class LightedChunk(ChunkBase):
         skylight = self.SkyLight
         heightmap = self.HeightMap
 
-        for x, z in itertools.product(xrange(16), xrange(16)):
+        for x, z in itertools.product(range(16), range(16)):
 
             skylight[x, z, heightmap[z, x]:] = 15
             lv = 15
-            for y in reversed(range(heightmap[z, x])):
+            for y in reversed(list(range(heightmap[z, x]))):
                 lv -= (la[blocks[x, z, y]] or 1)
 
                 if lv <= 0:

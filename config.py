@@ -16,10 +16,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 config.py
 Configuration settings and storage.
 """
+from __future__ import absolute_import
 import os
 import logging
 import collections
-import ConfigParser
+import six.moves.configparser
 from cStringIO import StringIO
 
 import mcplatform
@@ -50,7 +51,7 @@ def loadConfig():
             return ((k, self.dict[k]) for k in self.keys())
 
         def __iter__(self):
-            return self.keys().__iter__()
+            return list(self.keys()).__iter__()
 
         def __getitem__(self, k):
             return self.dict[k]
@@ -77,12 +78,12 @@ def loadConfig():
             k.keyorder = list(self.keyorder)
             return k
 
-    config = ConfigParser.RawConfigParser([], keyDict)
+    config = six.moves.configparser.RawConfigParser([], keyDict)
     config.readfp(StringIO(configDefaults))
     try:
         config.read(configFilePath())
 
-    except Exception, e:
+    except Exception as e:
         log.warn(u"Error while reading configuration file mcedit.ini: {0}".format(e))
 
     return config
@@ -94,10 +95,10 @@ def updateConfig():
 
 def saveConfig():
     try:
-        cf = file(configFilePath(), 'w')
+        cf = open(configFilePath(), 'w')
         config.write(cf)
         cf.close()
-    except Exception, e:
+    except Exception as e:
         try:
             alert(u"Error saving configuration settings to mcedit.ini: {0}".format(e))
         except:

@@ -13,8 +13,11 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import os
+from six.moves import range
 
 
 def win32_utf8_argv():
@@ -57,7 +60,7 @@ def win32_utf8_argv():
 #            else:
 #                start = 0
             return [argv[i] for i in
-                    xrange(0, argc.value)]
+                    range(0, argc.value)]
     except Exception:
         pass
 
@@ -99,13 +102,13 @@ def findDirectories():
         #    raise RuntimeError, "Cannot find MCEditData! (did you start from the right directory?)"
 
     if not len(dataDir):
-        print "DataDir was empty, using cwd."
+        print("DataDir was empty, using cwd.")
         dataDir = os.getcwdu()
 
     #docsFolder = mcplatform.documents_folder()
 
     if runningInEditor:
-        print "Running in development mode!"
+        print("Running in development mode!")
 
     os.chdir(os.path.abspath(dataDir))
     return dataDir, runningInEditor

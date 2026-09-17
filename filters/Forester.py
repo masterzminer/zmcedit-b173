@@ -7,6 +7,9 @@ Requires mcInterface.py in the same folder.'''
 
 # This is the name of the map to edit.
 # Make a backup if you are experimenting!
+from __future__ import absolute_import
+from __future__ import print_function
+from six.moves import range
 LOADNAME = "LevelSave"
 
 # How many trees do you want to add?
@@ -1146,7 +1149,7 @@ def planttrees(mcmap, treelist):
     while len(treelist) < TREECOUNT:
         if tries > max_tries:
             if VERBOSE:
-                print("Stopping search for tree locations after {0} tries".format(tries))
+                print(("Stopping search for tree locations after {0} tries".format(tries)))
                 print("If you don't have enough trees, check X, Y, RADIUS, and PLANTON")
             break
         tries += 1
@@ -1223,7 +1226,7 @@ def planttrees(mcmap, treelist):
         # generate the new tree
         newtree = Tree([x, y, z], height)
         if VERBOSE:
-            print(x, y, z, height)
+            print((x, y, z, height))
         treelist += [newtree]
 
 

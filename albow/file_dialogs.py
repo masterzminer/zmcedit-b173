@@ -3,6 +3,7 @@
 #   Albow - File Dialogs
 #
 
+from __future__ import absolute_import
 import os
 from pygame import draw, Rect
 from pygame.locals import *
@@ -13,6 +14,7 @@ from albow.fields import TextField
 from albow.layout import Row, Column
 from albow.palette_view import PaletteView
 from albow.theme import ThemeProperty
+from six.moves import filter
 
 
 class DirPathView(Widget):
@@ -57,9 +59,9 @@ class FileListView(PaletteView):
             return os.path.isdir(path) or self.client.filter(path)
 
         try:
-            names = [name for name in os.listdir(dir) if filter(name)]
+            names = [name for name in os.listdir(dir) if list(filter(name))]
                 #if not name.startswith(".") and filter(name)]
-        except EnvironmentError, e:
+        except EnvironmentError as e:
             alert(u"%s: %s" % (dir, e))
             names = []
         self.names = sorted(names)

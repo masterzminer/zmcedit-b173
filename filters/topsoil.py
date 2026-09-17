@@ -1,8 +1,10 @@
 
+from __future__ import absolute_import
 from numpy import zeros
 import itertools
 from pymclevel import alphaMaterials
 from pymclevel.level import extractHeights
+from six.moves import map
 
 am = alphaMaterials
 
@@ -65,7 +67,7 @@ def perform(level, box, options):
 
         heightmap = extractHeights(maskedBlocks)
 
-        for x, z in itertools.product(*map(xrange, heightmap.shape)):
+        for x, z in itertools.product(*list(map(xrange, heightmap.shape))):
             h = heightmap[x, z]
             if depth > 0:
                 blocks[x, z, max(0, h - depth):h] = blocktype.ID

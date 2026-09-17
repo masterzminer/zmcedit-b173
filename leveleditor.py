@@ -23,6 +23,7 @@ imported from editortools/
 
 """
 
+from __future__ import absolute_import
 import gc
 import os
 import csv
@@ -65,6 +66,10 @@ from glutils import gl, Texture
 from mcplatform import askSaveFile
 from pymclevel.infiniteworld import alphanum_key
 from renderer import MCRenderer
+import six
+from six.moves import map
+from six.moves import range
+from six.moves import zip
 
 # Label = GLLabel
 
@@ -363,10 +368,10 @@ class CameraViewport(GLViewport):
         ))
 
         # give the camera an impulse according to the state of the inputs and in the direction of the camera
-        cameraAccel = map(lambda x: x * accel_factor * timeDelta, directedInputs)
+        cameraAccel = [x * accel_factor * timeDelta for x in directedInputs]
         # cameraImpulse = map(lambda x: x*impulse_factor, directedInputs)
 
-        newVelocity = map(lambda a, b: a + b, velocity, cameraAccel)
+        newVelocity = list(map(lambda a, b: a + b, velocity, cameraAccel))
         velocityDir, speed = mceutils.normalize_size(newVelocity)
 
         # apply drag
@@ -387,15 +392,15 @@ class CameraViewport(GLViewport):
         if abs(speed) < drag_epsilon:
             speed = 0
 
-        velocity = map(lambda a: a * speed, velocityDir)
+        velocity = [a * speed for a in velocityDir]
 
         # velocity = map(lambda p,d: p + d, velocity, cameraImpulse)
-        d = map(lambda a, b: abs(a - b), self.cameraPosition, self.oldPosition)
+        d = list(map(lambda a, b: abs(a - b), self.cameraPosition, self.oldPosition))
         if d[0] + d[2] > 32.0:
             self.oldPosition = self.cameraPosition
             self.updateFloorQuad()
 
-        self.cameraPosition = map(lambda p, d: p + d * timeDelta, self.cameraPosition, velocity)
+        self.cameraPosition = list(map(lambda p, d: p + d * timeDelta, self.cameraPosition, velocity))
         if self.cameraPosition[1] > 3800.:
             self.cameraPosition[1] = 3800.
         if self.cameraPosition[1] < -1000.:
@@ -430,7 +435,7 @@ class CameraViewport(GLViewport):
         dx = -numpy.sin(numpy.radians(yaw)) * numpy.cos(numpy.radians(pitch))
         dy = -numpy.sin(numpy.radians(pitch))
         dz = numpy.cos(numpy.radians(yaw)) * numpy.cos(numpy.radians(pitch))
-        return map(nanzero, [dx, dy, dz])
+        return list(map(nanzero, [dx, dy, dz]))
 
     def updateMouseVector(self):
         self.mouseVector = self._mouseVector()
@@ -508,7 +513,7 @@ class CameraViewport(GLViewport):
         d = [0, 0, 0]
 
         try:
-            intProjectedPoint = map(int, map(numpy.floor, projectedPoint))
+            intProjectedPoint = list(map(int, list(map(numpy.floor, projectedPoint))))
         except ValueError:
             return None  # catch NaNs
         intProjectedPoint[1] = max(0, intProjectedPoint[1])
@@ -519,7 +524,7 @@ class CameraViewport(GLViewport):
              (projectedPoint[2] - (intProjectedPoint[2] + 0.5))
              )
 
-        av = map(abs, faceVector)
+        av = list(map(abs, faceVector))
 
         i = av.index(max(av))
         delta = faceVector[i]
@@ -540,7 +545,7 @@ class CameraViewport(GLViewport):
         else:
             # discard any faces that aren't likely to be exposed
             for face, offsets in pymclevel.faceDirections:
-                point = map(lambda a, b: a + b, intProjectedPoint, offsets)
+                point = list(map(lambda a, b: a + b, intProjectedPoint, offsets))
                 try:
                     neighborBlock = self.editor.level.blockAt(*point)
                     if block != neighborBlock:
@@ -968,11 +973,11 @@ class CameraViewport(GLViewport):
 
         if evt.num_clicks == 2:
             def distance2(p1, p2):
-                return numpy.sum(map(lambda a, b: (a - b) ** 2, p1, p2))
+                return numpy.sum(list(map(lambda a, b: (a - b) ** 2, p1, p2)))
 
             point, face = self.blockFaceUnderCursor
             if point is not None:
-                point = map(lambda x: int(numpy.floor(x)), point)
+                point = [int(numpy.floor(x)) for x in point]
                 if self.editor.currentTool is self.editor.selectionTool:
                     block = self.editor.level.blockAt(*point)
                     if distance2(point, self.cameraPosition) > 4:
@@ -1236,7 +1241,7 @@ class CameraViewport(GLViewport):
 
     def getCameraPoint(self):
         distance = self.editor.currentTool.cameraDistance
-        return [i for i in itertools.imap(lambda p, d: int(numpy.floor(p + d * distance)),
+        return [i for i in map(lambda p, d: int(numpy.floor(p + d * distance)),
                                                       self.cameraPosition,
                                                       self.cameraVector)]
 
@@ -1472,7 +1477,7 @@ class LevelEditor(GLViewport):
                     return len(c.compressedTag)
                 return 0
 
-            return numpy.sum(size(c) for c in chunks.itervalues())
+            return numpy.sum(size(c) for c in six.itervalues(chunks))
 
         mbldReadout = SmallValueDisplay(width=60,
             get_value=lambda: "MBd: %0.1f" % (dataSize() / 1000000.),
@@ -1713,8 +1718,8 @@ class LevelEditor(GLViewport):
         with mceutils.setWindowCaption("ANALYZING - "):
             mceutils.showProgress("Analyzing {0} blocks...".format(box.volume), _analyzeBox(), cancel=True)
 
-        entitySum = numpy.sum(entityCounts.values())
-        tileEntitySum = numpy.sum(tileEntityCounts.values())
+        entitySum = numpy.sum(list(entityCounts.values()))
+        tileEntitySum = numpy.sum(list(tileEntityCounts.values()))
         presentTypes = types.nonzero()
 
         blockCounts = sorted([(level.materials[t & 0xff, t >> 8], types[t]) for t in presentTypes[0]])
@@ -1738,10 +1743,10 @@ class LevelEditor(GLViewport):
         def extendEntities():
             if entitySum:
                 rows.extend([("", "", ""), ("", "<Entities>", entitySum)])
-                rows.extend([(id[0], id[1], count) for (id, count) in sorted(entityCounts.iteritems())])
+                rows.extend([(id[0], id[1], count) for (id, count) in sorted(six.iteritems(entityCounts))])
             if tileEntitySum:
                 rows.extend([("", "", ""), ("", "<TileEntities>", tileEntitySum)])
-                rows.extend([(id, id, count) for (id, count) in sorted(tileEntityCounts.iteritems())])
+                rows.extend([(id, id, count) for (id, count) in sorted(six.iteritems(tileEntityCounts))])
         extendEntities()
 
         columns = [
@@ -1762,7 +1767,7 @@ class LevelEditor(GLViewport):
 
             def sortKey(x):
                 val = x[colnum]
-                if isinstance(val, basestring):
+                if isinstance(val, six.string_types):
                     alphanum_key(val)
                 return val
 
@@ -1792,7 +1797,7 @@ class LevelEditor(GLViewport):
             if filename:
                 try:
                     csvfile = csv.writer(open(filename, "wb"))
-                except Exception, e:
+                except Exception as e:
                     alert(str(e))
                 else:
                     csvfile.writerows(rows)
@@ -1936,7 +1941,7 @@ class LevelEditor(GLViewport):
         self.freezeStatus("Loading " + filename)
         try:
             level = pymclevel.fromFile(filename)
-        except Exception, e:
+        except Exception as e:
             logging.exception(
                 'Wasn\'t able to open a file {file => %s}' % filename
             )
@@ -2002,7 +2007,7 @@ class LevelEditor(GLViewport):
 
             dimensionsMenu = [("Earth", "0")]
             dimensionsMenu += [((dim.displayName,str(dim.dimNo)+"/"+dim.dirname)) for dim in dimensions.values()]
-            for dim, name in pymclevel.MCAlphaDimension.dimensionNames.iteritems():
+            for dim, name in six.iteritems(pymclevel.MCAlphaDimension.dimensionNames):
                 if dim not in dimensions:
                     dimensionsMenu.append((name, str(dim)))
 
@@ -2101,13 +2106,13 @@ class LevelEditor(GLViewport):
                 if level.parentWorld:
                     level = level.parentWorld
 
-                for level in itertools.chain(level.dimensions.itervalues(), [level]):
+                for level in itertools.chain(six.itervalues(level.dimensions), [level]):
 
                     if "Canceled" == mceutils.showProgress("Lighting chunks", level.generateLightsIter(), cancel=True):
                         return
 
                     if self.level == level:
-                        needsRefresh = [c.chunkPosition for c in level._loadedChunks.itervalues() if c.dirty]
+                        needsRefresh = [c.chunkPosition for c in six.itervalues(level._loadedChunks) if c.dirty]
                         self.invalidateChunks(needsRefresh)
 
             self.freezeStatus("Saving...")
@@ -2251,7 +2256,7 @@ class LevelEditor(GLViewport):
     def statusText(self):
         try:
             return self.currentTool.statusText
-        except Exception, e:
+        except Exception as e:
             return repr(e)
 
     def toolMouseDown(self, evt, f):  # xxx f is a tuple
@@ -2379,7 +2384,7 @@ class LevelEditor(GLViewport):
 
     def drawStars(self):
         pos = self.mainViewport.cameraPosition
-        self.mainViewport.cameraPosition = map(lambda x: x / 128.0, pos)
+        self.mainViewport.cameraPosition = [x / 128.0 for x in pos]
         self.mainViewport.setModelview()
 
         GL.glColor(.5, .5, .5, 1.)
@@ -2542,7 +2547,7 @@ class LevelEditor(GLViewport):
                         expr = input_text(">>> ", 600)
                         expr = compile(expr, 'eval', 'single')
                         alert("Result: {0!r}".format(eval(expr, globals(), locals())))
-                    except Exception, e:
+                    except Exception as e:
                         alert("Exception: {0!r}".format(e))
 
             if keyname == 'f10':
@@ -2651,7 +2656,7 @@ class LevelEditor(GLViewport):
     def showGotoPanel(self):
 
         gotoPanel = Widget()
-        gotoPanel.X, gotoPanel.Y, gotoPanel.Z = map(int, self.mainViewport.cameraPosition)
+        gotoPanel.X, gotoPanel.Y, gotoPanel.Z = list(map(int, self.mainViewport.cameraPosition))
 
         inputRow = (
           Label("X: "), IntField(ref=AttrRef(gotoPanel, "X")),
@@ -2702,7 +2707,7 @@ class LevelEditor(GLViewport):
         self.mcedit.removeEditor()
 
     def repairRegions(self):
-        for rf in self.level.regionFiles.itervalues():
+        for rf in six.itervalues(self.level.regionFiles):
             rf.repair()
 
         alert("Repairs complete.  See the console window for details.")
@@ -2928,9 +2933,9 @@ class LevelEditor(GLViewport):
                 return w.LevelName
             return u"{0} ({1})".format(w.LevelName, w.displayName)
 
-        worldData = [[dateFormat(d), nameFormat(w), str(w.dimensions.keys())[1:-1], w, d]
+        worldData = [[dateFormat(d), nameFormat(w), str(list(w.dimensions.keys()))[1:-1], w, d]
             for w, d in ((w, dateobj(w.LastPlayed)) for w in worlds)]
-        worldData.sort(key=lambda (a, b, dim, w, d): d, reverse=True)
+        worldData.sort(key=lambda a_b_dim_w_d: a_b_dim_w_d[4], reverse=True)
         # worlds = [w[2] for w in worldData]
 
         worldTable.selectedWorldIndex = 0
@@ -3246,7 +3251,7 @@ class LevelEditor(GLViewport):
         if len(self.workers):
             try:
                 w = self.workers.popleft()
-                w.next()
+                next(w)
                 self.workers.append(w)
             except StopIteration:
                 if hasattr(w, "needsRedraw") and w.needsRedraw:
@@ -3317,7 +3322,7 @@ class LevelEditor(GLViewport):
                     self.inspectionString += "ID: %d (%s), " % (
                         blockID, self.level.materials.names[blockID][0])
 
-        except Exception, e:
+        except Exception as e:
             self.inspectionString += "Chunk {0} had an error: {1!r}".format((int(numpy.floor(blockPosition[0])) >> 4, int(numpy.floor(blockPosition[2])) >> 4), e)
             pass
 
@@ -3534,7 +3539,7 @@ class EditorToolbar(GLOrtho):
     def toolbarSizeForScreenWidth(self, width):
         f = max(1, int(width + 398) / 400)
 
-        return map(lambda x: x * f, self.toolbarSize)
+        return [x * f for x in self.toolbarSize]
 
         # return ( self.toolbarWidthRatio * width,
         #         self.toolbarWidthRatio * width * self.toolbarTextureSize[1] / self.toolbarTextureSize[0] )

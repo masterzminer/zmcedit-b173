@@ -2,11 +2,14 @@
 #   Albow - Fields
 #
 
+from __future__ import absolute_import
+from __future__ import print_function
 from pygame import draw
 import pygame
 from pygame.locals import K_LEFT, K_RIGHT, K_TAB, K_c, K_v, SCRAP_TEXT
-from widget import Widget, overridable_property
-from controls import Control
+from .widget import Widget, overridable_property
+from .controls import Control
+import six
 
 #---------------------------------------------------------------------------
 
@@ -63,24 +66,24 @@ class TextEditor(Widget):
                 self.tab_to_next()
                 return
             try:
-                c = event.unicode
+                c = event.six.text_type
             except ValueError:
                 c = ""
             if self.insert_char(c) != 'pass':
                 return
-        if event.cmd and event.unicode:
+        if event.cmd and event.six.text_type:
             if event.key == K_c:
                 try:
                     pygame.scrap.put(SCRAP_TEXT, self.text)
                 except:
-                    print "scrap not available"
+                    print("scrap not available")
 
             elif event.key == K_v:
                 try:
                     t = pygame.scrap.get(SCRAP_TEXT).replace('\0', '')
                     self.text = t
                 except:
-                    print "scrap not available"
+                    print("scrap not available")
                 #print repr(t)
             else:
                 self.attention_lost()
@@ -276,9 +279,9 @@ class Field(Control, TextEditor):
             self.value = value
             self.insertion_point = None
             if notify:
-                self.change_text(unicode(value))
+                self.change_text(six.text_type(value))
             else:
-                self._text = unicode(value)
+                self._text = six.text_type(value)
             self.editing = False
 
         else:
@@ -296,7 +299,7 @@ class Field(Control, TextEditor):
 
 
 class TextField(Field):
-    type = unicode
+    type = six.text_type
     _value = u""
 
 

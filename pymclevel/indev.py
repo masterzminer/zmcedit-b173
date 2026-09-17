@@ -61,7 +61,9 @@ TAG_Compound "MinecraftLevel"
    }
 }
 """
-from mclevelbase import *
+from __future__ import absolute_import
+from .mclevelbase import *
+from six.moves import range
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -87,7 +89,7 @@ Spawn = "Spawn"
 
 __all__ = ["MCIndevLevel"]
 
-from level import EntityLevel, computeChunkHeightMap
+from .level import EntityLevel, computeChunkHeightMap
 
 class MCIndevLevel(EntityLevel):
     """ IMPORTANT: self.Blocks and self.Data are indexed with [x,z,y] via axis 
@@ -109,7 +111,7 @@ class MCIndevLevel(EntityLevel):
     def getPlayerPosition(self, player="Ignored"):
         for x in self.root_tag["Entities"]:
             if x["id"].value == "LocalPlayer":
-                return array(map(lambda x:x.value, x["Pos"]))
+                return array([x.value for x in x["Pos"]])
 
     def setPlayerOrientation(self, yp, player="Ignored"):
         for x in self.root_tag["Entities"]:
@@ -120,7 +122,7 @@ class MCIndevLevel(EntityLevel):
         """ returns (yaw, pitch) """
         for x in self.root_tag["Entities"]:
             if x["id"].value == "LocalPlayer":
-                return array(map(lambda x:x.value, x["Rotation"]))
+                return array([x.value for x in x["Rotation"]])
 
     def setBlockDataAt(self, x, y, z, newdata):
         if x < 0 or y < 0 or z < 0: return 0
@@ -201,7 +203,7 @@ class MCIndevLevel(EntityLevel):
 
                 TileEntity.setpos(te, (x, y, z))
 
-            if len(filter(lambda x:x['id'].value == 'LocalPlayer', root_tag[Entities])) == 0: #omen doesn't make a player entity
+            if len([x for x in root_tag[Entities] if x['id'].value == 'LocalPlayer']) == 0: #omen doesn't make a player entity
                 p = TAG_Compound()
                 p['id'] = TAG_String('LocalPlayer')
                 p['Pos'] = TAG_List([TAG_Float(0.), TAG_Float(64.), TAG_Float(0.)])
@@ -212,7 +214,7 @@ class MCIndevLevel(EntityLevel):
 
         else:
             info(u"Creating new Indev levels is not yet implemented.!")
-            raise ValueError, "Can't do that yet"
+            raise ValueError("Can't do that yet")
 #            self.SurroundingGroundHeight = root_tag[Environment][SurroundingGroundHeight].value
 #            self.SurroundingGroundType = root_tag[Environment][SurroundingGroundType].value
 #            self.SurroundingWaterHeight = root_tag[Environment][SurroundingGroundHeight].value
@@ -294,7 +296,7 @@ class MCIndevLevel(EntityLevel):
         #output_file = gzip.open(self.filename, "wb", compresslevel=1)
         try:
             os.rename(filename, filename + ".old")
-        except Exception, e:
+        except Exception as e:
             pass
 
         try:
@@ -303,7 +305,7 @@ class MCIndevLevel(EntityLevel):
             os.rename(filename + ".old", filename)
 
         try: os.remove(filename + ".old");
-        except Exception, e:
+        except Exception as e:
             pass
 
         self.BlockLight = self.Data & 0xf

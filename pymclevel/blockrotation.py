@@ -1,4 +1,5 @@
-from materials import alphaMaterials
+from __future__ import absolute_import
+from .materials import alphaMaterials
 from numpy import array, arange, zeros
 
 def genericVerticalFlip(cls):

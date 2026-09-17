@@ -1,4 +1,5 @@
 
+from __future__ import absolute_import
 from numpy import zeros, arange, array, zeros_like, rollaxis, indices, s_
 import traceback
 from os.path import exists, join
@@ -6,6 +7,8 @@ from collections import defaultdict
 from pprint import pformat
 
 import sys, os
+import six
+from six.moves import range
 
 NOTEX = (0xB0, 0xE0)
 
@@ -124,10 +127,10 @@ class MCMaterials(object):
                 level.materials["Lapis Lazuli Block"] #in Classic
                     
            """
-        if isinstance(key, basestring):
+        if isinstance(key, six.string_types):
             for b in self.allBlocks:
                 if b.name == key: return b
-            raise KeyError, "No blocks named: " + key
+            raise KeyError("No blocks named: " + key)
         if isinstance(key, (tuple, list)):
             id, blockData = key
             return self.blockWithID(id, blockData)
@@ -154,13 +157,13 @@ class MCMaterials(object):
             f = pkg_resources.resource_stream(__name__, filename)
         except (ImportError, IOError):
             root = os.environ.get("PYMCLEVEL_YAML_ROOT", "pymclevel") #fall back to cwd as last resort
-            f = file(join(root, filename))
+            f = open(join(root, filename))
         try:
             info(u"Loading block info from %s", f)
             blockyaml = yaml.load(f)
             self.addYamlBlocks(blockyaml)
  
-        except Exception, e:
+        except Exception as e:
             warn(u"Exception while loading block info from %s: %s", f, e)
             traceback.print_exc()
             
@@ -169,7 +172,7 @@ class MCMaterials(object):
         for block in blockyaml['blocks']:
             try:
                 self.addYamlBlock(block)
-            except Exception, e:
+            except Exception as e:
                 warn(u"Exception while parsing block: %s", e)
                 traceback.print_exc()
                 warn(u"Block definition: \n%s", pformat(block))
@@ -300,7 +303,7 @@ HugeMushroomTypes = {
    "Stem" : 10,
    "Top" : 5,
 }
-from faces import *
+from .faces import *
 
 Red = (0xD0, 0x70)
 Brown = (0xE0, 0x70)
@@ -308,7 +311,7 @@ Pore = (0xE0, 0x80)
 Stem = (0xD0, 0x80)
 
 def defineShroomFaces(Shroom, id, name):
-    for way, data in sorted(HugeMushroomTypes.items(), key=lambda a:a[1]):
+    for way, data in sorted(list(HugeMushroomTypes.items()), key=lambda a:a[1]):
         loway = way.lower()
         if way is "Stem":
             tex = [Stem, Stem, Pore, Pore, Stem, Stem]

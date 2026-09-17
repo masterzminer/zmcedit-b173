@@ -38,6 +38,8 @@ MCRenderer:
 
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
 from depths import DepthOffset
@@ -47,6 +49,10 @@ import numpy
 from OpenGL import GL
 import pymclevel
 import sys
+import six
+from six.moves import range
+from six.moves import zip
+from functools import reduce
 #import time
 
 
@@ -113,7 +119,7 @@ class ChunkRenderer(object):
         if self.renderstateLists is not None:
             # print "Discarded {0}, gained {1} bytes".format(self.chunkPosition,self.bufferSize)
 
-            for k in states or self.renderstateLists.iterkeys():
+            for k in states or six.iterkeys(self.renderstateLists):
                 a = self.renderstateLists.get(k, [])
                 # print a
                 for i in a:
@@ -467,7 +473,7 @@ class ChunkCalculator (object):
         level = cr.renderer.level
         try:
             chunk = level.getChunk(cx, cz)
-        except Exception, e:
+        except Exception as e:
             logging.warn(u"Error reading chunk: %s", e)
             yield
             return
@@ -1068,7 +1074,7 @@ class LowDetailBlockRenderer(BlockRenderer):
             numpy.clip(h, 0, chunkHeight - 1, out=h)
             overblocks = blocks[gridaxes][nonAirBlocks].ravel()
 
-        except ValueError, e:
+        except ValueError as e:
             raise ValueError(str(e.args) + "Chunk shape: {0}".format(blockIndices.shape), sys.exc_info()[-1])
 
         if nonAirBlocks.any():
@@ -1975,7 +1981,7 @@ class MCRenderer(object):
             self.visibleLayers.add(layer)
         else:
             self.visibleLayers.discard(layer)
-        for cr in self.chunkRenderers.itervalues():
+        for cr in six.itervalues(self.chunkRenderers):
             cr.invalidLayers.add(layer)
 
         self.loadNearbyChunks()
@@ -2175,7 +2181,7 @@ class MCRenderer(object):
         (ox, oz) = origin
         bytes = 0
         # chunks = numpy.fromiter(self.chunkRenderers.iterkeys(), dtype='int32', count=len(self.chunkRenderers))
-        chunks = numpy.fromiter(self.chunkRenderers.iterkeys(), dtype='i,i', count=len(self.chunkRenderers))
+        chunks = numpy.fromiter(six.iterkeys(self.chunkRenderers), dtype='i,i', count=len(self.chunkRenderers))
         chunks.dtype = 'int32'
         chunks.shape = len(self.chunkRenderers), 2
 
@@ -2283,10 +2289,10 @@ class MCRenderer(object):
         self.loadNearbyChunks()
 
     def invalidateAllChunks(self, layers=None):
-        self.invalidateChunks(self.chunkRenderers.iterkeys(), layers)
+        self.invalidateChunks(six.iterkeys(self.chunkRenderers), layers)
 
     def forgetAllDisplayLists(self):
-        for cr in self.chunkRenderers.itervalues():
+        for cr in six.itervalues(self.chunkRenderers):
             cr.forgetDisplayLists()
 
     def invalidateMasterList(self):
@@ -2400,7 +2406,7 @@ class MCRenderer(object):
 #            chunkColor = numpy.array(chunkColor, dtype='uint8')
 #
             # GL.glColorPointer(4, GL.GL_UNSIGNED_BYTE, 0, chunkColor)
-            for size, chunks in sizedChunks.iteritems():
+            for size, chunks in six.iteritems(sizedChunks):
                 if not len(chunks):
                     continue
                 chunks = numpy.array(chunks, dtype='float32')
@@ -2429,7 +2435,7 @@ class MCRenderer(object):
         # self.drawCompressedChunkMarkers()
 
     def drawCompressedChunkMarkers(self):
-        chunkPositions = self.chunkRenderers.keys()
+        chunkPositions = list(self.chunkRenderers.keys())
         if 0 == len(chunkPositions):
             return
 
@@ -2488,7 +2494,7 @@ class MCRenderer(object):
             pass
 
         def callMasterLists(self):
-            for cr in self.chunkRenderers.itervalues():
+            for cr in six.itervalues(self.chunkRenderers):
                 cr.debugDraw()
     else:
         def createMasterLists(self):
@@ -2498,7 +2504,7 @@ class MCRenderer(object):
                 chunksPerFrame = 80
                 shouldRecreateAgain = False
 
-                for ch in self.chunkRenderers.itervalues():
+                for ch in six.itervalues(self.chunkRenderers):
                     if chunksPerFrame:
                         if ch.needsRedisplay:
                             chunksPerFrame -= 1
@@ -2566,11 +2572,11 @@ class MCRenderer(object):
             try:
                 self.callMasterLists()
 
-            except GL.GLError, e:
+            except GL.GLError as e:
                 if self.errorLimit:
                     self.errorLimit -= 1
                     traceback.print_exc()
-                    print e
+                    print(e)
 
             GL.glDisable(GL.GL_POLYGON_OFFSET_FILL)
 
@@ -2596,7 +2602,7 @@ class MCRenderer(object):
         addDebugString("CR: {0}, ".format(len(self.chunkRenderers),))
 
     def next(self):
-        self.chunkWorker.next()
+        next(self.chunkWorker)
 
     def makeWorkIterator(self):
         ''' does chunk face and vertex calculation work. returns a generator that can be
@@ -2620,12 +2626,12 @@ class MCRenderer(object):
                     raise StopIteration
 
                 else:
-                    c = self.chunkIterator.next()
+                    c = next(self.chunkIterator)
                     if self.vertexBufferLimit:
                         while self.bufferUsage > (0.9 * (self.vertexBufferLimit << 20)):
                             deadChunk = None
                             deadDistance = self.chunkDistance(c)
-                            for cr in self.chunkRenderers.itervalues():
+                            for cr in six.itervalues(self.chunkRenderers):
                                 dist = self.chunkDistance(cr.chunkPosition)
                                 if dist > deadDistance:
                                     deadChunk = cr
@@ -2693,7 +2699,7 @@ class MCRenderer(object):
 
                 self.invalidateMasterList()
 
-            except Exception, e:
+            except Exception as e:
                 traceback.print_exc()
                 try:
                     fn = self.level.chunkFilename(*c)
@@ -2754,16 +2760,16 @@ def rendermain():
     try:
         while True:
         # for i in range(100):
-            renderer.next()
+            next(renderer)
     except StopIteration:
         pass
-    except Exception, e:
+    except Exception as e:
         traceback.print_exc()
-        print repr(e)
+        print(repr(e))
 
     duration = datetime.now() - start
     perchunk = duration / len(renderer.chunkRenderers)
-    print "Duration: {0} ({1} chunks per second, {2} per chunk, {3} chunks)".format(duration, 1000000.0 / perchunk.microseconds, perchunk, len(renderer.chunkRenderers))
+    print("Duration: {0} ({1} chunks per second, {2} per chunk, {3} chunks)".format(duration, 1000000.0 / perchunk.microseconds, perchunk, len(renderer.chunkRenderers)))
 
     # display.init( (640, 480), OPENGL | DOUBLEBUF )
     from mcedit import GLDisplayContext
@@ -2799,7 +2805,7 @@ def rendermain():
 
     delta = datetime.now() - framestart
     seconds = delta.seconds + delta.microseconds / 1000000.0
-    print "{0} frames in {1} ({2} per frame, {3} FPS)".format(frames, delta, delta / frames, frames / seconds)
+    print("{0} frames in {1} ({2} per frame, {3} FPS)".format(frames, delta, delta / frames, frames / seconds))
 
     while True:
         evt = pygame.event.poll()

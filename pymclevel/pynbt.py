@@ -18,6 +18,8 @@ http://www.minecraft.net/docs/NBT.txt
 
 Copyright 2010 David Rio Vierra
 """
+from __future__ import absolute_import
+from __future__ import print_function
 import collections
 import itertools
 import struct
@@ -26,6 +28,9 @@ from cStringIO import StringIO
 import os
 from contextlib import closing
 from numpy import array, zeros, uint8, fromstring
+import six
+from six.moves import range
+from six.moves import map
 TAGfmt = ">b"
 
 class NBTFormatError(RuntimeError): pass
@@ -101,7 +106,7 @@ class TAG_Value(object):
         sio = StringIO()
         #atomic write
         try: os.rename(filename, filename + ".old");
-        except Exception, e:
+        except Exception as e:
             #print "Atomic Save: No existing file to rename"
             pass
 
@@ -116,12 +121,12 @@ class TAG_Value(object):
         except:
             try:
                 os.rename(filename + ".old", filename,)
-            except Exception, e:
-                print e
+            except Exception as e:
+                print(e)
                 return
 
         try: os.remove(filename + ".old");
-        except Exception, e:
+        except Exception as e:
             #print "Atomic Save: No old file to remove"
             pass;
 
@@ -143,7 +148,7 @@ class TAG_Int(TAG_Value):
 class TAG_Long(TAG_Value):
     tag = 4
     fmt = ">q"
-    dataType = long
+    dataType = int
 
 class TAG_Float(TAG_Value):
     tag = 5
@@ -258,7 +263,7 @@ class TAG_String(TAG_Value):
 
     tag = 8
     fmt = ">h%ds"
-    dataType = lambda self, s: isinstance(s, unicode) and s.encode('utf-8') or s
+    dataType = lambda self, s: isinstance(s, six.text_type) and s.encode('utf-8') or s
 
     @classmethod
     def load_from(cls, data, data_cursor):
@@ -346,8 +351,8 @@ class TAG_Compound(TAG_Value, collections.MutableMapping):
                 if key.name == k: return key
         raise KeyError("Key {0} not found in tag {1}".format(k, self))
 
-    def __iter__(self):             return itertools.imap(lambda x:x.name, self.value);
-    def __contains__(self, k):return k in map(lambda x:x.name, self.value);
+    def __iter__(self):             return map(lambda x:x.name, self.value);
+    def __contains__(self, k):return k in [x.name for x in self.value];
     def __len__(self):                return self.value.__len__()
 
 
@@ -356,12 +361,12 @@ class TAG_Compound(TAG_Value, collections.MutableMapping):
         and unicodes in a TAG_String."""
         if isinstance(v, (list, tuple)):
             v = TAG_List(v)
-        elif isinstance(v, basestring):
+        elif isinstance(v, six.string_types):
             v = TAG_String(v)
 
-        if not (v.__class__ in tag_classes.values()): raise TypeError("Invalid type %s for TAG_Compound" % v.__class__)
+        if not (v.__class__ in list(tag_classes.values())): raise TypeError("Invalid type %s for TAG_Compound" % v.__class__)
         """remove any items already named "k".    """
-        olditems = filter(lambda x:x.name == k, self.value)
+        olditems = [x for x in self.value if x.name == k]
         for i in olditems: self.value.remove(i)
         self.value.append(v)
         v.name = k
@@ -433,7 +438,7 @@ class TAG_List(TAG_Value, collections.MutableSequence):
 
         if len(value):
             self.list_type = value[0].tag
-            value = filter(lambda x:x.__class__ == value[0].__class__, value)
+            value = [x for x in value if x.__class__ == value[0].__class__]
 
         self.value = value
             
@@ -491,13 +496,13 @@ def gunzip(data):
     return zlib.decompress(data[10:], -zlib.MAX_WBITS)
 
 def loadFile(filename):
-    with file(filename, "rb") as f:
+    with open(filename, "rb") as f:
         inputdata = f.read()
     data = inputdata
     try:
         data = gunzip(inputdata)
     except IOError:
-        print "File %s not zipped" % filename
+        print("File %s not zipped" % filename)
 
     return load(buf=fromstring(data, 'uint8'))
 
@@ -516,18 +521,18 @@ def load(filename="", buf=None):
     root TAG_Compound object. Argument can be a string containing a 
     filename or an array of integers containing TAG_Compound data. """
 
-    if filename and isinstance(filename, (str, unicode)):
+    if filename and isinstance(filename, (str, six.text_type)):
         return loadFile(filename)
     if isinstance(buf, str): buf = fromstring(buf, uint8)
     data = buf
     #if buf != None: data = buf
     if not len(buf):
-        raise NBTFormatError, "Asked to load root tag of zero length"
+        raise NBTFormatError("Asked to load root tag of zero length")
 
     data_cursor = 0
     tag_type = data[data_cursor]
     if tag_type != 10:
-        raise NBTFormatError, 'Not an NBT file with a root TAG_Compound (found {0})'.format(tag_type)
+        raise NBTFormatError('Not an NBT file with a root TAG_Compound (found {0})'.format(tag_type))
     data_cursor += 1
 
     tag, data_cursor = load_named(data, data_cursor, tag_type)
@@ -535,6 +540,6 @@ def load(filename="", buf=None):
     return tag
 
 
-__all__ = [a.__name__ for a in tag_classes.itervalues()] + ["load", "loadFile", "gunzip"]
+__all__ = [a.__name__ for a in six.itervalues(tag_classes)] + ["load", "loadFile", "gunzip"]
 
 

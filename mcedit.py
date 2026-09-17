@@ -5,8 +5,10 @@ mcedit.py
 
 Startup, main menu, keyboard configuration, automatic updating.
 """
+from __future__ import absolute_import
 import OpenGL
 import sys
+from six.moves import range
 if "-debug" not in sys.argv:
     OpenGL.ERROR_CHECKING = False
 
@@ -97,7 +99,7 @@ class FileOpener(albow.Widget):
                     shortname = lev.LevelName
                     if lev.LevelName != lev.displayName:
                         shortname = u"{0} ({1})".format(lev.LevelName, lev.displayName)
-            except Exception, e:
+            except Exception as e:
                 logging.warning(
                     'Couldn\'t get name from recent world: {0!r}'.format(e))
 
@@ -152,7 +154,7 @@ class FileOpener(albow.Widget):
             filename = mcplatform.askOpenFile()
             if filename:
                 self.mcedit.loadFile(filename)
-        except Exception, e:
+        except Exception as e:
             logging.error('Error during proptOpenAndLoad: {0!r}'.format(e))
 
     def createNewWorld(self):
@@ -555,7 +557,7 @@ class OptionsPanel(Dialog):
         if albow.ask(alertText) == "OK":
             try:
                 [mcplatform.goPortable, mcplatform.goFixed][mcplatform.portable]()
-            except Exception, e:
+            except Exception as e:
                 traceback.print_exc()
                 albow.alert(u"Error while moving files: {0}".format(repr(e)))
 
@@ -683,7 +685,7 @@ class MCEdit(GLViewport):
                 try:
                     filename = (config.config.get("Recent Worlds", str(i)).decode('utf-8'))
                     worlds.append(self.removeLevelDat(filename))
-                except Exception, e:
+                except Exception as e:
                     logging.error(repr(e))
 
         return list((f for f in worlds if f and os.path.exists(f)))
@@ -773,7 +775,7 @@ class MCEdit(GLViewport):
         if os.path.exists(filename):
             try:
                 self.editor.loadFile(filename)
-            except Exception, e:
+            except Exception as e:
                 logging.error('Failed to load file {0}: {1!r}'.format(
                     filename, e))
                 return None
@@ -937,7 +939,7 @@ def main(argv):
 
     try:
         display.init()
-    except pygame.error, e:
+    except pygame.error as e:
         os.environ['SDL_VIDEODRIVER'] = 'directx'
         try:
             display.init()
@@ -953,18 +955,18 @@ def main(argv):
                 os.path.join(directories.dataDir, u'stock-schematics'),
                 mcplatform.schematicsDir
             )
-    except Exception, e:
+    except Exception as e:
         logging.warning('Error copying bundled schematics: {0!r}'.format(e))
         try:
             os.mkdir(mcplatform.schematicsDir)
-        except Exception, e:
+        except Exception as e:
             logging.warning('Error creating schematics folder: {0!r}'.format(e))
 
     try:
         MCEdit.main()
     except SystemExit:
         return 0
-    except Exception, e:
+    except Exception as e:
         logging.error('An unhandled error occured.', exc_info=True)
         display.quit()
         return 1
@@ -990,7 +992,7 @@ class GLDisplayContext(object):
 
         try:
             display.gl_set_attribute(pygame.GL_SWAP_CONTROL, Settings.vsync.get())
-        except Exception, e:
+        except Exception as e:
             logging.warning('Unable to set vertical sync: {0!r}'.format(e))
 
         display.gl_set_attribute(pygame.GL_ALPHA_SIZE, 8)
@@ -1025,10 +1027,10 @@ class GLDisplayContext(object):
 
         try:
             iconpath = os.path.join(directories.dataDir, 'favicon.png')
-            iconfile = file(iconpath, 'rb')
+            iconfile = open(iconpath, 'rb')
             icon = pygame.image.load(iconfile, 'favicon.png')
             display.set_icon(icon)
-        except Exception, e:
+        except Exception as e:
             logging.warning('Unable to set icon: {0!r}'.format(e))
 
         self.display = d
@@ -1080,7 +1082,7 @@ class GLDisplayContext(object):
                 else:
                     tex = mceutils.loadPNGTexture(matFile)
                 self.terrainTextures[mats.name] = tex
-            except Exception, e:
+            except Exception as e:
                 logging.warning(
                     'Unable to load terrain from {0}, using flat colors.'
                     'Error was: {1!r}'.format(matFile, e)

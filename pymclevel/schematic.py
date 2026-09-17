@@ -3,9 +3,12 @@ Created on Jul 22, 2011
 
 @author: Rio
 '''
-from mclevelbase import *
+from __future__ import absolute_import
+from .mclevelbase import *
 import shutil
-from level import MCLevel, EntityLevel
+from .level import MCLevel, EntityLevel
+import six
+from six.moves import range
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -111,22 +114,22 @@ class MCSchematic (EntityLevel):
             try:
                 data = gzipper.read()
                 if data == None: return;
-            except Exception, e:
+            except Exception as e:
                 #error( u"Error reading compressed data, assuming uncompressed: {0}".format(e) )
                 data = self.compressedTag
 
 
         try:
             self.root_tag = nbt.load(buf=data)
-        except Exception, e:
+        except Exception as e:
             error(u"Malformed NBT data in schematic file: {0} ({1})".format(self.filename, e))
-            raise ChunkMalformed, (e,self.filename), sys.exc_info()[2]
+            six.reraise(ChunkMalformed, (e,self.filename), sys.exc_info()[2])
 
         try:
             self.shapeChunkData()
-        except KeyError, e:
+        except KeyError as e:
             error(u"Incorrect schematic format in file: {0} ({1})".format(self.filename, e))
-            raise ChunkMalformed, (e,self.filename), sys.exc_info()[2]
+            six.reraise(ChunkMalformed, (e,self.filename), sys.exc_info()[2])
         pass
 
         self.dataIsPacked = True
@@ -409,7 +412,7 @@ class INVEditChest(MCSchematic):
             if None is root_tag:
                 try:
                     root_tag = nbt.load(filename)
-                except IOError, e:
+                except IOError as e:
                     info(u"Failed to load file {0}".format(e))
                     raise
         else:
@@ -545,7 +548,7 @@ def extractZipSchematicFromIter(sourceLevel, box, zipfilename=None, entities=Tru
     
         zipdir(tempfolder, zipfilename)
     
-        import mclevel
+        from . import mclevel
         yield mclevel.fromFile(zipfilename)
     finally:
         #We get here if the generator is GCed also
@@ -583,4 +586,4 @@ def zipdir(basedir, archivename):
                 zfn = absfn[len(basedir) + len(os.sep):] #XXX: relative path
                 z.write(absfn, zfn)
 
-from infiniteworld import MCInfdevOldLevel
+from .infiniteworld import MCInfdevOldLevel
