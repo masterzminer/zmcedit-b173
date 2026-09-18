@@ -1,6 +1,6 @@
 Python library for reading Minecraft levels.
 
-Can read Alpha levels, Indev levels, and Creative levels (with help).
+Simplified for the sake of this project to only support beta 1.7.3 levels
 
 Includes a command-line client (mce.py)
 
@@ -70,58 +70,3 @@ $ python mce.py
 
     This refers to a point 5 blocks above codewarrior's head.
 
-
-Please enter world number or path to world folder: 4
-INFO:Identifying C:\Users\Rio\AppData\Roaming\.minecraft\saves\World4\level.dat
-INFO:Detected Infdev level.dat
-INFO:Saved 0 chunks
-INFO:Scanning for chunks...
-INFO:Found 6288 chunks.
-World4> fill 20 Player delta -10 0 -10 20 20 20
-
-Filling with Glass
-Filled 8000 blocks.
-World4> player Player
-
-Player Player: [87.658381289724858, 54.620000004768372, 358.64257283335115]
-World4> player Player Player delta 0 25 0
-
-Moved player Player to (87.658381289724858, 79.620000004768372, 358.642572833351
-15)
-World4> save
-
-INFO:Asked to light 6 chunks
-INFO:Batch 1/1
-INFO:Lighting 20 chunks
-INFO:Dispersing light...
-INFO:BlockLight Pass 0: 20 chunks
-INFO:BlockLight Pass 1: 2 chunks
-INFO:BlockLight Pass 2: 0 chunks
-INFO:BlockLight Pass 3: 0 chunks
-INFO:BlockLight Pass 4: 0 chunks
-INFO:BlockLight Pass 5: 0 chunks
-INFO:BlockLight Pass 6: 0 chunks
-INFO:BlockLight Pass 7: 0 chunks
-INFO:BlockLight Pass 8: 0 chunks
-INFO:BlockLight Pass 9: 0 chunks
-INFO:BlockLight Pass 10: 0 chunks
-INFO:BlockLight Pass 11: 0 chunks
-INFO:BlockLight Pass 12: 0 chunks
-INFO:BlockLight Pass 13: 0 chunks
-INFO:SkyLight Pass 0: 20 chunks
-INFO:SkyLight Pass 1: 22 chunks
-INFO:SkyLight Pass 2: 17 chunks
-INFO:SkyLight Pass 3: 9 chunks
-INFO:SkyLight Pass 4: 7 chunks
-INFO:SkyLight Pass 5: 2 chunks
-INFO:SkyLight Pass 6: 0 chunks
-INFO:SkyLight Pass 7: 0 chunks
-INFO:SkyLight Pass 8: 0 chunks
-INFO:SkyLight Pass 9: 0 chunks
-INFO:SkyLight Pass 10: 0 chunks
-INFO:SkyLight Pass 11: 0 chunks
-INFO:SkyLight Pass 12: 0 chunks
-INFO:SkyLight Pass 13: 0 chunks
-INFO:Completed in 0:00:02.024000, 0:00:00.337333 per chunk
-INFO:Saved 20 chunks
-World4>

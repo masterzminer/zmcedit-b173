@@ -1458,7 +1458,7 @@ class LevelEditor(GLViewport):
             tooltipText="Memory used for vertexes")
 
         def dataSize():
-            if not isinstance(self.level, pymclevel.MCInfdevOldLevel):
+            if not isinstance(self.level, pymclevel.MCBetaLevel):
                 try:
                     return len(self.level.root_tag)
                 except:
@@ -1985,7 +1985,7 @@ class LevelEditor(GLViewport):
         self.renderer.position = self.currentViewport.cameraPosition
         self.renderer.loadNearbyChunks()
 
-    def loadLevel(self, level):
+    def loadLevel(self, level: pymclevel.MCLevel):
         self.level = level
 
         self.toolbar.selectTool(-1)
@@ -2846,7 +2846,7 @@ class LevelEditor(GLViewport):
         worlds = []
         for f in worldFiles:
             try:
-                lev = pymclevel.MCInfdevOldLevel(f)
+                lev = pymclevel.MCBetaLevel(f)
             except Exception:
                 continue
             else:
@@ -2978,7 +2978,7 @@ class LevelEditor(GLViewport):
 
         self.freezeStatus("Creating world...")
         try:
-            newlevel = pymclevel.MCInfdevOldLevel(filename=filename, create=True, random_seed=seed)
+            newlevel = pymclevel.MCBetaLevel(filename=filename, create=True, random_seed=seed)
             # chunks = list(itertools.product(xrange(w / 2 - w + cx, w / 2 + cx), xrange(h / 2 - h + cz, h / 2 + cz)))
 
             if generatorPanel.generatorChoice.selectedChoice == "Flatland":
@@ -3164,7 +3164,7 @@ class LevelEditor(GLViewport):
                     dl=len(glutils.DisplayList.allLists), dlcount=glutils.gl.listCount,
                     t=len(glutils.Texture.allTextures), g=len(gc.garbage))
 
-            if isinstance(self.level, pymclevel.MCInfdevOldLevel):
+            if isinstance(self.level, pymclevel.MCBetaLevel):
                 self.debugString += "Loa: {0}, Dec: {1}, ".format(len(self.level.loadedChunkQueue), len(self.level.decompressedChunkQueue))
 
             if self.renderer:

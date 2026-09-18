@@ -526,7 +526,7 @@ def extractZipSchematicFromIter(sourceLevel, box, zipfilename=None, entities=Tru
     tempfolder = tempfile.mktemp("schematic")
     try:
         done = False
-        tempSchematic = MCInfdevOldLevel(tempfolder, create=True)
+        tempSchematic = MCBetaLevel(tempfolder, create=True)
         tempSchematic.materials = sourceLevel.materials
     
         destBox = BoundingBox(destPoint, sourceBox.size)
@@ -561,7 +561,7 @@ def extractAnySchematic(level, box):
     
 def extractAnySchematicIter(level, box):
     try:
-        if box.chunkCount > MCInfdevOldLevel.decompressedChunkLimit:
+        if box.chunkCount > MCBetaLevel.decompressedChunkLimit:
             raise MemoryError
             
         for i in level.extractSchematicIter(box):
@@ -584,4 +584,4 @@ def zipdir(basedir, archivename):
                 zfn = absfn[len(basedir) + len(os.sep):] #XXX: relative path
                 z.write(absfn, zfn)
 
-from .infiniteworld import MCInfdevOldLevel
+from .infiniteworld import MCBetaLevel

@@ -92,7 +92,7 @@ class Modes:
         def performAtPoint(self, op, point, dirtyBox):
 
             tmpfile = tempfile.mkdtemp("FloodFillUndo")
-            undoLevel = MCInfdevOldLevel(tmpfile, create=True)
+            undoLevel = MCBetaLevel(tmpfile, create=True)
             dirtyChunks = set()
 
             def saveUndoChunk(cx, cz):

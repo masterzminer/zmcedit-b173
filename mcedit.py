@@ -41,7 +41,7 @@ import sys
 import traceback
 import importlib
 
-pymclevel.MCInfdevOldLevel.loadedChunkLimit = 0
+pymclevel.MCBetaLevel.loadedChunkLimit = 0
 
 ESCAPE = '\033'
 
@@ -94,8 +94,8 @@ class FileOpener(albow.Widget):
         for world in self.mcedit.recentWorlds():
             shortname = os.path.basename(world)
             try:
-                if pymclevel.MCInfdevOldLevel.isLevel(world):
-                    lev = pymclevel.MCInfdevOldLevel(world)
+                if pymclevel.MCBetaLevel.isLevel(world):
+                    lev = pymclevel.MCBetaLevel(world)
                     shortname = lev.LevelName
                     if lev.LevelName != lev.displayName:
                         shortname = u"{0} ({1})".format(lev.LevelName, lev.displayName)

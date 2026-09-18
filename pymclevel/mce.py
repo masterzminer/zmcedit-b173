@@ -638,7 +638,7 @@ class mce(object):
     List region files in this world.
     """
         level = self.level
-        assert(isinstance(level, mclevel.MCInfdevOldLevel))
+        assert(isinstance(level, mclevel.MCBetaLevel))
         assert level.version
         def getFreeSectors(rf):
             runs = []
@@ -976,10 +976,10 @@ class mce(object):
         if not os.path.isdir(filename):
             raise IOError("{0} already exists".format(filename))
 
-        if mclevel.MCInfdevOldLevel.isLevel(filename):
+        if mclevel.MCBetaLevel.isLevel(filename):
             raise IOError("{0} is already a Minecraft Alpha world".format(filename))
 
-        level = mclevel.MCInfdevOldLevel(filename, create=True)
+        level = mclevel.MCBetaLevel(filename, create=True)
 
         self.level = level
 
@@ -1122,7 +1122,7 @@ class mce(object):
     also prints the most negative corner.
     """
         bounds = self.level.bounds
-        if isinstance(self.level, mclevel.MCInfdevOldLevel):
+        if isinstance(self.level, mclevel.MCBetaLevel):
             print("\nWorld size: \n  {0[0]:7} north to south\n  {0[2]:7} east to west\n".format(bounds.size))
             print("Smallest and largest points: ({0[0]},{0[2]}), ({1[0]},{1[2]})".format(bounds.origin, bounds.maximum))
 

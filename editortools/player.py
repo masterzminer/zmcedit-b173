@@ -79,7 +79,7 @@ def positionValid(level, pos):
 class PlayerSpawnMoveOperation(PlayerMoveOperation):
     def perform(self, recordUndo=True):
         level = self.tool.editor.level
-        if isinstance(level, MCInfdevOldLevel):
+        if isinstance(level, MCBetaLevel):
             if not positionValid(level, self.pos):
                 if SpawnSettings.spawnProtection.get():
                     raise SpawnPositionInvalid("You cannot have two air blocks at Y=63 and Y=64 in your spawn point's column. Additionally, you cannot have a solid block in the three blocks above your spawn point. It's weird, I know.")
@@ -430,7 +430,7 @@ class PlayerSpawnPositionTool(PlayerPositionTool):
         x, y, z = list(map(lambda p, d: p + d, pos, direction))
 
         color = (1.0, 1.0, 1.0, 0.5)
-        if isinstance(self.editor.level, MCInfdevOldLevel) and self.spawnProtection:
+        if isinstance(self.editor.level, MCBetaLevel) and self.spawnProtection:
             if not positionValid(self.editor.level, (x, y, z)):
                 color = (1.0, 0.0, 0.0, 0.5)
 
@@ -456,7 +456,7 @@ class PlayerSpawnPositionTool(PlayerPositionTool):
         glDisable(GL_DEPTH_TEST)
 
     def drawCage(self, x, y, z):
-        cageTexVerts = MCInfdevOldLevel.materials.blockTextures[52, 0]
+        cageTexVerts = MCBetaLevel.materials.blockTextures[52, 0]
         cageTexVerts = array([((tx, ty), (tx + 16, ty), (tx + 16, ty + 16), (tx, ty + 16)) for (tx, ty) in cageTexVerts], dtype='float32')
         glEnable(GL_ALPHA_TEST)
 

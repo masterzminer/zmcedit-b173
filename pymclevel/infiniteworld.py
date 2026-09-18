@@ -44,7 +44,7 @@ Player = 'Player'
 DIM_NETHER = -1
 DIM_END = 1
 
-__all__ = ["ZeroChunk", "InfdevChunk", "ChunkedLevelMixin", "MCInfdevOldLevel", "MCAlphaDimension", "ZipSchematic"]
+__all__ = ["ZeroChunk", "MCChunk", "ChunkedLevelMixin", "MCBetaLevel", "MCAlphaDimension", "ZipSchematic"]
 
 
 import re
@@ -343,7 +343,7 @@ class MCServerChunkGenerator(object):
             worldName = properties.setdefault("level-name", worldName)
 
             tempWorldDir = os.path.join(tempDir, worldName)
-            tempWorld = MCInfdevOldLevel(tempWorldDir, create=True, random_seed=level.RandomSeed)
+            tempWorld = MCBetaLevel(tempWorldDir, create=True, random_seed=level.RandomSeed)
             del tempWorld.version # for compatibility with older servers. newer ones will set it again without issue.
 
             self.tempWorldCache[self.serverVersion, level.RandomSeed] = tempWorld
@@ -431,7 +431,7 @@ class MCServerChunkGenerator(object):
         tempChunk.unload()
         
     def generateChunkInLevel(self, level, cx, cz):
-        assert isinstance(level, MCInfdevOldLevel)
+        assert isinstance(level, MCBetaLevel)
 
         tempWorld, tempDir = self.tempWorldForLevel(level)
         self.generateAtPosition(tempWorld, tempDir, cx, cz)
@@ -446,9 +446,9 @@ class MCServerChunkGenerator(object):
     def createLevelIter(self, level, box, simulate = False, **kw):
         if isinstance(level, str):
             filename = level
-            level = MCInfdevOldLevel(filename, create=True, **kw)
+            level = MCBetaLevel(filename, create=True, **kw)
             
-        assert isinstance(level, MCInfdevOldLevel)
+        assert isinstance(level, MCBetaLevel)
         minRadius = self.minRadius
         
         genPositions = list(itertools.product(
@@ -473,7 +473,7 @@ class MCServerChunkGenerator(object):
         return exhaust(self.generateChunksInLevelIter(level, chunks))
 
     def generateChunksInLevelIter(self, level, chunks, simulate = False):
-        assert isinstance(level, MCInfdevOldLevel)
+        assert isinstance(level, MCLevel)
         tempWorld, tempDir = self.tempWorldForLevel(level)
 
         startLength = len(chunks)
@@ -602,7 +602,7 @@ class _ZeroChunk(ChunkBase):
         self.Data = zeroChunk
 
 
-class InfdevChunk(LightedChunk):
+class MCChunk(LightedChunk):
     """ This is a 16x16xH chunk in an (infinite) world.
     The properties Blocks, Data, SkyLight, BlockLight, and Heightmap 
     are ndarrays containing the respective blocks in the chunk file.
@@ -761,7 +761,7 @@ class InfdevChunk(LightedChunk):
 
 
     def __str__(self):
-        return u"InfdevChunk, coords:{0}, world: {1}, D:{2}, L:{3}".format(self.chunkPosition, self.world.displayName, self.dirty, self.needsLighting)
+        return u"MCChunk, coords:{0}, world: {1}, D:{2}, L:{3}".format(self.chunkPosition, self.world.displayName, self.dirty, self.needsLighting)
 
     def create(self):
         (cx, cz) = self.chunkPosition
@@ -940,15 +940,15 @@ class InfdevChunk(LightedChunk):
         doubleize("Position")
         
         self.dirty = True
-        return super(InfdevChunk, self).addEntity(entityTag)
+        return super(MCChunk, self).addEntity(entityTag)
         
     def removeEntitiesInBox(self, box):
         self.dirty = True
-        return super(InfdevChunk, self).removeEntitiesInBox(box)
+        return super(MCChunk, self).removeEntitiesInBox(box)
 
     def removeTileEntitiesInBox(self, box):
         self.dirty = True
-        return super(InfdevChunk, self).removeTileEntitiesInBox(box)
+        return super(MCChunk, self).removeTileEntitiesInBox(box)
 
 
     @property
@@ -1184,7 +1184,7 @@ class MCRegionFile(object):
                 lev = chunkTag["Level"]
                 xPos = lev["xPos"].value
                 zPos = lev["zPos"].value
-                gzdata = InfdevChunk.compressTagGzip(chunkTag)
+                gzdata = MCChunk.compressTagGzip(chunkTag)
                 #print chunkTag.pretty_string()
 
                 with open(os.path.join(folder, "c.{0}.{1}.dat".format(base36(xPos), base36(zPos))), "wb") as f:
@@ -2130,7 +2130,7 @@ def _dirhash(self):
     s += u"0123456789abcdefghijklmnopqrstuvwxyz"[n]
     return s
     
-class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
+class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
     materials = alphaMaterials
     isInfinite = True
     parentWorld = None
@@ -2180,7 +2180,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
 
 
     def __str__(self):
-        return "MCInfdevOldLevel(\"" + os.path.split(self.worldDir)[1] + "\")"
+        return "MCBetaLevel(\"" + os.path.split(self.worldDir)[1] + "\")"
 
     def TagProperty(tagName, tagType, defaultValueFunc=lambda self:None):
         def getter(self):
@@ -2321,7 +2321,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
         if not os.path.exists(self.regionDir):
             os.mkdir(self.regionDir)
 
-        #maps (cx,cz) pairs to InfdevChunks    
+        #maps (cx,cz) pairs to MCChunks    
         self._loadedChunks = {}
         self._allChunks = None
         self.dimensions = {}
@@ -2684,7 +2684,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
 
 
     def _getChunkUnloaded(self, cx, cz):
-        """return the InfdevChunk object at the given position. because loading
+        """return the MCChunk object at the given position. because loading
         the chunk is done later, accesses to chunk attributes may 
         raise ChunkMalformed"""
 
@@ -2692,7 +2692,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
             raise ChunkNotPresent(cx, cz)
 
         if not (cx, cz) in self._loadedChunks:
-            self._loadedChunks[cx, cz] = InfdevChunk(self, (cx, cz))
+            self._loadedChunks[cx, cz] = MCChunk(self, (cx, cz))
 
         return self._loadedChunks[cx, cz]
 
@@ -2833,7 +2833,7 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
         if self._allChunks is not None:
             self._allChunks.add((cx, cz))
 
-        self._loadedChunks[cx, cz] = InfdevChunk(self, (cx, cz), create=True)
+        self._loadedChunks[cx, cz] = MCChunk(self, (cx, cz), create=True)
         self._bounds = None
 
     def createChunks(self, chunks):
@@ -3019,11 +3019,11 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
             playerTag = self.getPlayerTag(player)
             return playerTag["playerGameType"].value
 
-class MCAlphaDimension (MCInfdevOldLevel):
+class MCAlphaDimension (MCBetaLevel):
     def __init__(self, parentWorld, dimNo, create=False):
         filename = os.path.join(parentWorld.worldDir, "DIM" + str(int(dimNo)))
         self.parentWorld = parentWorld
-        MCInfdevOldLevel.__init__(self, filename, create)
+        MCBetaLevel.__init__(self, filename, create)
         self.dimNo = dimNo
         self.filename = parentWorld.filename
         self.playersDir = parentWorld.playersDir
@@ -3058,7 +3058,7 @@ class MCAlphaDimension (MCInfdevOldLevel):
          stay loaded at once for fast switching """
 
         if saveSelf:
-            MCInfdevOldLevel.saveInPlace(self)
+            MCBetaLevel.saveInPlace(self)
         else:
             self.parentWorld.saveInPlace()
 
@@ -3066,14 +3066,14 @@ class MCAlphaDimension (MCInfdevOldLevel):
 from zipfile import ZipFile, is_zipfile
 import tempfile
 
-class ZipSchematic (MCInfdevOldLevel):
+class ZipSchematic (MCBetaLevel):
     def __init__(self, filename):
         tempdir = tempfile.mktemp("schematic")
         zf = ZipFile(filename)
         self.zipfile = zf
         zf.extract("level.dat", tempdir)
 
-        MCInfdevOldLevel.__init__(self, tempdir)
+        MCBetaLevel.__init__(self, tempdir)
 
         self.filename = filename
 
@@ -3094,7 +3094,7 @@ class ZipSchematic (MCInfdevOldLevel):
             self.materials = namedMaterials[schematicDat["Materials"].value]
 
     def close(self):
-        MCInfdevOldLevel.close(self)
+        MCBetaLevel.close(self)
         self.zipfile.close()
         shutil.rmtree(self.worldDir, True)
         
@@ -3107,7 +3107,7 @@ class ZipSchematic (MCInfdevOldLevel):
 
     def _loadChunk(self, chunk):
         if self.version:
-            return MCInfdevOldLevel._loadChunk(self, chunk)
+            return MCBetaLevel._loadChunk(self, chunk)
         else:
             cdata = self.zipfile.read(chunk.chunkFilename)
             chunk.compressedTag = cdata
@@ -3115,7 +3115,7 @@ class ZipSchematic (MCInfdevOldLevel):
 
     def _saveChunk(self, chunk):
         if self.version:
-            return MCInfdevOldLevel._saveChunk(self, chunk)
+            return MCBetaLevel._saveChunk(self, chunk)
         else:
             raise NotImplementedError("Cannot save chunk-format zipfiles!")
 
@@ -3138,7 +3138,7 @@ class ZipSchematic (MCInfdevOldLevel):
         self.zipfile.extractall(self.worldDir)
         self.regionFiles = {}
 
-        MCInfdevOldLevel.preloadRegions(self)
+        MCBetaLevel.preloadRegions(self)
 
     def preloadChunkPaths(self):
         info(u"Scanning for chunks...")
@@ -3156,7 +3156,7 @@ class ZipSchematic (MCInfdevOldLevel):
                 except Exception as e:
                     info('Skipped file {0} ({1})'.format('.'.join(c), e))
                     continue
-                #self._loadedChunks[ (cx, cz) ] = InfdevChunk(self, (cx, cz));
+                #self._loadedChunks[ (cx, cz) ] = MCChunk(self, (cx, cz));
                 self._allChunks.add((cx, cz))
 
         info(u"Found {0} chunks.".format(len(self._allChunks)))

@@ -204,7 +204,7 @@ class CloneToolPanel(Panel):
     useOffsetInput = True
 
     def transformEnable(self):
-        return not isinstance(self.tool.level, MCInfdevOldLevel)
+        return not isinstance(self.tool.level, MCBetaLevel)
 
     def __init__(self, tool):
         Panel.__init__(self)
@@ -590,7 +590,7 @@ class CloneTool(EditorTool):
 
     @property
     def canRotateLevel(self):
-        return not isinstance(self.level, (MCInfdevOldLevel))
+        return not isinstance(self.level, (MCBetaLevel))
 
     def rotatedSelectionSize(self):
         if self.canRotateLevel:
@@ -637,7 +637,7 @@ class CloneTool(EditorTool):
         if y < 0:
             y = 0
 
-        if not isinstance(lev, MCInfdevOldLevel):
+        if not isinstance(lev, MCBetaLevel):
             sx = size[0]
             if x + sx > lev.Width:
                 x = lev.Width - sx
@@ -1091,7 +1091,7 @@ class ConstructionTool(CloneTool):
 
             self.cloneCameraDistance = self.safeToolDistance()
 
-            self.chunkAlign = isinstance(self.level, MCInfdevOldLevel) and all(b % 16 == 0 for b in self.level.bounds.size)
+            self.chunkAlign = isinstance(self.level, MCBetaLevel) and all(b % 16 == 0 for b in self.level.bounds.size)
 
             self.setupPreview()
             self.originalLevelSize = (self.level.Width, self.level.Height, self.level.Length)

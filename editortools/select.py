@@ -310,7 +310,7 @@ class SelectionTool(EditorTool):
 
         x, y, z = pos
         cx, cz = x / 16, z / 16
-        if isinstance(self.editor.level, MCInfdevOldLevel):
+        if isinstance(self.editor.level, MCBetaLevel):
 
             if y == 0:
                 try:

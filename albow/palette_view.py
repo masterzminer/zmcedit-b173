@@ -160,7 +160,7 @@ class PaletteView(GridView):
             self.click_item(i, event)
 
     def cell_to_item_no(self, row, col):
-        i = self.scroll + row * self.num_cols() + col
+        i = int(self.scroll + row * self.num_cols() + col)
         if 0 <= i < self.num_items():
             return i
         else:

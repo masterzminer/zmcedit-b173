@@ -857,7 +857,7 @@ class EntityRendererGeneric(BlockRenderer):
 class TileEntityRenderer(EntityRendererGeneric):
     layer = Layer.TileEntities
 
-    def makeChunkVertices(self, chunk):
+    def makeChunkVertices(self, chunk: pymclevel.EntityLevel):
         tilePositions = []
         for i, ent in enumerate(chunk.TileEntities):
             if i % 10 == 0:
@@ -878,7 +878,7 @@ class MonsterRenderer(BaseEntityRenderer):
     layer = Layer.Entities  # xxx Monsters
     notMonsters = set(["Item", "XPOrb", "Painting"])
 
-    def makeChunkVertices(self, chunk):
+    def makeChunkVertices(self, chunk: pymclevel.EntityLevel):
         monsterPositions = []
         for i, ent in enumerate(chunk.Entities):
             if i % 10 == 0:
@@ -898,7 +898,7 @@ class MonsterRenderer(BaseEntityRenderer):
 
 
 class EntityRenderer(BaseEntityRenderer):
-    def makeChunkVertices(self, chunk):
+    def makeChunkVertices(self, chunk: pymclevel.EntityLevel):
         yield
 #        entityPositions = []
 #        for i, ent in enumerate(chunk.Entities):
@@ -914,7 +914,7 @@ class EntityRenderer(BaseEntityRenderer):
 class ItemRenderer(BaseEntityRenderer):
     layer = Layer.Items
 
-    def makeChunkVertices(self, chunk):
+    def makeChunkVertices(self, chunk: pymclevel.EntityLevel):
         entityPositions = []
         entityColors = []
         colorMap = {
@@ -940,7 +940,7 @@ class ItemRenderer(BaseEntityRenderer):
 class TileTicksRenderer(EntityRendererGeneric):
     layer = Layer.TileTicks
 
-    def makeChunkVertices(self, chunk):
+    def makeChunkVertices(self, chunk: pymclevel.MCChunk):
         chunk.decompress()
         if chunk.root_tag and "Level" in chunk.root_tag and "TileTicks" in chunk.root_tag["Level"]:
             ticks = chunk.root_tag["Level"]["TileTicks"]
@@ -1039,7 +1039,7 @@ class LowDetailBlockRenderer(BlockRenderer):
         GL.glDrawArrays(GL.GL_QUADS, 0, len(buf) * 4)
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
-    def makeChunkVertices(self, ch):
+    def makeChunkVertices(self, ch: pymclevel.ChunkBase):
         step = 1
 
         level = ch.world
@@ -1056,23 +1056,23 @@ class LowDetailBlockRenderer(BlockRenderer):
         chunkWidth, chunkLength, chunkHeight = blocks.shape
         blockIndices = numpy.zeros((chunkWidth, chunkLength, chunkHeight), bool)
 
-        gridaxes = list(numpy.indices((chunkWidth, chunkLength)))
+        grid_axes = list(numpy.indices((chunkWidth, chunkLength)))
         h = numpy.swapaxes(heightMap - 1, 0, 1)[:chunkWidth, :chunkLength]
         numpy.clip(h, 0, chunkHeight - 1, out=h)
 
-        gridaxes = [gridaxes[0], gridaxes[1], h]
+        grid_axes = [grid_axes[0], grid_axes[1], h]
 
         depths = numpy.zeros((chunkWidth, chunkLength), dtype='uint16')
         depths[1:-1, 1:-1] = reduce(numpy.minimum, (h[1:-1, :-2], h[1:-1, 2:], h[:-2, 1:-1]), h[2:, 1:-1])
         yield
 
         try:
-            topBlocks = blocks[gridaxes]
+            topBlocks = blocks[grid_axes]
             nonAirBlocks = (topBlocks != 0)
-            blockIndices[gridaxes] = nonAirBlocks
+            blockIndices[grid_axes] = nonAirBlocks
             h += 1
             numpy.clip(h, 0, chunkHeight - 1, out=h)
-            overblocks = blocks[gridaxes][nonAirBlocks].ravel()
+            overblocks = blocks[grid_axes][nonAirBlocks].ravel()
 
         except ValueError as e:
             raise ValueError(str(e.args) + "Chunk shape: {0}".format(blockIndices.shape), sys.exc_info()[-1])
@@ -1917,7 +1917,7 @@ from glutils import DisplayList
 class MCRenderer(object):
     isPreviewer = False
 
-    def __init__(self, level=None, alpha=1.0):
+    def __init__(self, level: pymclevel.MCLevel=None, alpha=1.0):
         self.render = True
         self.origin = (0, 0, 0)
         self.rotation = 0
@@ -1964,7 +1964,7 @@ class MCRenderer(object):
         Settings.spaceHeight.addObserver(self)
         Settings.targetFPS.addObserver(self, "targetFPS")
 
-        self.level = level
+        self.level: pymclevel.MCLevel = level
 
     chunkClass = ChunkRenderer
     calculatorClass = ChunkCalculator
@@ -2078,11 +2078,11 @@ class MCRenderer(object):
     _level = None
 
     @property
-    def level(self):
+    def level(self) -> pymclevel.MCLevel:
         return self._level
 
     @level.setter
-    def level(self, level):
+    def level(self, level: pymclevel.MCLevel):
         """ this probably warrants creating a new renderer """
         self.stopWork()
 
@@ -2429,7 +2429,7 @@ class MCRenderer(object):
             GL.glPopAttrib()
 
     def drawLoadableChunkMarkers(self):
-        if not self.isPreviewer or isinstance(self.level, pymclevel.MCInfdevOldLevel):
+        if not self.isPreviewer or isinstance(self.level, pymclevel.MCBetaLevel):
             self.loadableChunkMarkers.call(self._drawLoadableChunkMarkers)
 
         # self.drawCompressedChunkMarkers()

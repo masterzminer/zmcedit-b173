@@ -1,3 +1,5 @@
+from __future__ import annotations\
+
 '''
 Created on Jul 22, 2011
 
@@ -63,7 +65,7 @@ def getSlices(box, height):
     
     this returns an iterator, which yields 3-tuples containing:
     +  a pair of chunk coordinates (cx,cz), 
-    +  a x,z,y triplet of slices that can be used to index the InfdevChunk's data arrays, 
+    +  a x,z,y triplet of slices that can be used to index the MCChunk's data arrays, 
     +  a x,y,z triplet representing the relative location of this subslice within the requested world slice.
     
     Note the different order of the coordinates between the 'slices' triplet
@@ -224,7 +226,7 @@ class MCLevel(object):
 
     def getChunks(self, chunks=None):
         """ pass a list of chunk coordinate tuples to get an iterator yielding
-        InfdevChunks. pass nothing for an iterator of every chunk in the level. 
+        McChunks. pass nothing for an iterator of every chunk in the level. 
         the chunks are automatically loaded."""
         if chunks is None: chunks = self.allChunks;
         return (self.getChunk(cx, cz) for (cx, cz) in chunks if self.containsChunk(cx, cz))
@@ -234,7 +236,7 @@ class MCLevel(object):
         """Returns Entities, TileEntities"""
         return [], []
 
-    def getChunk(self, cx, cz):
+    def getChunk(self, cx, cz) -> FakeChunk:
         """Synthesize a FakeChunk object representing the chunk at the given
         position. Subclasses override fakeBlocksForChunk and fakeDataForChunk
         to fill in the chunk arrays"""

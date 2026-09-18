@@ -12,7 +12,7 @@ import mclevel
 # Schematics - gzipped NBT data in a single file.  Returns an MCSchematic.  
 #   MCSchematics have the special method rotateLeft which will reorient torches, stairs, and other tiles appropriately.
 # Alpha levels - world folder structure containing level.dat and chunk folders.  Single or Multiplayer.
-#   Can accept a path to the world folder or a path to the level.dat.  Returns an MCInfdevOldLevel
+#   Can accept a path to the world folder or a path to the level.dat.  Returns an MCLevel
 
 # Load a Classic level.
 level = mclevel.fromFile("server_level.dat"); 
@@ -49,7 +49,7 @@ chunkPositions = list(world1.allChunks)
 # allChunks returns an iterator that yields a (xPos, zPos) tuple for each chunk
 xPos, zPos = chunkPositions[0];
 
-# retrieve an InfdevChunk object. this object will load and decompress 
+# retrieve an MCChunk object. this object will load and decompress 
 # the chunk as needed, and remember whether it needs to be saved or relighted
 
 chunk = world1.getChunk(xPos, zPos)
@@ -147,7 +147,7 @@ world.saveInPlace();
 # The getChunkSlices method returns an iterator that returns slices of chunks within the specified range.
 # the slices are returned as tuples of (chunk, slices, point)
 
-# chunk:  The InfdevChunk object we're interested in.
+# chunk:  The MCChunk object we're interested in.
 # slices:  A 3-tuple of slice objects that can be used to index chunk's data arrays
 # point:  A 3-tuple of floats representing the relative position of this subslice within the larger slice.
 # 
@@ -184,17 +184,12 @@ import sys
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
-
-
- 
-
     
 
 class LoadingError(RuntimeError): pass
 
-def fromFile(filename, loadInfinite=True):
-    ''' The preferred method for loading Minecraft levels of any type.
-    pass False to loadInfinite if you'd rather not load infdev levels.
+def fromFile(filename) -> MCLevel:
+    ''' The preferred method for loading Minecraft levels of any type
     '''
     info(u"Identifying " + filename)
 
@@ -206,7 +201,7 @@ def fromFile(filename, loadInfinite=True):
     if ZipSchematic._isLevel(filename):
         info("Zipfile found, attempting zipped infinite level")
         lev = ZipSchematic(filename)
-        info("Detected zipped Infdev level")
+        info("Detected zipped level")
         return lev
 
     if os.path.isdir(filename):
@@ -218,12 +213,10 @@ def fromFile(filename, loadInfinite=True):
     if len(rawdata) < 4:
         raise ValueError("{0} is too small! ({1}) ".format(filename, len(rawdata)))
 
-    if MCInfdevOldLevel._isLevel(filename):
-        info(u"Detected Infdev level.dat")
-        if loadInfinite:
-            return MCInfdevOldLevel(filename=filename)
-        else:
-            raise ValueError("Asked to load {0} which is an infinite level, loadInfinite was False".format(os.path.basename(filename)))
+    if MCBetaLevel._isLevel(filename):
+        info(u"Detected level.dat")
+        return MCBetaLevel(filename=filename)
+
 
     data = fromstring(rawdata, dtype='uint8')
     if not data.any():
