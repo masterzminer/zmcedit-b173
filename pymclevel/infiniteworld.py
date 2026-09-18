@@ -1573,7 +1573,7 @@ class ChunkedLevelMixin(object):
 
             sourceData = None
             if hasattr(sourceLevel, 'Data'):
-                #indev or schematic
+                #schematic
                 sourceData = sourceLevel.Data[sx + point[0]:localSourceCorner2[0],
                                               sz + point[2]:localSourceCorner2[2],
                                               sy:localSourceCorner2[1]]
@@ -2150,8 +2150,6 @@ class MCInfdevOldLevel(ChunkedLevelMixin, EntityLevel):
     def _isLevel(cls, filename):
         join = os.path.join
         exists = os.path.exists
-        
-        if exists(join(filename, "chunks.dat")): return False # exclude Pocket Edition folders
         
         if not os.path.isdir(filename):
             f = os.path.basename(filename)

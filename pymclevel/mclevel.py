@@ -9,7 +9,6 @@ import mclevel
 # Call mclevel.fromFile to identify and open any of these four file formats:
 #
 # Classic levels - gzipped serialized java objects.  Returns an instance of MCJavalevel
-# Indev levels - gzipped NBT data in a single file.  Returns an MCIndevLevel
 # Schematics - gzipped NBT data in a single file.  Returns an MCSchematic.  
 #   MCSchematics have the special method rotateLeft which will reorient torches, stairs, and other tiles appropriately.
 # Alpha levels - world folder structure containing level.dat and chunk folders.  Single or Multiplayer.
@@ -176,12 +175,10 @@ from numpy import fromstring
 from . import nbt
 
 from .mclevelbase import *
-from .indev import *
 from .infiniteworld import *
 from .java import *
 from .level import *
 from .schematic import *
-from .pocket import *
 
 import sys
 
@@ -212,16 +209,6 @@ def fromFile(filename, loadInfinite=True):
         info("Detected zipped Infdev level")
         return lev
 
-    if PocketWorld._isLevel(filename):
-        return PocketWorld(filename)
-
-    if MCInfdevOldLevel._isLevel(filename):
-        info(u"Detected Infdev level.dat")
-        if loadInfinite:
-            return MCInfdevOldLevel(filename=filename)
-        else:
-            raise ValueError("Asked to load {0} which is an infinite level, loadInfinite was False".format(os.path.basename(filename)))
-
     if os.path.isdir(filename):
         raise ValueError("Folder {0} was not identified as a Minecraft level.".format(os.path.basename(filename)))
 
@@ -231,8 +218,12 @@ def fromFile(filename, loadInfinite=True):
     if len(rawdata) < 4:
         raise ValueError("{0} is too small! ({1}) ".format(filename, len(rawdata)))
 
-
-
+    if MCInfdevOldLevel._isLevel(filename):
+        info(u"Detected Infdev level.dat")
+        if loadInfinite:
+            return MCInfdevOldLevel(filename=filename)
+        else:
+            raise ValueError("Asked to load {0} which is an infinite level, loadInfinite was False".format(os.path.basename(filename)))
 
     data = fromstring(rawdata, dtype='uint8')
     if not data.any():
@@ -279,9 +270,6 @@ def fromFile(filename, loadInfinite=True):
             raise(LoadingError, ("Multiple errors encountered", e, e2), sys.exc_info()[2])
 
     else:
-        if MCIndevLevel._isTagLevel(root_tag):
-            info(u"Detected Indev .mclevel")
-            return MCIndevLevel(root_tag, filename)
         if MCSchematic._isTagLevel(root_tag):
             info(u"Detected Schematic.")
             return MCSchematic(root_tag=root_tag, filename=filename)

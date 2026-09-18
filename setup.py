@@ -15,8 +15,6 @@ Import and export creations from saved games. Brush tools allow modifying
 terrain on a larger scale. Create, remove, and regenerate chunks in modern
 'infinite' Minecraft levels.
 
-Works with saved games from Minecraft Classic, Indev, Infdev, Alpha, Beta,
-Release, and Pocket Edition.
 '''
 
 
@@ -168,7 +166,6 @@ def main():
             'README.html',
             'favicon.png',
             'terrain-classic.png',
-            'terrain-pocket.png',
             'char.png',
             'gui.png',
             'terrain.png',

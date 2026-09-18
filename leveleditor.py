@@ -2003,40 +2003,6 @@ class LevelEditor(GLViewport):
         self.clearUnsavedEdits()
         [t.levelChanged() for t in self.toolbar.tools]
 
-        if isinstance(self.level, pymclevel.MCInfdevOldLevel):
-            if self.level.parentWorld:
-                dimensions = self.level.parentWorld.dimensions
-            else:
-                dimensions = self.level.dimensions
-
-            dimensionsMenu = [("Earth", "0")]
-            dimensionsMenu += [((dim.displayName,str(dim.dimNo)+"/"+dim.dirname)) for dim in dimensions.values()]
-            for dim, name in pymclevel.MCAlphaDimension.dimensionNames.items():
-                if dim not in dimensions:
-                    dimensionsMenu.append((name, str(dim)))
-
-            menu = Menu("", dimensionsMenu)
-
-            def presentMenu():
-                x, y = self.netherPanel.topleft
-                dimIdx = menu.present(self, (x, y - menu.height))
-                if dimIdx == -1:
-                    return
-                dimTokens = dimensionsMenu[dimIdx][1].partition('/')
-                dimNo = int(dimTokens[0])
-                dirname = None
-                if len(dimTokens)>1:
-                    dirname = dimTokens[2]
-                self.gotoDimension(dimNo, dirname)
-
-            self.netherPanel = Panel()
-            self.netherButton = Button("Goto Dimension", action=presentMenu)
-            self.netherPanel.add(self.netherButton)
-            self.netherPanel.shrink_wrap()
-            self.netherPanel.bottomright = self.viewportContainer.bottomright
-            self.netherPanel.anchor = "brwh"
-            self.add(self.netherPanel)
-
         if len(list(self.level.allChunks)) == 0:
             resp = ask("It looks like this level is completely empty!  You'll have to create some chunks before you can get started.", responses=["Create Chunks", "Cancel"])
             if resp == "Create Chunks":
@@ -2740,16 +2706,7 @@ class LevelEditor(GLViewport):
             items = []
 
             t = functools.partial(isinstance, self.level)
-            if t(pymclevel.MCInfdevOldLevel):
-                if self.level.version == pymclevel.MCInfdevOldLevel.VERSION_ANVIL:
-                    levelFormat = "Minecraft Infinite World (Anvil Format)"
-                elif self.level.version == pymclevel.MCInfdevOldLevel.VERSION_MCR:
-                    levelFormat = "Minecraft Infinite World (Region Format)"
-                else:
-                    levelFormat = "Minecraft Infinite World (Old Chunk Format)"
-            elif t(pymclevel.MCIndevLevel):
-                levelFormat = "Minecraft Indev (.mclevel format)"
-            elif t(pymclevel.MCSchematic):
+            if t(pymclevel.MCSchematic):
                 levelFormat = "MCEdit Schematic"
             elif t(pymclevel.ZipSchematic):
                 levelFormat = "MCEdit Schematic (Zipped Format)"
@@ -2805,12 +2762,6 @@ class LevelEditor(GLViewport):
                 gametypeRow = Row((Label("Game Type: "), b))
 
                 items.append(gametypeRow)
-
-            if isinstance(self.level, pymclevel.MCInfdevOldLevel):
-                chunkCount = self.level.chunkCount
-                chunkCountLabel = Label("Number of chunks: {0}".format(chunkCount))
-
-                items.append(chunkCountLabel)
 
             if hasattr(self.level, 'regionFiles') and len(self.level.regionFiles):
                 regionCount = len(self.level.regionFiles)
@@ -2891,7 +2842,7 @@ class LevelEditor(GLViewport):
 
         potentialWorlds = os.listdir(pymclevel.saveFileDir)
         potentialWorlds = [os.path.join(pymclevel.saveFileDir, p) for p in potentialWorlds]
-        worldFiles = [p for p in potentialWorlds if pymclevel.MCInfdevOldLevel.isLevel(p)]
+        worldFiles = [p for p in potentialWorlds if pymclevel.MCLevel.isLevel(p)]
         worlds = []
         for f in worldFiles:
             try:
@@ -3271,15 +3222,7 @@ class LevelEditor(GLViewport):
         try:
             if self.debug:
 
-                if isinstance(self.level, pymclevel.MCIndevLevel):
-                    bl = self.level.blockLightAt(*blockPosition)
-                    blockID = self.level.blockAt(*blockPosition)
-                    bdata = self.level.blockDataAt(*blockPosition)
-                    self.inspectionString += "ID: %d:%d (%s), " % (
-                        blockID, bdata, self.level.materials.names[blockID][bdata])
-                    self.inspectionString += "Data: %d, Light: %d, " % (bdata, bl)
-
-                elif isinstance(self.level, pymclevel.ChunkedLevelMixin):
+                if isinstance(self.level, pymclevel.ChunkedLevelMixin):
                     sl = self.level.skylightAt(*blockPosition)
                     bl = self.level.blockLightAt(*blockPosition)
                     bdata = self.level.blockDataAt(*blockPosition)
@@ -3314,10 +3257,6 @@ class LevelEditor(GLViewport):
                         self.inspectionString += ", TP: %d" % tp
                     except:
                         pass
-
-                    if isinstance(self.level, pymclevel.pocket.PocketWorld):
-                        ch = self.level.getChunk(cx, cz)
-                        self.inspectionString += ", DC: %s" % ch.DirtyColumns[z & 15, x & 15]
 
                     self.inspectionString += ", Ch(%d, %d): %s" % (cx, cz, path)
 
@@ -3437,78 +3376,6 @@ class LevelEditor(GLViewport):
         self.add(infoPanel)
         infoPanel.click_outside_response = -1
         # infoPanel.present()
-
-##    def testGLSL(self):
-##        print "Hello"
-##        level = MCLevel.fromFile("mrchunk.schematic")
-##        blocks = level.Blocks
-##        blockCount = level.Width * level.Length * level.Height,
-##        fbo = glGenFramebuffersEXT(1)
-##        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo)
-##
-##        print blockCount, fbo
-##
-##        destBlocks = numpy.zeros(blockCount, 'uint8')
-##        (sourceTex, destTex) = glGenTextures(2)
-##
-##        glBindTexture(GL_TEXTURE_3D, sourceTex)
-##        glTexImage3D(GL_TEXTURE_3D, 0, 1,
-##                     level.Width, level.Length, level.Height,
-##                     0, GL_RED, GL.GL_UNSIGNED_BYTE,
-##                     blocks)
-##
-##        # return
-##
-##        glBindTexture(GL.GL_TEXTURE_2D, destTex)
-##        glTexImage2D(GL.GL_TEXTURE_2D, 0, 1,
-##                     level.Width, level.Length,
-##                     0, GL_RED, GL.GL_UNSIGNED_BYTE, destBlocks)
-##        glTexParameter(GL.GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-##        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, destTex, 0)
-##
-##        vertShader = glCreateShader(GL_VERTEX_SHADER)
-##
-##        vertShaderSource = """
-##        void main()
-##        {
-##            gl_Position = gl_Vertex
-##        }
-##        """
-##
-##        glShaderSource(vertShader, vertShaderSource);
-##        glCompileShader(vertShader);
-##
-##        fragShader = glCreateShader(GL_FRAGMENT_SHADER)
-##
-##        fragShaderSource = """
-##        void main()
-##        {
-##            gl_FragColor = vec4(1.0, 0.0, 1.0, 0.75);
-##        }
-##        """
-##
-##        glShaderSource(fragShader, fragShaderSource);
-##        glCompileShader(fragShader);
-##
-##
-##
-##        prog = glCreateProgram()
-##
-##        glAttachShader(prog, vertShader)
-##        glAttachShader(prog, fragShader)
-##        glLinkProgram(prog)
-##
-##        glUseProgram(prog);
-##        # return
-##        GL.glDisable(GL.GL_DEPTH_TEST);
-##        GL.glVertexPointer(2, GL.GL_FLOAT, 0, [0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0]);
-##        GL.glDrawArrays(GL.GL_QUADS, 0, 4);
-##        GL.glEnable(GL.GL_DEPTH_TEST);
-##
-##        glFlush();
-##        destBlocks = glGetTexImage(GL.GL_TEXTURE_2D, 0, GL_RED, GL.GL_UNSIGNED_BYTE);
-##        print destBlocks, destBlocks[0:8];
-##        raise SystemExit;
 
     def handleMemoryError(self):
         if self.renderer.viewDistance <= 2:

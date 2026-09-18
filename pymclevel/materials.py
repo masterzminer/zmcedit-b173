@@ -340,15 +340,6 @@ classicMaterials = MCMaterials(defaultName = "Not present in Classic")
 classicMaterials.name = "Classic"
 classicMaterials.addYamlBlocksFromFile("classic.yaml")
 
-indevMaterials = MCMaterials(defaultName = "Not present in Indev")
-indevMaterials.name = "Indev"
-indevMaterials.addYamlBlocksFromFile("classic.yaml")
-indevMaterials.addYamlBlocksFromFile("indev.yaml")
-    
-pocketMaterials = MCMaterials()
-pocketMaterials.name = "Pocket"
-pocketMaterials.addYamlBlocksFromFile("pocket.yaml")
-
 # --- Static block defs ---
 
 alphaMaterials.Stone = alphaMaterials[1, 0]
@@ -564,149 +555,6 @@ classicMaterials.Bookshelf = classicMaterials[47]
 classicMaterials.MossStone = classicMaterials[48]
 classicMaterials.Obsidian = classicMaterials[49]
 
-# --- Indev static block defs ---
-indevMaterials.Stone = indevMaterials[1]
-indevMaterials.Grass = indevMaterials[2]
-indevMaterials.Dirt = indevMaterials[3]
-indevMaterials.Cobblestone = indevMaterials[4]
-indevMaterials.WoodPlanks = indevMaterials[5]
-indevMaterials.Sapling = indevMaterials[6]
-indevMaterials.Bedrock = indevMaterials[7]
-indevMaterials.WaterActive = indevMaterials[8]
-indevMaterials.Water = indevMaterials[9]
-indevMaterials.LavaActive = indevMaterials[10]
-indevMaterials.Lava = indevMaterials[11]
-indevMaterials.Sand = indevMaterials[12]
-indevMaterials.Gravel = indevMaterials[13]
-indevMaterials.GoldOre = indevMaterials[14]
-indevMaterials.IronOre = indevMaterials[15]
-indevMaterials.CoalOre = indevMaterials[16]
-indevMaterials.Wood = indevMaterials[17]
-indevMaterials.Leaves = indevMaterials[18]
-indevMaterials.Sponge = indevMaterials[19]
-indevMaterials.Glass = indevMaterials[20]
-
-indevMaterials.RedWool = indevMaterials[21] 
-indevMaterials.OrangeWool = indevMaterials[22] 
-indevMaterials.YellowWool = indevMaterials[23] 
-indevMaterials.LimeWool = indevMaterials[24] 
-indevMaterials.GreenWool = indevMaterials[25] 
-indevMaterials.AquaWool = indevMaterials[26] 
-indevMaterials.CyanWool = indevMaterials[27] 
-indevMaterials.BlueWool = indevMaterials[28] 
-indevMaterials.PurpleWool = indevMaterials[29] 
-indevMaterials.IndigoWool = indevMaterials[30]
-indevMaterials.VioletWool = indevMaterials[31] 
-indevMaterials.MagentaWool = indevMaterials[32] 
-indevMaterials.PinkWool = indevMaterials[33] 
-indevMaterials.BlackWool = indevMaterials[34] 
-indevMaterials.GrayWool = indevMaterials[35] 
-indevMaterials.WhiteWool = indevMaterials[36] 
-
-indevMaterials.Flower = indevMaterials[37]
-indevMaterials.Rose = indevMaterials[38]
-indevMaterials.BrownMushroom = indevMaterials[39]
-indevMaterials.RedMushroom = indevMaterials[40]
-indevMaterials.BlockofGold = indevMaterials[41]
-indevMaterials.BlockofIron = indevMaterials[42]
-indevMaterials.DoubleStoneSlab = indevMaterials[43]
-indevMaterials.StoneSlab = indevMaterials[44]
-indevMaterials.Brick = indevMaterials[45]
-indevMaterials.TNT = indevMaterials[46]
-indevMaterials.Bookshelf = indevMaterials[47]
-indevMaterials.MossStone = indevMaterials[48]
-indevMaterials.Obsidian = indevMaterials[49]
-
-indevMaterials.Torch = indevMaterials[50, 0]
-indevMaterials.Fire = indevMaterials[51, 0]
-indevMaterials.InfiniteWater = indevMaterials[52, 0]
-indevMaterials.InfiniteLava = indevMaterials[53, 0]
-indevMaterials.Chest = indevMaterials[54, 0]
-indevMaterials.Cog = indevMaterials[55, 0]
-indevMaterials.DiamondOre = indevMaterials[56, 0]
-indevMaterials.BlockofDiamond = indevMaterials[57, 0]
-indevMaterials.CraftingTable = indevMaterials[58, 0]
-indevMaterials.Crops = indevMaterials[59, 0]
-indevMaterials.Farmland = indevMaterials[60, 0]
-indevMaterials.Furnace = indevMaterials[61, 0]
-indevMaterials.LitFurnace = indevMaterials[62, 0]
-
-# --- Pocket static block defs ---
-
-pocketMaterials.Air = pocketMaterials[0,0]
-pocketMaterials.Stone = pocketMaterials[1,0]
-pocketMaterials.Grass = pocketMaterials[2,0]
-pocketMaterials.Dirt = pocketMaterials[3,0]
-pocketMaterials.Cobblestone = pocketMaterials[4,0]
-pocketMaterials.WoodPlanks = pocketMaterials[5,0]
-pocketMaterials.Bedrock = pocketMaterials[7,0]
-pocketMaterials.Wateractive = pocketMaterials[8,0]
-pocketMaterials.Water = pocketMaterials[9,0]
-pocketMaterials.Lavaactive = pocketMaterials[10,0]
-pocketMaterials.Lava = pocketMaterials[11,0]
-pocketMaterials.Sand = pocketMaterials[12,0]
-pocketMaterials.Gravel = pocketMaterials[13,0]
-pocketMaterials.GoldOre = pocketMaterials[14,0]
-pocketMaterials.IronOre = pocketMaterials[15,0]
-pocketMaterials.CoalOre = pocketMaterials[16,0]
-pocketMaterials.Wood = pocketMaterials[17,0]
-pocketMaterials.PineWood = pocketMaterials[17,1]
-pocketMaterials.BirchWood = pocketMaterials[17,2]
-pocketMaterials.Leaves = pocketMaterials[18,0]
-pocketMaterials.Glass = pocketMaterials[20,0]
-
-pocketMaterials.LapisLazuliOre = pocketMaterials[21,0]
-pocketMaterials.Sandstone = pocketMaterials[24,0]
-pocketMaterials.BlackWool2 = pocketMaterials[35,0]
-pocketMaterials.Flower = pocketMaterials[37,0]
-pocketMaterials.Rose = pocketMaterials[38,0]
-pocketMaterials.BrownMushroom = pocketMaterials[39,0]
-pocketMaterials.RedMushroom = pocketMaterials[40,0]
-pocketMaterials.BlockofGold = pocketMaterials[41,0]
-pocketMaterials.BlockofIron = pocketMaterials[42,0]
-pocketMaterials.DoubleStoneSlab = pocketMaterials[43,0]
-pocketMaterials.StoneSlab = pocketMaterials[44,0]
-pocketMaterials.Brick = pocketMaterials[45,0]
-pocketMaterials.TNT = pocketMaterials[46,0]
-pocketMaterials.Obsidian = pocketMaterials[49,0]
-
-pocketMaterials.Torch = pocketMaterials[50,0]
-pocketMaterials.Fire = pocketMaterials[51,0]
-pocketMaterials.WoodenStairs = pocketMaterials[53,0]
-pocketMaterials.DiamondOre = pocketMaterials[56,0]
-pocketMaterials.BlockofDiamond = pocketMaterials[57,0]
-pocketMaterials.Farmland = pocketMaterials[60,0]
-pocketMaterials.WoodenDoor = pocketMaterials[64,0]
-pocketMaterials.Ladder = pocketMaterials[65,0]
-pocketMaterials.StoneStairs = pocketMaterials[67,0]
-pocketMaterials.IronDoor = pocketMaterials[71,0]
-pocketMaterials.RedstoneOre = pocketMaterials[73,0]
-pocketMaterials.RedstoneOreGlowing = pocketMaterials[74,0]
-pocketMaterials.SnowLayer = pocketMaterials[78,0]
-pocketMaterials.Ice = pocketMaterials[79,0]
-
-pocketMaterials.Clay = pocketMaterials[82,0]
-pocketMaterials.SugarCane = pocketMaterials[83,0]
-pocketMaterials.BlackWool = pocketMaterials[101,0]
-pocketMaterials.RedWool = pocketMaterials[102,0]
-pocketMaterials.GreenWool = pocketMaterials[103,0]
-pocketMaterials.BrownWool = pocketMaterials[104,0]
-pocketMaterials.BlueWool = pocketMaterials[105,0]
-pocketMaterials.PurpleWool = pocketMaterials[106,0]
-pocketMaterials.CyanWool = pocketMaterials[107,0]
-pocketMaterials.LightGrayWool = pocketMaterials[108,0]
-pocketMaterials.GrayWool = pocketMaterials[109,0]
-pocketMaterials.PinkWool = pocketMaterials[110,0]
-pocketMaterials.LimeWool = pocketMaterials[111,0]
-pocketMaterials.YellowWool = pocketMaterials[112,0]
-pocketMaterials.LightBlueWool = pocketMaterials[113,0]
-pocketMaterials.MagentaWool = pocketMaterials[114,0]
-pocketMaterials.OrangeWool = pocketMaterials[115,0]
-
-# print "\n".join(["pocketMaterials.{0} = pocketMaterials[{1},{2}]".format(
-#                      b.name.replace(" ", "").replace("(","").replace(")",""), 
-#                      b.ID, b.blockData) 
-#                  for b in sorted(mats.pocketMaterials.allBlocks)])
 
 _indices = rollaxis(indices( (256, 16) ), 0, 3)
 
@@ -782,7 +630,7 @@ def guessFilterTable(matsFrom, matsTo):
             
     return filters , unavailable
 
-allMaterials = (alphaMaterials, classicMaterials, pocketMaterials, indevMaterials)
+allMaterials = (alphaMaterials, classicMaterials)
 
 _conversionFuncs = {}
 def conversionFunc(destMats, sourceMats):
@@ -811,4 +659,4 @@ def convertBlocks(destMats, sourceMats, blocks, blockData):
     
 namedMaterials = dict((i.name, i) for i in allMaterials)
 
-__all__ = "indevMaterials, pocketMaterials, alphaMaterials, classicMaterials, namedMaterials, MCMaterials".split(", ")
+__all__ = "alphaMaterials, classicMaterials, namedMaterials, MCMaterials".split(", ")

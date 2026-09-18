@@ -16,7 +16,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
 from .toolbasics import *
 from .select import SelectionOperation
-from pymclevel.pocket import PocketWorld
 
 CloneSettings = config.Settings("Clone")
 CloneSettings.copyAir = CloneSettings("Copy Air", True)
@@ -591,7 +590,7 @@ class CloneTool(EditorTool):
 
     @property
     def canRotateLevel(self):
-        return not isinstance(self.level, (MCInfdevOldLevel, PocketWorld))
+        return not isinstance(self.level, (MCInfdevOldLevel))
 
     def rotatedSelectionSize(self):
         if self.canRotateLevel:

@@ -22,10 +22,10 @@ class MCSchematic (EntityLevel):
         root_tag as a TAG_Compound for an existing schematic file.  if
         none, tries to read the tag from filename.  if none, results
         are undefined. materials can be a MCMaterials instance, or one of 
-        "Classic", "Alpha", "Pocket" to indicate allowable blocks. The default
+        "Classic", "Alpha", to indicate allowable blocks. The default
         is Alpha.
 
-        block coordinate order in the file is y,z,x to use the same code as classic/indev levels.  
+        block coordinate order in the file is y,z,x to use the same code as classic levels.  
         in hindsight, this was a completely arbitrary decision.
         
         the Entities and TileEntities are nbt.TAG_List objects containing TAG_Compounds.

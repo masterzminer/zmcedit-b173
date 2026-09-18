@@ -1070,9 +1070,7 @@ class GLDisplayContext(object):
 
         textures = (
             (pymclevel.classicMaterials, 'terrain-classic.png'),
-            (pymclevel.indevMaterials, 'terrain-classic.png'),
             (pymclevel.alphaMaterials, 'terrain.png'),
-            (pymclevel.pocketMaterials, 'terrain-pocket.png')
         )
 
         for mats, matFile in textures:

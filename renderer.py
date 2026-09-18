@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 """Copyright (c) 2010-2012 David Rio Vierra
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -50,7 +53,7 @@ from OpenGL import GL
 import pymclevel
 import sys
 from functools import reduce
-#import time
+import traceback
 
 
 def chunkMarkers(chunkSet):
@@ -98,8 +101,8 @@ class ChunkRenderer(object):
     maxlod = 2
     minlod = 0
 
-    def __init__(self, renderer, chunkPosition):
-        self.renderer = renderer
+    def __init__(self, renderer: MCRenderer, chunkPosition):
+        self.renderer: MCRenderer = renderer
         self.blockRenderers = []
         self.detailLevel = 0
         self.invalidLayers = set(Layer.AllLayers)
@@ -402,7 +405,7 @@ class ChunkCalculator (object):
             WaterBlockRenderer,
             SlabBlockRenderer,
         ]
-        if materials.name in ("Alpha", "Pocket"):
+        if materials.name in ("Alpha"):
             self.blockRendererClasses += [
                 RailBlockRenderer,
                 LadderBlockRenderer,
@@ -458,7 +461,7 @@ class ChunkCalculator (object):
     roughMaterials[0] = 0
     addTransparentMaterials(None, roughMaterials, 2)
 
-    def calcFacesForChunkRenderer(self, cr):
+    def calcFacesForChunkRenderer(self, cr: ChunkRenderer):
         if 0 == len(cr.invalidLayers):
 #            layers = set(br.layer for br in cr.blockRenderers)
 #            assert set() == cr.visibleLayers.difference(layers)
@@ -1173,7 +1176,7 @@ class GenericBlockRenderer(BlockRenderer):
 
             def setColors():
                 vertexArray.view('uint8')[_RGB] *= getBlockLight()[..., numpy.newaxis, numpy.newaxis]
-                if self.materials.name in ("Alpha", "Pocket"):
+                if self.materials.name in ("Alpha"):
                     if direction == pymclevel.faces.FaceYIncreasing:
                         setGrassColors()
                 # leaves = theseBlocks == pymclevel.materials.alphaMaterials.Leaves.ID
@@ -1213,7 +1216,7 @@ class LeafBlockRenderer(BlockRenderer):
         materialIndices = self.getMaterialIndices(blockMaterials)
         yield
 
-        if self.materials.name in ("Alpha", "Pocket"):
+        if self.materials.name in ("Alpha"):
             if not self.chunkCalculator.fastLeaves:
                 blockIndices = materialIndices
                 data = blockData[blockIndices]
@@ -1227,7 +1230,7 @@ class LeafBlockRenderer(BlockRenderer):
             texes = texMap(18, [0], 0)
 
         for (direction, exposedFaceIndices) in enumerate(facingBlockIndices):
-            if self.materials.name in ("Alpha", "Pocket"):
+            if self.materials.name in ("Alpha"):
                 if self.chunkCalculator.fastLeaves:
                     blockIndices = materialIndices & exposedFaceIndices
                     data = blockData[blockIndices]
@@ -1251,7 +1254,7 @@ class LeafBlockRenderer(BlockRenderer):
                 vertexArray[_ST] -= (0x10, 0x0)
 
             vertexArray.view('uint8')[_RGB] *= facingBlockLight[blockIndices][..., numpy.newaxis, numpy.newaxis]
-            if self.materials.name in ("Alpha", "Pocket"):
+            if self.materials.name in ("Alpha"):
                 vertexArray.view('uint8')[_RGB][leaves] *= self.leafColor
                 vertexArray.view('uint8')[_RGB][pines] *= self.pineLeafColor
                 vertexArray.view('uint8')[_RGB][birches] *= self.birchLeafColor
@@ -2665,7 +2668,7 @@ class MCRenderer(object):
 
         return cr
 
-    def calcFacesForChunkRenderer(self, cr):
+    def calcFacesForChunkRenderer(self, cr: ChunkRenderer):
         self.bufferUsage -= cr.bufferSize
 
         calc = cr.calcFaces()
@@ -2743,76 +2746,3 @@ class MCRenderer(object):
 class PreviewRenderer(MCRenderer):
     isPreviewer = True
 
-
-def rendermain():
-    renderer = MCRenderer()
-
-    renderer.level = pymclevel.mclevel.loadWorld("World1")
-    renderer.viewDistance = 6
-    renderer.detailLevelForChunk = lambda * x: 0
-    start = datetime.now()
-
-    renderer.loadVisibleChunks()
-
-    try:
-        while True:
-        # for i in range(100):
-            next(renderer)
-    except StopIteration:
-        pass
-    except Exception as e:
-        traceback.print_exc()
-        print(repr(e))
-
-    duration = datetime.now() - start
-    perchunk = duration / len(renderer.chunkRenderers)
-    print("Duration: {0} ({1} chunks per second, {2} per chunk, {3} chunks)".format(duration, 1000000.0 / perchunk.microseconds, perchunk, len(renderer.chunkRenderers)))
-
-    # display.init( (640, 480), OPENGL | DOUBLEBUF )
-    from mcedit import GLDisplayContext
-    from OpenGL import GLU
-    cxt = GLDisplayContext()
-    import pygame
-
-    # distance = 4000
-    GL.glMatrixMode(GL.GL_PROJECTION)
-    GL.glLoadIdentity()
-    GLU.gluPerspective(35, 640.0 / 480.0, 0.5, 4000.0)
-    h = 366
-
-    pos = (0, h, 0)
-
-    look = (0.0001, h - 1, 0.0001)
-    up = (0, 1, 0)
-    GL.glMatrixMode(GL.GL_MODELVIEW)
-    GL.glLoadIdentity()
-
-    GLU.gluLookAt(pos[0], pos[1], pos[2],
-                   look[0], look[1], look[2],
-                   up[0], up[1], up[2])
-
-    GL.glClearColor(0.0, 0.0, 0.0, 1.0)
-
-    framestart = datetime.now()
-    frames = 200
-    for i in range(frames):
-        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-        renderer.draw()
-        pygame.display.flip()
-
-    delta = datetime.now() - framestart
-    seconds = delta.seconds + delta.microseconds / 1000000.0
-    print("{0} frames in {1} ({2} per frame, {3} FPS)".format(frames, delta, delta / frames, frames / seconds))
-
-    while True:
-        evt = pygame.event.poll()
-        if evt.type == pygame.MOUSEBUTTONDOWN:
-            break
-    # time.sleep(3.0)
-
-
-import traceback
-import cProfile
-
-if __name__ == "__main__":
-    cProfile.run("rendermain()", "mcedit.profile")
