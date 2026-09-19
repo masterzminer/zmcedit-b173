@@ -1040,33 +1040,50 @@ class LowDetailBlockRenderer(BlockRenderer):
         GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
     def makeChunkVertices(self, ch: pymclevel.ChunkBase):
-        step = 1
+        step: int = 1
 
         level = ch.world
         vertexArrays = []
         blocks = ch.Blocks
         heightMap = ch.HeightMap
 
+        # Copy the height map and blocks from the chunk
         heightMap = heightMap[::step, ::step]
         blocks = blocks[::step, ::step]
 
+        # Do nothing if any of the dimensions in the blocks of the chunk are empty
         if 0 in blocks.shape:
             return
 
+        # Grab the size of the chunk, 16x16x128
         chunkWidth, chunkLength, chunkHeight = blocks.shape
+        # Build a chunk of zeros, 16x16x128 of all zeros
         blockIndices = numpy.zeros((chunkWidth, chunkLength, chunkHeight), bool)
 
+        # Build the indexes of the x and z coordinates
+        # grid_axes will be a list of two elements, the first element is a 2D array of the x coordinates of every block, the second element is the same for the z coordinates
         grid_axes = list(numpy.indices((chunkWidth, chunkLength)))
+
+        # Building a height map
+        # Subtract one from every height, then swap the axes
+        # This brings the height coordinates to array indexes and swaps the (z, x) height map to be (x, z)
         h = numpy.swapaxes(heightMap - 1, 0, 1)[:chunkWidth, :chunkLength]
+        # Clamp every height in the height map to be in the range [0, 127]
         numpy.clip(h, 0, chunkHeight - 1, out=h)
 
-        grid_axes = [grid_axes[0], grid_axes[1], h]
+        # Build a list of coordinates
+        # The list is all the x coordinates, all the z coordinates, then the transformed height map
+        grid_axes: list[numpy.ndarray[numpy.ndarray]] = [grid_axes[0], grid_axes[1], h]
 
+        # Setup a 2D array, 16x16 of all zeros
         depths = numpy.zeros((chunkWidth, chunkLength), dtype='uint16')
+        # TODO what is this doing? Seems to be taking a subset of the height map
         depths[1:-1, 1:-1] = reduce(numpy.minimum, (h[1:-1, :-2], h[1:-1, 2:], h[:-2, 1:-1]), h[2:, 1:-1])
         yield
 
         try:
+            grid_axes = tuple(grid_axes)
+            # Get an (x, z) indexed array of the highest block in each (x, z) coordinate of the chunk
             topBlocks = blocks[grid_axes]
             nonAirBlocks = (topBlocks != 0)
             blockIndices[grid_axes] = nonAirBlocks
@@ -1075,6 +1092,7 @@ class LowDetailBlockRenderer(BlockRenderer):
             overblocks = blocks[grid_axes][nonAirBlocks].ravel()
 
         except ValueError as e:
+            traceback.print_exc()
             raise ValueError(str(e.args) + "Chunk shape: {0}".format(blockIndices.shape), sys.exc_info()[-1])
 
         if nonAirBlocks.any():
@@ -1122,7 +1140,8 @@ class LowDetailBlockRenderer(BlockRenderer):
             va1[_XYZ][:, :, 0] *= step
             va1[_XYZ][:, :, 2] *= step
 
-            flatcolors *= 0.8
+            # Darken the colors
+            flatcolors = (flatcolors * 0.8).astype(numpy.uint8)
 
             va1.view('uint8')[_RGBA] = flatcolors
             grassmask = topBlocks[nonAirBlocks] == 2

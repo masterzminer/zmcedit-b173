@@ -778,7 +778,15 @@ class EntityLevel(MCLevel):
 class ChunkBase(EntityLevel):
     dirty = False
     needsLighting = False
+
     Blocks = Data = SkyLight = BlockLight = HeightMap = NotImplemented #override these!
+
+    def __init__(self):
+        super().__init__()
+        self.Blocks: ndarray[any]
+        """ 3D array, indexed as (x, z, y), 16 size width and length, then 128 height """
+        self.HeightMap: ndarray[any]
+        """ 2D array, seems to be indexed as (z, x), 16x16, represents the max height of each (z, x) block in the chunk """
 
     def load(self):pass
     def compress(self):pass
