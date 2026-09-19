@@ -212,8 +212,10 @@ class ChunkRenderer(object):
                 yield
 
         else:
-            raise StopIteration
-            yield
+            # TODO does this need to return StopIteration for some weird logic?
+            # raise StopIteration
+            # yield
+            return
 
     def vertexArraysDone(self):
         bufferSize = 0
@@ -523,7 +525,7 @@ class ChunkCalculator (object):
         cr.blockRenderers = blockRenderers
 
         cr.vertexArraysDone()
-        raise StopIteration
+        return
 
     def getNeighboringChunks(self, chunk):
         cx, cz = chunk.chunkPosition
@@ -581,9 +583,9 @@ class ChunkCalculator (object):
         skyLight = chunk.SkyLight
         finalLight = self.whiteLight
 
-        if lights != None:
+        if lights is not None:
             finalLight = lights
-        if skyLight != None:
+        if skyLight is not None:
             finalLight = numpy.maximum(skyLight, lights)
 
         areaBlockLights = numpy.ones((chunkWidth + 2, chunkLength + 2, chunkHeight + 2), numpy.uint8)
@@ -1188,7 +1190,7 @@ class GenericBlockRenderer(BlockRenderer):
 
             def setGrassColors():
                 grass = theseBlocks == pymclevel.materials.alphaMaterials.Grass.ID
-                vertexArray.view('uint8')[_RGB][grass] *= self.grassColor
+                vertexArray.view('uint8')[_RGB][grass] = (vertexArray.view('uint8')[_RGB][grass] * self.grassColor).astype(numpy.uint8)
 
             def getBlockLight():
                 return facingBlockLight[blockIndices]
@@ -1274,9 +1276,9 @@ class LeafBlockRenderer(BlockRenderer):
 
             vertexArray.view('uint8')[_RGB] *= facingBlockLight[blockIndices][..., numpy.newaxis, numpy.newaxis]
             if self.materials.name in ("Alpha"):
-                vertexArray.view('uint8')[_RGB][leaves] *= self.leafColor
-                vertexArray.view('uint8')[_RGB][pines] *= self.pineLeafColor
-                vertexArray.view('uint8')[_RGB][birches] *= self.birchLeafColor
+                vertexArray.view('uint8')[_RGB][leaves] = (vertexArray.view('uint8')[_RGB][leaves] * self.leafColor).astype(numpy.uint8)
+                vertexArray.view('uint8')[_RGB][pines] = (vertexArray.view('uint8')[_RGB][pines] * self.pineLeafColor).astype(numpy.uint8)
+                vertexArray.view('uint8')[_RGB][birches] = (vertexArray.view('uint8')[_RGB][birches] * self.birchLeafColor).astype(numpy.uint8)
 
             yield
             arrays.append(vertexArray)
@@ -1339,7 +1341,7 @@ class PlantBlockRenderer(BlockRenderer):
             vertexArray.view('uint8')[_RGBA] = 0xf  # ignore precomputed directional light
             vertexArray.view('uint8')[_RGB] *= lights
             if colorize is not None:
-                vertexArray.view('uint8')[_RGB][colorize] *= LeafBlockRenderer.leafColor
+                vertexArray.view('uint8')[_RGB][colorize] = (vertexArray.view('uint8')[_RGB][colorize] * LeafBlockRenderer.leafColor).astype(numpy.uint8)
 
             arrays.append(vertexArray)
             yield
@@ -1985,6 +1987,9 @@ class MCRenderer(object):
 
         self.level: pymclevel.MCLevel = level
 
+        self.overheadMode: bool
+        """ true if rendering the overview from on top of the world, false for normal 3D look around rendering """
+
     chunkClass = ChunkRenderer
     calculatorClass = ChunkCalculator
 
@@ -2126,12 +2131,19 @@ class MCRenderer(object):
 
     position = (0, 0, 0)
 
-    def loadChunksStartingFrom(self, wx, wz, distance=None):  # world position
+    def loadChunksStartingFrom(self, wx, wz, distance=None):
+        """
+        Set up self.chunkIterator to load all chunks in the square range around the given block coordinate
+
+        wx: starting x block coordinate to load from
+
+        wz: starting z block coordinate to load from
+
+        distance: The distance in chunks to load from the given (x, z) position, defaults to self.effectiveViewDistance if not provided
+        """
+
         if None is self.level:
             return
-
-        cx = wx >> 4
-        cz = wz >> 4
 
         if distance is None:
             d = self.effectiveViewDistance
@@ -2141,26 +2153,46 @@ class MCRenderer(object):
         self.chunkIterator = self.iterateChunks(wx, wz, d * 2)
 
     def iterateChunks(self, x, z, d):
+        """
+        Builds an iterator for going through all chunks in range of the given coordinate
+
+        x: x block coordinate in the first chunk to load
+
+        z: z block coordinate in the first chunk to load
+        
+        d: The distance, in number of chunks, to load around the given coordinates
+        """
+
+        # Divide the chunk coordinates by 16, i.e. shift 4 bits, to go from block coordinates to chunk coordinates
         cx = x >> 4
         cz = z >> 4
 
+        # First coordinate to iterate
         yield (cx, cz)
 
+        # Start with a 1x1 chunk range, moving forward on the x and x axes
         step = dir = 1
 
+        # Run forever until there's nothing left to iterate
         while True:
+            # For the current iteration size, go over the entire x axis for chunks
             for i in range(step):
                 cx += dir
                 yield (cx, cz)
 
+            # For the current iteration size, go over the entire z axis for chunks
             for i in range(step):
                 cz += dir
                 yield (cx, cz)
 
+            # Expand the range one chunkout
             step += 1
-            if step > d and not self.overheadMode:
-                raise StopIteration
 
+            # If the max range has been iterated, and in normal chunk loading, nothing left to iterate
+            if step > d and not self.overheadMode:
+                return
+
+            # Start moving in the opposite direction around the range
             dir = -dir
 
     chunkIterator = None
@@ -2621,6 +2653,7 @@ class MCRenderer(object):
         addDebugString("CR: {0}, ".format(len(self.chunkRenderers),))
 
     def __next__(self):
+        # TODO is this hitting the return statement while still having next() get called? Need to end the call to next early
         next(self.chunkWorker)
 
     def makeWorkIterator(self):
@@ -2630,7 +2663,7 @@ class MCRenderer(object):
         try:
             while True:
                 if self.level is None:
-                    raise StopIteration
+                    return
 
                 if len(self.invalidChunkQueue) > 1024:
                     self.invalidChunkQueue.clear()
@@ -2642,7 +2675,7 @@ class MCRenderer(object):
                     self.invalidChunkQueue.popleft()
 
                 elif self.chunkIterator is None:
-                    raise StopIteration
+                    return
 
                 else:
                     c = next(self.chunkIterator)
@@ -2706,8 +2739,10 @@ class MCRenderer(object):
             if self.viewingFrustum:
                 # if not self.viewingFrustum.visible(numpy.array([[c[0] * 16 + 8, 64, c[1] * 16 + 8, 1.0]]), 64).any():
                 if not self.viewingFrustum.visible1([c[0] * 16 + 8, self.level.Height / 2, c[1] * 16 + 8, 1.0], self.level.Height / 2):
-                    raise StopIteration
-                    yield
+                    # TODO does this need to return StopIteration for some weird logic?
+                    # raise StopIteration
+                    # yield
+                    return
 
             faceInfoCalculator = self.calcFacesForChunkRenderer(cr)
             try:

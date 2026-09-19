@@ -1903,7 +1903,7 @@ class AQtimeTable:
                 fields[name] = value
             children = dict([(child.name, child) for child in children])
             yield fields, children
-        raise StopIteration
+        return
 
     def add_row(self, values, children=()):
         self.rows.append((values, children))
