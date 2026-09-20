@@ -2678,7 +2678,11 @@ class MCRenderer(object):
                     return
 
                 else:
-                    c = next(self.chunkIterator)
+                    try:
+                        c = next(self.chunkIterator)
+                    except StopIteration:
+                        # No more iterations to do, no more work, the iterator is complete
+                        return
                     if self.vertexBufferLimit:
                         while self.bufferUsage > (0.9 * (self.vertexBufferLimit << 20)):
                             deadChunk = None
