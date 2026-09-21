@@ -27,3 +27,5 @@ RELEASE-VERSION
 
 
 .venv
+
+.vscode

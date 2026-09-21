@@ -283,10 +283,10 @@ class FillTool(EditorTool):
                 if not hasattr(terrainTexture, "data"):
                     return
                 w, h = terrainTexture.data.shape[:2]
-                s = s * w / 256
-                t = t * h / 256
-                texData = array(terrainTexture.data[t:t + h / 16, s:s + w / 16])
-                glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, w / 16, h / 16, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, texData)
+                s = int(float(s) * w / 256.0)
+                t = int(float(t) * h / 256.0)
+                texData = array(terrainTexture.data[t:t + h // 16, s:s + w // 16])
+                glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, w // 16, h // 16, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, texData)
             return _func
 
         for type in range(256):

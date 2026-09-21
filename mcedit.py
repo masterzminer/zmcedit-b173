@@ -1069,14 +1069,13 @@ class GLDisplayContext(object):
             )
 
         textures = (
-            (pymclevel.classicMaterials, 'terrain-classic.png'),
             (pymclevel.alphaMaterials, 'terrain.png'),
         )
 
         for mats, matFile in textures:
             try:
                 if mats.name == 'Alpha':
-                    tex = mceutils.loadAlphaTerrainTexture()
+                    tex = mceutils.loadTerrainTexture()
                 else:
                     tex = mceutils.loadPNGTexture(matFile)
                 self.terrainTextures[mats.name] = tex

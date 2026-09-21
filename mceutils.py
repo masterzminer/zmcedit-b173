@@ -18,6 +18,10 @@ mceutils.py
 Exception catching, some basic box drawing, texture pack loading, oddball UI elements
 """
 
+# TODO figure out these libpng errors
+# libpng warning: iCCP: known incorrect sRGB profile
+# libpng warning: iCCP: cHRM chunk does not match sRGB
+
 
 
 from albow.controls import ValueDisplay
@@ -32,13 +36,13 @@ import numpy
 from OpenGL import GL, GLU
 import os
 import platform
-import png
 from pygame import display, image, Surface
 import pymclevel
 import release
 import sys
 import traceback
 import zipfile
+from PIL import Image
 
 
 def alertException(func):
@@ -262,47 +266,8 @@ def drawTerrainCuttingWire(box,
 # texturePacksDir = os.path.join(pymclevel.minecraftDir, "texturepacks")
 
 
-def loadAlphaTerrainTexture():
+def loadTerrainTexture():
     pngFile = None
-    customWaterFile = None
-    customLavaFile = None
-    grassColorFile = None
-    foliageColorFile = None
-
-    try:
-        skin = config.config.get("Settings", "MCEdit Skin")
-        if skin is None or skin == "[Current]":
-            optionsFile = os.path.join(mcplatform.minecraftDir, "options.txt")
-            for line in open(optionsFile):
-                if line.startswith("skin:"):
-                    skin = line[5:].strip('\n')
-
-        if skin and skin != "[Default]":
-            print("Loading texture pack {0}...".format(skin))
-            try:
-                if skin == "Default":
-                    pack = os.path.join(mcplatform.minecraftDir, "bin", "minecraft.jar")
-                    print("Loading textures from minecraft.jar")
-                else:
-                    pack = os.path.join(mcplatform.texturePacksDir, skin)
-                zf = zipfile.ZipFile(pack, "r")
-                pngFile = zf.open("terrain.png")
-                pngFile.nlSeps = []
-                if "custom_water_still.png" in zf.namelist():
-                    customWaterFile = zf.open("custom_water_still.png")
-                if "custom_lava_still.png" in zf.namelist():
-                    customLavaFile = zf.open("custom_lava_still.png")
-                if "misc/foliagecolor.png" in zf.namelist():
-                    foliageColorFile = zf.open("misc/foliagecolor.png")
-                if "misc/grasscolor.png" in zf.namelist():
-                    grassColorFile = zf.open("misc/grasscolor.png")
-                zf.close()
-
-            except Exception as e:
-                print(repr(e), "while reading terrain.png from ", repr(pack))
-
-    except Exception as e:
-        print(repr(e), "while loading texture pack info.")
 
     texW, texH, terraindata = loadPNGFile("terrain.png")
 
@@ -320,54 +285,14 @@ def loadAlphaTerrainTexture():
             texW, texH, terraindata = loadPNGData(slurpZipExt(pngFile))
 
         except Exception as e:
+            traceback.print_exc()
             print(repr(e), "while loading texture pack")
 
-    if customWaterFile is not None:
-        s, t = pymclevel.materials.alphaMaterials.blockTextures[pymclevel.materials.alphaMaterials.Water.ID, 0, 0]
-        s = s * texW / 256
-        t = t * texH / 256
-
-        w, h, data = loadPNGData(slurpZipExt(customWaterFile))
-        if w == texW / 16:
-            # only handle the easy case for now
-            texdata = data[:w, :w]
-            terraindata[t:t + w, s:s + w] = texdata
-
-            # GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, s, t, w, w, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, texdata)
-    if customLavaFile is not None:
-        s, t = pymclevel.materials.alphaMaterials.blockTextures[pymclevel.materials.alphaMaterials.Lava.ID, 0, 0]
-        s = s * texW / 256
-        t = t * texH / 256
-
-        w, h, data = loadPNGData(slurpZipExt(customLavaFile))
-        if w == texW / 16:
-            # only handle the easy case for now
-            texdata = data[:w, :w]
-            terraindata[t:t + w, s:s + w] = texdata
-
-            # GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, s, t, w, w, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, texdata)
 
     from renderer import LeafBlockRenderer
     from renderer import GenericBlockRenderer
-    if foliageColorFile is not None:
-        w, h, data = loadPNGData(slurpZipExt(foliageColorFile))
-        color = data[77, 55, :3]
-        pymclevel.materials.alphaMaterials.flatColors[17, 0, :3] = color  # xxxxxxx
-
-        color = [c / 255.0 for c in color]
-        LeafBlockRenderer.leafColor = color
-    else:
-        LeafBlockRenderer.leafColor = LeafBlockRenderer.leafColorDefault
-
-    if grassColorFile is not None:
-        w, h, data = loadPNGData(slurpZipExt(grassColorFile))
-        color = data[77, 55, :3]
-        pymclevel.materials.alphaMaterials.flatColors[2, 0, :3] = color  # xxxxxxx
-        color = [c / 255.0 for c in color]
-
-        GenericBlockRenderer.grassColor = color
-    else:
-        GenericBlockRenderer.grassColor = GenericBlockRenderer.grassColorDefault
+    LeafBlockRenderer.leafColor = LeafBlockRenderer.leafColorDefault
+    GenericBlockRenderer.grassColor = GenericBlockRenderer.grassColorDefault
 
     def _loadFunc():
         loadTextureFunc(texW, texH, terraindata)
@@ -377,19 +302,15 @@ def loadAlphaTerrainTexture():
     return tex
 
 
-def loadPNGData(filename_or_data):
-    reader = png.Reader(filename_or_data)
-    (w, h, data, metadata) = reader.read_flat()
-    data = numpy.array(data, dtype='uint8')
-    data.shape = (h, w, metadata['planes'])
-    if data.shape[2] == 1:
-        # indexed color. remarkably straightforward.
-        data.shape = data.shape[:2]
-        data = numpy.array(reader.palette(), dtype='uint8')[data]
+def loadPNGData(filename):
+    # Load image and convert to rgba
+    image = Image.open(filename).convert("RGBA")
+    # Convert the data to a numpy array
+    data = numpy.array(image)
+    # Extract the weight and width from the shape
+    w, h = data.shape[:2]
 
-    if data.shape[2] < 4:
-        data = numpy.insert(data, 3, 255, 2)
-
+    # Return final data
     return w, h, data
 
 
@@ -398,6 +319,7 @@ def loadPNGFile(filename):
 
     powers = (16, 32, 64, 128, 256, 512, 1024, 2048, 4096)
     assert (w in powers) and (h in powers)  # how crude
+    
 
     ndata = numpy.array(data, dtype='uint8')
 

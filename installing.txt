@@ -1,0 +1,16 @@
+Creating a virtual environment
+python3 -m venv .venv
+
+Activate it
+source .venv/bin/activate
+
+To leave the virtual environment, run
+deactivate
+
+Install dependencies in the environment
+pip install PyOpenGL
+pip install pygame
+pip install numpy
+pip install pyyaml
+pip install Pillow
+TODO determine which dependencies are strictly needed
