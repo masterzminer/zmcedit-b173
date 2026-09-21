@@ -52,6 +52,7 @@ class TextEditor(Widget):
             draw.line(surface, fg, (x, y), (x, y + h - 1))
 
     def key_down(self, event):
+        print("-----------------", event)
         if not (event.cmd or event.alt):
             k = event.key
             if k == K_LEFT:
@@ -65,12 +66,12 @@ class TextEditor(Widget):
                 self.tab_to_next()
                 return
             try:
-                c = event.six.text_type
+                c = event.unicode
             except ValueError:
                 c = ""
             if self.insert_char(c) != 'pass':
                 return
-        if event.cmd and event.six.text_type:
+        if event.cmd and event.unicode:
             if event.key == K_c:
                 try:
                     pygame.scrap.put(SCRAP_TEXT, self.text)

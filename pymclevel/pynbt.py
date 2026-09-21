@@ -200,9 +200,8 @@ class TAG_Byte_Array(TAG_Value):
 
 
     def write_value(self, buf):
-        #print self.value
-        valuestr = self.value.tostring()
-        buf.write(struct.pack(self.fmt % (len(valuestr),), len(valuestr), valuestr))
+        value = self.value.tobytes()
+        buf.write(struct.pack(self.fmt % (len(value),), len(value), value))
 
 class TAG_Int_Array(TAG_Byte_Array):
     """An array of ints"""
@@ -344,7 +343,7 @@ class TAG_Compound(TAG_Value, collections.abc.MutableMapping):
     def write_value(self, buf):
         for i in self.value:
             i.save(buf=buf)
-        buf.write("\x00")
+        buf.write(b"\x00")
 
     "collection functions"
     def __getitem__(self, k):

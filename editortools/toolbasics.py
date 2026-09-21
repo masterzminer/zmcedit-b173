@@ -475,7 +475,7 @@ class BlockPicker(Dialog):
         def draw_block_table_cell(surf, i, data, cell_rect, column):
             if isinstance(data, Block):
 
-                tableicons[i - tableview.rows.scroll].blockInfo = data
+                tableicons[int(i - tableview.rows.scroll)].blockInfo = data
             else:
                 draw_table_cell(surf, i, data, cell_rect, column)
 

@@ -8,6 +8,7 @@ from .mclevelbase import *
 import shutil
 from .level import MCLevel, EntityLevel
 import numpy as np
+from io import BytesIO
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -92,7 +93,7 @@ class MCSchematic (EntityLevel):
         else:
             self.packChunkData()
 
-            buf = StringIO()
+            buf = BytesIO()
             with closing(gzip.GzipFile(fileobj=buf, mode='wb', compresslevel=2)) as gzipper:
                 self.root_tag.save(buf=gzipper)
 
@@ -109,7 +110,7 @@ class MCSchematic (EntityLevel):
             else:
                 return
 
-        with closing(gzip.GzipFile(fileobj=StringIO(self.compressedTag))) as gzipper:
+        with closing(gzip.GzipFile(fileobj=BytesIO(self.compressedTag))) as gzipper:
             try:
                 data = gzipper.read()
                 if data == None: return;

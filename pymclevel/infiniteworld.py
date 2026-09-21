@@ -14,12 +14,15 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import pymclevel
 from os.path import join, dirname, basename
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
 
 from .level import LightedChunk, EntityLevel, computeChunkHeightMap
 import numpy as np
+
+from io import BytesIO
 
 #infinite
 Level = 'Level'
@@ -474,7 +477,7 @@ class MCServerChunkGenerator(object):
         return exhaust(self.generateChunksInLevelIter(level, chunks))
 
     def generateChunksInLevelIter(self, level, chunks, simulate = False):
-        assert isinstance(level, MCLevel)
+        assert isinstance(level, pymclevel.MCLevel)
         tempWorld, tempDir = self.tempWorldForLevel(level)
 
         startLength = len(chunks)
@@ -652,7 +655,7 @@ class MCChunk(LightedChunk):
 
     @classmethod
     def compressTagGzip(cls, root_tag):
-        buf = StringIO()
+        buf = BytesIO()
         with closing(gzip.GzipFile(fileobj=buf, mode='wb', compresslevel=2)) as gzipper:
             root_tag.save(buf=gzipper)
 
@@ -660,7 +663,7 @@ class MCChunk(LightedChunk):
 
     @classmethod
     def compressTagDeflate(cls, root_tag):
-        buf = StringIO()
+        buf = BytesIO()
         root_tag.save(buf=buf)
         return deflate(buf.getvalue())
 
@@ -778,24 +781,24 @@ class MCChunk(LightedChunk):
         levelTag[LastUpdate] = TAG_Long(0)
 
         levelTag[BlockLight] = TAG_Byte_Array()
-        levelTag[BlockLight].value = zeros(16 * 16 * self.world.Height / 2, np.uint8)
+        levelTag[BlockLight].value = np.zeros(16 * 16 * self.world.Height // 2, np.uint8)
 
         levelTag[Blocks] = TAG_Byte_Array()
-        levelTag[Blocks].value = zeros(16 * 16 * self.world.Height, np.uint8)
+        levelTag[Blocks].value = np.zeros(16 * 16 * self.world.Height, np.uint8)
 
         levelTag[Data] = TAG_Byte_Array()
-        levelTag[Data].value = zeros(16 * 16 * self.world.Height / 2, np.uint8)
+        levelTag[Data].value = np.zeros(16 * 16 * self.world.Height // 2, np.uint8)
 
         levelTag[SkyLight] = TAG_Byte_Array()
-        levelTag[SkyLight].value = zeros(16 * 16 * self.world.Height / 2, np.uint8)
+        levelTag[SkyLight].value = np.zeros(16 * 16 * self.world.Height // 2, np.uint8)
         levelTag[SkyLight].value[:] = 255
 
         if self.world.Height <= 256:
             levelTag[HeightMap] = TAG_Byte_Array()
-            levelTag[HeightMap].value = zeros(16 * 16, np.uint8)
+            levelTag[HeightMap].value = np.zeros(16 * 16, np.uint8)
         else:
             levelTag[HeightMap] = TAG_Int_Array()
-            levelTag[HeightMap].value = zeros(16 * 16, np.uint32).newbyteorder()
+            levelTag[HeightMap].value = np.zeros(16 * 16, np.uint32).newbyteorder()
 
 
         levelTag[Entities] = TAG_List()
@@ -900,7 +903,7 @@ class MCChunk(LightedChunk):
             dataArray = self.root_tag[Level][key].value
             assert dataArray.shape[2] == self.world.Height;
 
-            unpackedData = self.root_tag[Level][key].value.reshape(16, 16, self.world.Height / 2, 2)
+            unpackedData = self.root_tag[Level][key].value.reshape(16, 16, self.world.Height // 2, 2)
             unpackedData[..., 1] <<= 4
             unpackedData[..., 1] |= unpackedData[..., 0]
             self.root_tag[Level][key].value = np.array(unpackedData[:, :, :, 1])
@@ -1516,7 +1519,7 @@ class ChunkedLevelMixin(object):
 
     def sourceMaskFunc(self, blocksToCopy):
         if blocksToCopy is not None:
-            typemask = zeros(256, dtype='bool')
+            typemask = np.zeros(256, dtype='bool')
             typemask[blocksToCopy] = 1
 
             def sourceMask(sourceBlocks):
@@ -1856,7 +1859,7 @@ class ChunkedLevelMixin(object):
 
     def _generateLightsIter(self, dirtyChunks):
         conserveMemory = False
-        la = array(self.materials.lightAbsorption)
+        la = np.array(self.materials.lightAbsorption)
         np.clip(la, 1, 15, la)
         
         dirtyChunks = set(dirtyChunks)
@@ -1904,9 +1907,9 @@ class ChunkedLevelMixin(object):
 
         startingDirtyChunks = dirtyChunks
 
-        oldLeftEdge = zeros((1, 16, self.Height), 'uint8')
-        oldBottomEdge = zeros((16, 1, self.Height), 'uint8')
-        oldChunk = zeros((16, 16, self.Height), 'uint8')
+        oldLeftEdge = np.zeros((1, 16, self.Height), 'uint8')
+        oldBottomEdge = np.zeros((16, 1, self.Height), 'uint8')
+        oldChunk = np.zeros((16, 16, self.Height), 'uint8')
         if self.dimNo in (-1, 1):
             lights = ("BlockLight",)
         else:
@@ -3171,7 +3174,7 @@ class ZipSchematic (MCBetaLevel):
             raise NotImplementedError("Cannot save zipfiles yet!")
 
         with closing(self.zipfile.open("level.dat")) as f:
-            with closing(gzip.GzipFile(fileobj=StringIO(f.read()))) as g:
+            with closing(gzip.GzipFile(fileobj=BytesIO(f.read()))) as g:
                 self.root_tag = nbt.load(buf=g.read())
 
     def chunkFilename(self, x, z):

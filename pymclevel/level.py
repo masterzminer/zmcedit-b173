@@ -13,6 +13,7 @@ from .mclevelbase import *
 import tempfile
 from collections import defaultdict
 from . import materials
+import numpy as np
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -45,10 +46,10 @@ def extractHeights(array):
     # from each column.
 
     w, h = array.shape[:2]
-    heightMap = zeros((w, h), 'uint16')
+    heightMap = np.zeros((w, h), 'uint16')
 
 
-    heights = argmax((array>0)[..., ::-1], 2)
+    heights = np.argmax((array>0)[..., ::-1], 2)
     heights = array.shape[2] - heights
 
     #if the entire column is air, argmax finds the first air block and the result is a top height column
@@ -76,8 +77,8 @@ def getSlices(box, height):
     
     #when yielding slices of chunks on the edge of the box, adjust the 
     #slices by an offset
-    minxoff, minzoff = box.minx - (box.mincx << 4), box.minz - (box.mincz << 4)
-    maxxoff, maxzoff = box.maxx - (box.maxcx << 4) + 16, box.maxz - (box.maxcz << 4) + 16
+    min_x_off, min_z_off = box.minx - (box.mincx << 4), box.minz - (box.mincz << 4)
+    max_x_off, max_z_off = box.maxx - (box.maxcx << 4) + 16, box.maxz - (box.maxcz << 4) + 16
 
     newMinY = 0
     if box.miny < 0:
@@ -89,10 +90,10 @@ def getSlices(box, height):
         localMinX = 0
         localMaxX = 16
         if cx == box.mincx:
-            localMinX = minxoff
+            localMinX = min_x_off
 
         if cx == box.maxcx - 1:
-            localMaxX = maxxoff
+            localMaxX = max_x_off
         newMinX = localMinX + (cx << 4) - box.minx
         newMaxX = localMaxX + (cx << 4) - box.minx
 
@@ -101,9 +102,9 @@ def getSlices(box, height):
             localMinZ = 0
             localMaxZ = 16
             if cz == box.mincz:
-                localMinZ = minzoff
+                localMinZ = min_z_off
             if cz == box.maxcz - 1:
-                localMaxZ = maxzoff
+                localMaxZ = max_z_off
             newMinZ = localMinZ + (cz << 4) - box.minz
             newMaxZ = localMaxZ + (cz << 4) - box.minz
             slices, point = (
@@ -346,7 +347,7 @@ class MCLevel(object):
             return self.Data[cxOff:cxOff + 16, czOff:czOff + 16, 0:self.Height, ]
 
         else:
-            return zeros(shape=(16, 16, self.Height), dtype='uint8')
+            return np.zeros(shape=(16, 16, self.Height), dtype='uint8')
 
     # --- Block accessors ---
     def skylightAt(self, *args):
@@ -372,7 +373,7 @@ class MCLevel(object):
 
     # --- Fill and Replace ---
     def blockReplaceTable(self, blocksToReplace):
-        blocktable = zeros((256, 16), dtype='bool')
+        blocktable = np.zeros((256, 16), dtype='bool')
         for b in blocksToReplace:
             if b.hasVariants:
                 blocktable[b.ID, b.blockData] = True
@@ -419,11 +420,11 @@ class MCLevel(object):
 
     # --- Transformations ---
     def rotateLeft(self):
-        self.Blocks = swapaxes(self.Blocks, 1, 0)[:, ::-1, :] #x=z; z=-x
+        self.Blocks = np.swapaxes(self.Blocks, 1, 0)[:, ::-1, :] #x=z; z=-x
         pass;
 
     def roll(self):
-        self.Blocks = swapaxes(self.Blocks, 2, 0)[:, :, ::-1] #x=y; y=-x
+        self.Blocks = np.swapaxes(self.Blocks, 2, 0)[:, :, ::-1] #x=y; y=-x
         pass
 
     def flipVertical(self):
@@ -457,7 +458,7 @@ class MCLevel(object):
         mask = slice(None, None)
 
         if not (blocksToCopy is None):
-            typemask = zeros(256, dtype='bool')
+            typemask = np.zeros(256, dtype='bool')
             typemask[blocksToCopy] = True
             mask = typemask[convertedSourceBlocks]
 
@@ -472,7 +473,7 @@ class MCLevel(object):
 
     def copyBlocksFromInfiniteIter(self, sourceLevel, sourceBox, destinationPoint, blocksToCopy):
         if blocksToCopy is not None:
-            typemask = zeros(256, dtype='bool')
+            typemask = np.zeros(256, dtype='bool')
             typemask[blocksToCopy] = True
 
         for i, (chunk, slices, point) in enumerate(sourceLevel.getChunkSlices(sourceBox)):
@@ -483,9 +484,9 @@ class MCLevel(object):
             convertedSourceBlocks, convertedSourceData = self.convertBlocksFromLevel(sourceLevel, chunk.Blocks[slices], chunk.Data[slices])
 
 
-            destSlices = [slice(p, p + s.stop - s.start) for p, s in zip(point, slices) ]
+            destSlices = tuple(slice(p, p + s.stop - s.start) for p, s in zip(point, slices))
 
-            blocks = self.Blocks[ destSlices ]
+            blocks = self.Blocks[destSlices]
 
             if blocksToCopy is not None:
                 mask = typemask[convertedSourceBlocks]
@@ -769,7 +770,7 @@ class EntityLevel(MCLevel):
             for i, e in enumerate((self.Entities, self.TileEntities)):
                 for ent in e:
                     x, y, z = [Entity, TileEntity][i].pos(ent)
-                    ecx, ecz = [(int(floor(x)) >> 4) for x in (x, z)]
+                    ecx, ecz = [(int(np.floor(x)) >> 4) for x in (x, z)]
 
                     self._fakeEntities[ecx, ecz][i].append(ent)
 
@@ -783,9 +784,9 @@ class ChunkBase(EntityLevel):
 
     def __init__(self):
         super().__init__()
-        self.Blocks: ndarray[any]
+        self.Blocks: np.ndarray[any]
         """ 3D array, indexed as (x, z, y), 16 size width and length, then 128 height """
-        self.HeightMap: ndarray[any]
+        self.HeightMap: np.ndarray[any]
         """ 2D array, seems to be indexed as (z, x), 16x16, represents the max height of each (z, x) block in the chunk """
 
     def load(self):pass
