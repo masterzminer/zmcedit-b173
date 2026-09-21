@@ -19,6 +19,7 @@ log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
 
 from .level import LightedChunk, EntityLevel, computeChunkHeightMap
+import numpy as np
 
 #infinite
 Level = 'Level'
@@ -356,7 +357,7 @@ class MCServerChunkGenerator(object):
 
             properties["allow-nether"] = "true"
         
-        properties["server-port"] = int(32767 + random.random() * 32700)
+        properties["server-port"] = int(32767 + np.random.random() * 32700)
         saveProperties(propsFile, properties)
 
         return tempWorld, tempDir
@@ -461,7 +462,7 @@ class MCServerChunkGenerator(object):
             propsFile = join(parentDir, "server.properties")
             props = readProperties(join(dirname(self.serverJarFile), "server.properties"))
             props["level-name"] = basename(level.worldDir)
-            props["server-port"] = int(32767 + random.random() * 32700)
+            props["server-port"] = int(32767 + np.random.random() * 32700)
             saveProperties(propsFile, props)
             
             for p in self.generateAtPositionIter(level, parentDir, cx, cz, simulate):
@@ -594,7 +595,7 @@ from .level import ChunkBase
 class _ZeroChunk(ChunkBase):
     " a placebo for neighboring-chunk routines "
     def __init__(self, height=512):
-        zeroChunk = zeros((16, 16, height), uint8)
+        zeroChunk = np.zeros((16, 16, height), np.uint8)
         whiteLight = zeroChunk + 15
         self.Blocks = zeroChunk
         self.BlockLight = whiteLight
@@ -777,24 +778,24 @@ class MCChunk(LightedChunk):
         levelTag[LastUpdate] = TAG_Long(0)
 
         levelTag[BlockLight] = TAG_Byte_Array()
-        levelTag[BlockLight].value = zeros(16 * 16 * self.world.Height / 2, uint8)
+        levelTag[BlockLight].value = zeros(16 * 16 * self.world.Height / 2, np.uint8)
 
         levelTag[Blocks] = TAG_Byte_Array()
-        levelTag[Blocks].value = zeros(16 * 16 * self.world.Height, uint8)
+        levelTag[Blocks].value = zeros(16 * 16 * self.world.Height, np.uint8)
 
         levelTag[Data] = TAG_Byte_Array()
-        levelTag[Data].value = zeros(16 * 16 * self.world.Height / 2, uint8)
+        levelTag[Data].value = zeros(16 * 16 * self.world.Height / 2, np.uint8)
 
         levelTag[SkyLight] = TAG_Byte_Array()
-        levelTag[SkyLight].value = zeros(16 * 16 * self.world.Height / 2, uint8)
+        levelTag[SkyLight].value = zeros(16 * 16 * self.world.Height / 2, np.uint8)
         levelTag[SkyLight].value[:] = 255
 
         if self.world.Height <= 256:
             levelTag[HeightMap] = TAG_Byte_Array()
-            levelTag[HeightMap].value = zeros(16 * 16, uint8)
+            levelTag[HeightMap].value = zeros(16 * 16, np.uint8)
         else:
             levelTag[HeightMap] = TAG_Int_Array()
-            levelTag[HeightMap].value = zeros(16 * 16, uint32).newbyteorder()
+            levelTag[HeightMap].value = zeros(16 * 16, np.uint32).newbyteorder()
 
 
         levelTag[Entities] = TAG_List()
@@ -876,7 +877,7 @@ class MCChunk(LightedChunk):
             assert s[2] == self.world.Height / 2;
             #unpackedData = insert(dataArray[...,newaxis], 0, 0, 3)  
 
-            unpackedData = zeros((s[0], s[1], s[2] * 2), dtype='uint8')
+            unpackedData = np.zeros((s[0], s[1], s[2] * 2), dtype='uint8')
 
             unpackedData[:, :, ::2] = dataArray
             unpackedData[:, :, ::2] &= 0xf
@@ -902,7 +903,7 @@ class MCChunk(LightedChunk):
             unpackedData = self.root_tag[Level][key].value.reshape(16, 16, self.world.Height / 2, 2)
             unpackedData[..., 1] <<= 4
             unpackedData[..., 1] |= unpackedData[..., 0]
-            self.root_tag[Level][key].value = array(unpackedData[:, :, :, 1])
+            self.root_tag[Level][key].value = np.array(unpackedData[:, :, :, 1])
 
             self.dataIsPacked = True
 
@@ -1075,8 +1076,8 @@ class MCRegionFile(object):
             self.freeSectors = [True] * (filesize // self.SECTOR_BYTES)
             self.freeSectors[0:2] = False, False
 
-            self.offsets = frombuffer(offsetsData, dtype='>u4')
-            self.modTimes = frombuffer(modTimesData, dtype='>u4')
+            self.offsets = np.frombuffer(offsetsData, dtype='>u4')
+            self.modTimes = np.frombuffer(modTimesData, dtype='>u4')
 
         needsRepair = False
 
@@ -1856,7 +1857,7 @@ class ChunkedLevelMixin(object):
     def _generateLightsIter(self, dirtyChunks):
         conserveMemory = False
         la = array(self.materials.lightAbsorption)
-        clip(la, 1, 15, la)
+        np.clip(la, 1, 15, la)
         
         dirtyChunks = set(dirtyChunks)
 
@@ -1985,13 +1986,13 @@ class ChunkedLevelMixin(object):
                     newlight = (chunkLight[0:1, :, :self.Height] - la[nc.Blocks[15:16, :, 0:self.Height]])
                     clipLight(newlight)
                     
-                    maximum(ncLight[15:16, :, 0:self.Height], newlight, ncLight[15:16, :, 0:self.Height])
+                    np.maximum(ncLight[15:16, :, 0:self.Height], newlight, ncLight[15:16, :, 0:self.Height])
     
                     #chunk body
                     newlight = (chunkLight[1:16, :, 0:self.Height] - chunkLa[0:15, :, 0:self.Height])
                     clipLight(newlight)
     
-                    maximum(chunkLight[0:15, :, 0:self.Height], newlight, chunkLight[0:15, :, 0:self.Height])
+                    np.maximum(chunkLight[0:15, :, 0:self.Height], newlight, chunkLight[0:15, :, 0:self.Height])
     
                     #right edge
                     nc = neighboringChunks[FaceXIncreasing]
@@ -2000,7 +2001,7 @@ class ChunkedLevelMixin(object):
                     newlight = ncLight[0:1, :, :self.Height] - chunkLa[15:16, :, 0:self.Height]
                     clipLight(newlight)
     
-                    maximum(chunkLight[15:16, :, 0:self.Height], newlight, chunkLight[15:16, :, 0:self.Height])
+                    np.maximum(chunkLight[15:16, :, 0:self.Height], newlight, chunkLight[15:16, :, 0:self.Height])
     
                     ### Spread light toward +X
                     
@@ -2011,13 +2012,13 @@ class ChunkedLevelMixin(object):
                     newlight = (chunkLight[15:16, :, 0:self.Height] - la[nc.Blocks[0:1, :, 0:self.Height]])
                     clipLight(newlight)
     
-                    maximum(ncLight[0:1, :, 0:self.Height], newlight, ncLight[0:1, :, 0:self.Height])
+                    np.maximum(ncLight[0:1, :, 0:self.Height], newlight, ncLight[0:1, :, 0:self.Height])
     
                     #chunk body
                     newlight = (chunkLight[0:15, :, 0:self.Height] - chunkLa[1:16, :, 0:self.Height])
                     clipLight(newlight)
     
-                    maximum(chunkLight[1:16, :, 0:self.Height], newlight, chunkLight[1:16, :, 0:self.Height])
+                    np.maximum(chunkLight[1:16, :, 0:self.Height], newlight, chunkLight[1:16, :, 0:self.Height])
     
                     #left edge
                     nc = neighboringChunks[FaceXDecreasing]
@@ -2026,7 +2027,7 @@ class ChunkedLevelMixin(object):
                     newlight = ncLight[15:16, :, :self.Height] - chunkLa[0:1, :, 0:self.Height]
                     clipLight(newlight)
     
-                    maximum(chunkLight[0:1, :, 0:self.Height], newlight, chunkLight[0:1, :, 0:self.Height])
+                    np.maximum(chunkLight[0:1, :, 0:self.Height], newlight, chunkLight[0:1, :, 0:self.Height])
     
                     zerochunkLight[:] = 0 #zero the zero chunk after each direction
                     # so the lights it absorbed don't affect the next pass
@@ -2046,13 +2047,13 @@ class ChunkedLevelMixin(object):
                     newlight = (chunkLight[:, 0:1, :self.Height] - la[nc.Blocks[:, 15:16, :self.Height]])
                     clipLight(newlight)
     
-                    maximum(ncLight[:, 15:16, :self.Height], newlight, ncLight[:, 15:16, :self.Height])
+                    np.maximum(ncLight[:, 15:16, :self.Height], newlight, ncLight[:, 15:16, :self.Height])
     
                     #chunk body
                     newlight = (chunkLight[:, 1:16, :self.Height] - chunkLa[:, 0:15, :self.Height])
                     clipLight(newlight)
     
-                    maximum(chunkLight[:, 0:15, :self.Height], newlight, chunkLight[:, 0:15, :self.Height])
+                    np.maximum(chunkLight[:, 0:15, :self.Height], newlight, chunkLight[:, 0:15, :self.Height])
     
                     #top edge
                     nc = neighboringChunks[FaceZIncreasing]
@@ -2061,7 +2062,7 @@ class ChunkedLevelMixin(object):
                     newlight = ncLight[:, 0:1, :self.Height] - chunkLa[:, 15:16, 0:self.Height]
                     clipLight(newlight)
     
-                    maximum(chunkLight[:, 15:16, 0:self.Height], newlight, chunkLight[:, 15:16, 0:self.Height])
+                    np.maximum(chunkLight[:, 15:16, 0:self.Height], newlight, chunkLight[:, 15:16, 0:self.Height])
     
                     ### Spread light toward +Z
                     
@@ -2073,13 +2074,13 @@ class ChunkedLevelMixin(object):
                     newlight = (chunkLight[:, 15:16, :self.Height] - la[nc.Blocks[:, 0:1, :self.Height]])
                     clipLight(newlight)
     
-                    maximum(ncLight[:, 0:1, :self.Height], newlight, ncLight[:, 0:1, :self.Height])
+                    np.maximum(ncLight[:, 0:1, :self.Height], newlight, ncLight[:, 0:1, :self.Height])
     
                     #chunk body
                     newlight = (chunkLight[:, 0:15, :self.Height] - chunkLa[:, 1:16, :self.Height])
                     clipLight(newlight)
     
-                    maximum(chunkLight[:, 1:16, :self.Height], newlight, chunkLight[:, 1:16, :self.Height])
+                    np.maximum(chunkLight[:, 1:16, :self.Height], newlight, chunkLight[:, 1:16, :self.Height])
     
                     #bottom edge
                     nc = neighboringChunks[FaceZDecreasing]
@@ -2088,7 +2089,7 @@ class ChunkedLevelMixin(object):
                     newlight = ncLight[:, 15:16, :self.Height] - chunkLa[:, 0:1, 0:self.Height]
                     clipLight(newlight)
     
-                    maximum(chunkLight[:, 0:1, 0:self.Height], newlight, chunkLight[:, 0:1, 0:self.Height])
+                    np.maximum(chunkLight[:, 0:1, 0:self.Height], newlight, chunkLight[:, 0:1, 0:self.Height])
     
                     zerochunkLight[:] = 0
 
@@ -2097,11 +2098,11 @@ class ChunkedLevelMixin(object):
     
                     newlight = (chunkLight[:, :, 0:self.Height - 1] - chunkLa[:, :, 1:self.Height])
                     clipLight(newlight)
-                    maximum(chunkLight[:, :, 1:self.Height], newlight, chunkLight[:, :, 1:self.Height])
+                    np.maximum(chunkLight[:, :, 1:self.Height], newlight, chunkLight[:, :, 1:self.Height])
     
                     newlight = (chunkLight[:, :, 1:self.Height] - chunkLa[:, :, 0:self.Height - 1])
                     clipLight(newlight)
-                    maximum(chunkLight[:, :, 0:self.Height - 1], newlight, chunkLight[:, :, 0:self.Height - 1])
+                    np.maximum(chunkLight[:, :, 0:self.Height - 1], newlight, chunkLight[:, :, 0:self.Height - 1])
                     
                     if (oldChunk != chunkLight).any():
                         newDirtyChunks.append(chunk)
@@ -2167,7 +2168,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
         if self.chunkCount == 0:
             return BoundingBox((0, 0, 0), (0, 0, 0))
 
-        allChunksArray = array(list(self.allChunks), dtype='int32')
+        allChunksArray = np.array(list(self.allChunks), dtype='int32')
         mincx = min(allChunksArray[:, 0])
         maxcx = max(allChunksArray[:, 0])
         mincz = min(allChunksArray[:, 1])
@@ -2239,7 +2240,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
         if last_played is None:
             last_played = int(time.time() * 1000)
         if random_seed is None:
-            random_seed = int(random.random() * 0xffffffffffffffff) - 0x8000000000000000
+            random_seed = int(np.random.random() * 0xffffffffffffffff) - 0x8000000000000000
 
         self.root_tag = root_tag
         root_tag[Data]['version'] = TAG_Int(19132)
@@ -2756,7 +2757,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
 
     def addEntity(self, entityTag):
         assert isinstance(entityTag, TAG_Compound)
-        x, y, z = [int(floor(x)) for x in Entity.pos(entityTag)]
+        x, y, z = [int(np.floor(x)) for x in Entity.pos(entityTag)]
 
         try:
             chunk = self.getChunk(x >> 4, z >> 4)
@@ -2979,7 +2980,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
         if p == 0: p = 0.000000001;
         if p == 180.0:  p -= 0.000000001;
         yp = y, p
-        return array(yp)
+        return np.array(yp)
 
     def setPlayerAbilities(self, gametype, player="Player"):
         playerTag = self.getPlayerTag(player)

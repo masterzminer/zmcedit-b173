@@ -7,6 +7,7 @@ Created on Jul 22, 2011
 from .mclevelbase import *
 import shutil
 from .level import MCLevel, EntityLevel
+import numpy as np
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -72,8 +73,8 @@ class MCSchematic (EntityLevel):
             root_tag[TileEntities] = TAG_List()
             root_tag["Materials"] = TAG_String(self.materials.name)
 
-            root_tag[Blocks] = TAG_Byte_Array(zeros((shape[1], shape[2], shape[0]), uint8))
-            root_tag[Data] = TAG_Byte_Array(zeros((shape[1], shape[2], shape[0]), uint8))
+            root_tag[Blocks] = TAG_Byte_Array(np.zeros((shape[1], shape[2], shape[0]), np.uint8))
+            root_tag[Data] = TAG_Byte_Array(np.zeros((shape[1], shape[2], shape[0]), np.uint8))
 
             self.root_tag = root_tag
 
@@ -209,8 +210,8 @@ class MCSchematic (EntityLevel):
 
 
     def packUnpack(self):
-        self.root_tag[Blocks].value = swapaxes(self.root_tag[Blocks].value, 0, 2)#yzx to xzy
-        self.root_tag[Data].value = swapaxes(self.root_tag[Data].value, 0, 2)#yzx to xzy
+        self.root_tag[Blocks].value = np.swapaxes(self.root_tag[Blocks].value, 0, 2)#yzx to xzy
+        self.root_tag[Data].value = np.swapaxes(self.root_tag[Data].value, 0, 2)#yzx to xzy
         if self.dataIsPacked:
             self.root_tag[Data].value &= 0xF #discard high bits
 
@@ -233,8 +234,8 @@ class MCSchematic (EntityLevel):
 
     def rotateLeft(self):
 
-        self.Blocks = swapaxes(self.Blocks, 1, 0)[:, ::-1, :] #x=z; z=-x
-        self.Data = swapaxes(self.Data, 1, 0)[:, ::-1, :] #x=z; z=-x
+        self.Blocks = np.swapaxes(self.Blocks, 1, 0)[:, ::-1, :] #x=z; z=-x
+        self.Data = np.swapaxes(self.Data, 1, 0)[:, ::-1, :] #x=z; z=-x
         self._update_shape()
         
         blockrotation.RotateLeft(self.Blocks, self.Data)
@@ -271,8 +272,8 @@ class MCSchematic (EntityLevel):
 
     def roll(self):
         " xxx rotate stuff "
-        self.Blocks = swapaxes(self.Blocks, 2, 0)[:, :, ::-1] #x=z; z=-x
-        self.Data = swapaxes(self.Data, 2, 0)[:, :, ::-1]
+        self.Blocks = np.swapaxes(self.Blocks, 2, 0)[:, :, ::-1] #x=z; z=-x
+        self.Data = np.swapaxes(self.Data, 2, 0)[:, :, ::-1]
         self._update_shape()
         
 
@@ -394,8 +395,8 @@ class INVEditChest(MCSchematic):
     Width = 1
     Height = 1
     Length = 1
-    Blocks = array([[[alphaMaterials.Chest.ID]]], 'uint8')
-    Data = array([[[0]]], 'uint8')
+    Blocks = np.array([[[alphaMaterials.Chest.ID]]], 'uint8')
+    Data = np.array([[[0]]], 'uint8')
     Entities = TAG_List()
     Materials = alphaMaterials
 

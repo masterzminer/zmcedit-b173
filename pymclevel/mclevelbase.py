@@ -13,7 +13,6 @@ import itertools
 from contextlib import closing, contextmanager
 import gzip
 
-from numpy import *
 import logging
 
 from . import nbt

@@ -1,9 +1,8 @@
 
-
-from numpy import *
 from pymclevel import alphaMaterials, faceDirections, FaceYIncreasing
 from collections import deque
 import datetime
+import numpy as np
 
 displayName = "Classic Water Flood"
 inputs = (
@@ -16,7 +15,7 @@ inputs = (
 def perform(level, box, options):
 
     def floodFluid(waterIDs, waterID):
-        waterTable = zeros(256, dtype='bool')
+        waterTable = np.zeros(256, dtype='bool')
         waterTable[waterIDs] = True
 
         coords = []
@@ -28,10 +27,10 @@ def perform(level, box, options):
             x = x + (point[0] + box.minx)
             z = z + (point[2] + box.minz)
             y = y + (point[1] + box.miny)
-            coords.append(transpose((x, y, z)))
+            coords.append(np.transpose((x, y, z)))
 
         print("Stacking coords...")
-        coords = vstack(tuple(coords))
+        coords = np.vstack(tuple(coords))
 
         def processCoords(coords):
             newcoords = deque()

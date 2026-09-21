@@ -16,6 +16,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
 from .toolbasics import *
 from pymclevel.box import FloatBox
+import numpy as np
 
 
 class PlayerMoveOperation(Operation):
@@ -452,7 +453,7 @@ class PlayerSpawnPositionTool(PlayerPositionTool):
         glColor(1.0, 1.0, 1.0, 1.0)
         glEnable(GL_DEPTH_TEST)
         self.drawCage(x, y, z)
-        self.drawCharacterHead(x + 0.5, y + 0.5 + 0.125 * sin(self.editor.frames * 0.05), z + 0.5)
+        self.drawCharacterHead(x + 0.5, y + 0.5 + 0.125 * np.sin(self.editor.frames * 0.05), z + 0.5)
         glDisable(GL_DEPTH_TEST)
 
     def drawCage(self, x, y, z):

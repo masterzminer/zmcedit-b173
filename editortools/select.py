@@ -695,7 +695,7 @@ class SelectionTool(EditorTool):
         box = self.selectionBox()
 
         o, m = box.origin, box.maximum
-        (m, o)[side][dragdim] = int(floor(point[dragdim] + 0.5))
+        (m, o)[side][dragdim] = int(np.floor(point[dragdim] + 0.5))
         m = [a - 1 for a in m]
         return o, m
 
@@ -771,7 +771,7 @@ class SelectionTool(EditorTool):
                                selectionBox.minx, selectionBox.maxy, selectionBox.minz,
                                selectionBox.maxx, selectionBox.maxy, selectionBox.minz,
                                selectionBox.maxx, selectionBox.miny, selectionBox.minz,
-                               ], dtype=float32)
+                               ], dtype=np.float32)
 
                         if sx != selectionBox.minx:
                             nudgefaces[0:12:3] = selectionBox.maxx

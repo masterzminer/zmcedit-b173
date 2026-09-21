@@ -2164,8 +2164,8 @@ class MCRenderer(object):
         """
 
         # Divide the chunk coordinates by 16, i.e. shift 4 bits, to go from block coordinates to chunk coordinates
-        cx = x >> 4
-        cz = z >> 4
+        cx = int(x) >> 4
+        cz = int(z) >> 4
 
         # First coordinate to iterate
         yield (cx, cz)

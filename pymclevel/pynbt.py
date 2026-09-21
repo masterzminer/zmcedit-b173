@@ -27,7 +27,8 @@ import gzip
 from io import BytesIO
 import os
 from contextlib import closing
-from numpy import array, zeros, uint8, fromstring, frombuffer
+import numpy as np
+
 TAGfmt = ">b"
 
 class NBTFormatError(RuntimeError): pass
@@ -167,7 +168,7 @@ class TAG_Byte_Array(TAG_Value):
     fmt = ">i%ds"
 
     def dataType(self, value):
-        return array(value, uint8)
+        return np.array(value, np.uint8)
 
     def __repr__(self):
         return "<%s: length %d> ( %s )" % (self.__class__, len(self.value), self.name)
@@ -188,11 +189,11 @@ class TAG_Byte_Array(TAG_Value):
     def load_from(cls, data, data_cursor):
         data = data[data_cursor:]
         (string_len,) = struct.unpack_from(">I", data)
-        value = frombuffer(data[4:string_len + 4], 'uint8')
+        value = np.frombuffer(data[4:string_len + 4], 'uint8')
         self = cls(value)
         return self, data_cursor + string_len + 4
         
-    def __init__(self, value=zeros(0, uint8), name=None):
+    def __init__(self, value=np.zeros(0, np.uint8), name=None):
         if name:
             self.name = name
         self.value = value
@@ -208,17 +209,17 @@ class TAG_Int_Array(TAG_Byte_Array):
     tag = 11
 
     def dataType(self, value):
-        return array(value, '>u4')
+        return np.array(value, '>u4')
     
     @classmethod
     def load_from(cls, data, data_cursor):
         data = data[data_cursor:]
         (string_len,) = struct.unpack_from(">I", data)
-        value = fromstring(data[4:string_len * 4 + 4], '>u4')
+        value = np.fromstring(data[4:string_len * 4 + 4], '>u4')
         self = cls(value)
         return self, data_cursor + len(self.value) * 4 + 4
 
-    def __init__(self, value=zeros(0, ">u4"), name=None):
+    def __init__(self, value=np.zeros(0, ">u4"), name=None):
         self.name = name
         self.value = value
 
@@ -233,17 +234,17 @@ class TAG_Short_Array(TAG_Int_Array):
     tag = 12
 
     def dataType(self, value):
-        return array(value, '>u2')
+        return np.array(value, '>u2')
 
     @classmethod
     def load_from(cls, data, data_cursor):
         data = data[data_cursor:]
         (string_len,) = struct.unpack_from(">I", data)
-        value = fromstring(data[4:string_len * 2 + 4], '>u2')
+        value = np.fromstring(data[4:string_len * 2 + 4], '>u2')
         self = cls(value)
         return self, data_cursor + len(self.value) * 2 + 4
 
-    def __init__(self, value=zeros(0, ">u2"), name=None):
+    def __init__(self, value=np.zeros(0, ">u2"), name=None):
         self.name = name
         self.value = value
 
@@ -505,7 +506,7 @@ def loadFile(filename):
     except IOError:
         print("File %s not zipped" % filename)
 
-    return load(buf=frombuffer(data, 'uint8'))
+    return load(buf=np.frombuffer(data, 'uint8'))
 
 
 def load_named(data, data_cursor, tag_type):
@@ -524,7 +525,7 @@ def load(filename="", buf=None):
 
     if filename and isinstance(filename, str):
         return loadFile(filename)
-    if isinstance(buf, str): buf = fromstring(buf, uint8)
+    if isinstance(buf, str): buf = np.fromstring(buf, np.uint8)
     data = buf
     #if buf != None: data = buf
     if not len(buf):

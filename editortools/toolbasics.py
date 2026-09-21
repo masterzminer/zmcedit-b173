@@ -20,8 +20,6 @@ import pymclevel
 
 from albow import *
 from albow.openglwidgets import GLPerspective
-import numpy
-from numpy import *
 
 from pygame import key
 from pygame.locals import *
@@ -40,7 +38,7 @@ from glbackground import *
 from albow.dialogs import Dialog
 from pymclevel.mclevelbase import exhaust
 from albow.root import Cancel
-
+import numpy as np
 
 class NudgeButton(GLBackground):
     """ A button that captures movement keys while pressed and sends them to a listener as nudge events.
@@ -271,10 +269,18 @@ class BlockView(GLOrtho):
                                  1, -1, ], dtype='float32'))
         texOrigin = self.materials.blockTextures[blockInfo.ID, blockInfo.blockData, 0]
 
-        glTexCoordPointer(2, GL_FLOAT, 0, array([texOrigin[0], texOrigin[1] + 16,
-                                  texOrigin[0], texOrigin[1],
-                                  texOrigin[0] + 16, texOrigin[1],
-                                  texOrigin[0] + 16, texOrigin[1] + 16], dtype='float32'))
+        tx = float(texOrigin[0])
+        ty = float(texOrigin[1])
+
+        glTexCoordPointer(2, GL_FLOAT, 0,
+                        array([
+                            tx, ty + 16,
+                            tx, ty,
+                            tx + 16, ty,
+                            tx + 16, ty + 16
+                        ],
+                        dtype='float32')
+        )
 
         glDrawArrays(GL_QUADS, 0, 4)
 
@@ -731,6 +737,14 @@ class EditorTool(object):
     edge_factor = 0.1
 
     def boxFaceUnderCursor(self, box):
+        """
+        Find a face and a point on the face where the given selection box has the mouse on it
+
+        box: The selection box to check
+
+        returns: The face and point, or None, None when there is no face
+        """
+
         if self.editor.mainViewport.mouseMovesCamera:
             return None, None
 
@@ -775,17 +789,27 @@ class EditorTool(object):
         if not len(points):
             return None, None
 
-        cp = self.editor.mainViewport.cameraPosition
-        distances = dict((sum(map(lambda a, b: (b - a) ** 2, cp, point)), (face, point)) for face, point in points.items())
-        if not len(distances):
+        # Grab the current camera position
+        cam = self.editor.mainViewport.cameraPosition
+
+        # Find the distances from the camera to each of the faces on the box
+        distances = {
+            sum((b - a) ** 2 for a, b in zip(cam, point)): (face, point)
+            for face, point in points.items()
+        }
+
+        # No distances found, nothing is near it
+        if not distances:
             return None, None
+
+        # Find the closest face to the camera
+        closest_distance = min(distances)
+        face, point = distances[closest_distance]
 
         # When holding alt, pick the face opposite the camera
         # if key.get_mods() & KMOD_ALT:
         #    minmax = max
         # else:
-
-        face, point = distances[min(distances.keys())]
 
         # if the point is near the edge of the face, and the edge is facing away,
         # return the away-facing face
@@ -806,12 +830,12 @@ class EditorTool(object):
 
             if point[d] - box.origin[d] < edge_width:
                 facenormal[d] = -1
-                cameraBehind = cp[d] - box.origin[d] > 0
+                cameraBehind = cam[d] - box.origin[d] > 0
             if point[d] - box.maximum[d] > -edge_width:
                 facenormal[d] = 1
-                cameraBehind = cp[d] - box.maximum[d] < 0
+                cameraBehind = cam[d] - box.maximum[d] < 0
 
-            if dot(facenormal, cv) > 0 or cameraBehind:
+            if np.dot(facenormal, cv) > 0 or cameraBehind:
                 # the face adjacent to the clicked edge faces away from the cam
                 return distances[max(distances.keys())]
 
