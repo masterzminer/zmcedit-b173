@@ -20,6 +20,7 @@ from os.path import basename
 import tempfile
 from .toolbasics import *
 from functools import reduce
+import numpy as np
 
 BrushSettings = config.Settings("Brush")
 BrushSettings.brushSizeL = BrushSettings("Brush Shape L", 3)
@@ -222,11 +223,11 @@ class Modes:
 
             blocks = erosionArea.Blocks
             data = erosionArea.Data
-            bins = bincount(blocks.ravel())
+            bins = np.bincount(blocks.ravel())
             fillBlockID = bins.argmax()
 
             def getNeighbors(solidBlocks):
-                neighbors = zeros(solidBlocks.shape, dtype='uint8')
+                neighbors = np.zeros(solidBlocks.shape, dtype='uint8')
                 neighbors[1:-1, 1:-1, 1:-1] += solidBlocks[:-2, 1:-1, 1:-1]
                 neighbors[1:-1, 1:-1, 1:-1] += solidBlocks[2:, 1:-1, 1:-1]
                 neighbors[1:-1, 1:-1, 1:-1] += solidBlocks[1:-1, :-2, 1:-1]
@@ -241,7 +242,7 @@ class Modes:
 
                 brushMask = op.createBrushMask(op.brushSize, op.brushStyle)
                 erodeBlocks = neighbors < 5
-                erodeBlocks &= (random.random(erodeBlocks.shape) > 0.3)
+                erodeBlocks &= (np.random.random(erodeBlocks.shape) > 0.3)
                 erodeBlocks[1:-1, 1:-1, 1:-1] &= brushMask
                 blocks[erodeBlocks] = 0
 
@@ -307,7 +308,7 @@ class Modes:
                 # masked_blocks = ma.masked_array(blocks, brushMask, hard_mask=True)
                 # masked_data = ma.masked_array(data, brushMask, hard_mask=True)
 
-                for x, z in itertools.product(*list(map(xrange, heightmap.shape))):
+                for x, z in itertools.product(*list(map(np.xrange, heightmap.shape))):
                     h = heightmap[x, z]
                     if h >= box.height:
                         continue
@@ -429,11 +430,11 @@ class BrushOperation(Operation):
         offset = array(offset) - array(box.origin)
         offset = offset[[0, 2, 1]]
 
-        inds = indices(outputShape, dtype=float)
+        inds = np.indices(outputShape, dtype=float)
         halfshape = array([(i >> 1) - ((i & 1 == 0) and 0.5 or 0) for i in shape])
 
-        blockCenters = inds - halfshape[:, newaxis, newaxis, newaxis]
-        blockCenters -= offset[:, newaxis, newaxis, newaxis]
+        blockCenters = inds - halfshape[:, np.newaxis, np.newaxis, np.newaxis]
+        blockCenters -= offset[:, np.newaxis, np.newaxis, np.newaxis]
 
         # odd diameter means measure from the center of the block at 0,0,0 to each block center
         # even diameter means measure from the 0,0,0 grid point to each block center
@@ -447,27 +448,27 @@ class BrushOperation(Operation):
             shape /= 2
             shape *= shape
 
-            blockCenters /= shape[:, newaxis, newaxis, newaxis]
+            blockCenters /= shape[:, np.newaxis, np.newaxis, np.newaxis]
             distances = sum(blockCenters, 0)
             mask = distances < 1
         elif style == "Square":
             # mask = ones(outputShape, dtype=bool)
             # mask = blockCenters[:, newaxis, newaxis, newaxis] < shape
-            blockCenters /= shape[:, newaxis, newaxis, newaxis]
+            blockCenters /= shape[:, np.newaxis, np.newaxis, np.newaxis]
 
-            distances = absolute(blockCenters).max(0)
+            distances = np.absolute(blockCenters).max(0)
             mask = distances < .5
 
         elif style == "Diamond":
             blockCenters = numpy.abs(blockCenters)
             shape /= 2
-            blockCenters /= shape[:, newaxis, newaxis, newaxis]
+            blockCenters /= shape[:, np.newaxis, np.newaxis, np.newaxis]
             distances = sum(blockCenters, 0)
             mask = distances < 1
 
         if (chance < 100 or hollow) and max(shape) > 1:
             threshold = chance / 100.0
-            exposedBlockMask = ones(shape=outputShape, dtype='bool')
+            exposedBlockMask = np.ones(shape=outputShape, dtype='bool')
             exposedBlockMask[:] = mask
             submask = mask[1:-1, 1:-1, 1:-1]
             exposedBlockSubMask = exposedBlockMask[1:-1, 1:-1, 1:-1]
@@ -483,7 +484,7 @@ class BrushOperation(Operation):
             if hollow:
                 mask[~exposedBlockMask] = False
             if chance < 100:
-                rmask = random.random(mask.shape) < threshold
+                rmask = np.random.random(mask.shape) < threshold
 
                 mask[exposedBlockMask] = rmask[exposedBlockMask]
 
@@ -985,7 +986,7 @@ class BrushTool(CloneTool):
 
             Width, Height, Length = brushSize
 
-            zerolight = zeros((16, 16, Height), dtype='uint8')
+            zerolight = np.zeros((16, 16, Height), dtype='uint8')
             zerolight[:] = 15
 
             def getChunk(self, cx, cz):
@@ -1003,8 +1004,8 @@ class BrushTool(CloneTool):
                 f.chunkPosition = (cx, cz)
 
                 mask = BrushOperation.createBrushMask(brushSize, brushStyle, (0, 0, 0), BoundingBox((cx << 4, 0, cz << 4), (16, self.Height, 16)))
-                f.Blocks = zeros(mask.shape, dtype='uint8')
-                f.Data = zeros(mask.shape, dtype='uint8')
+                f.Blocks = np.zeros(mask.shape, dtype='uint8')
+                f.Data = np.zeros(mask.shape, dtype='uint8')
                 f.BlockLight = self.zerolight
                 f.SkyLight = self.zerolight
 

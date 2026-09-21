@@ -1920,6 +1920,7 @@ class ChunkedLevelMixin(object):
             #light arrays are all uint8 by default, so when results go negative
             #they become large instead.  reinterpret as signed int using view()
             #and then clip to range
+            # TODO figure out how to fix this, currently this breaks saving
             light.view('int8').clip(0, 15, light)
             
         for j, light in enumerate(lights):
