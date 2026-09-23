@@ -1,6 +1,5 @@
 
-
-from numpy import zeros, arange, array, zeros_like, rollaxis, indices, s_
+import numpy as np
 import traceback
 from os.path import exists, join
 from collections import defaultdict
@@ -67,7 +66,7 @@ class MCMaterials(object):
         
         self.defaultName = defaultName
 
-        self.blockTextures = zeros((256, 16, 6, 2), dtype='uint8')
+        self.blockTextures = np.zeros((256, 16, 6, 2), dtype='uint8')
         self.blockTextures[:] = self.defaultTexture
         self.names = [[defaultName] * 16 for i in range(256)]
         self.aka = [[""] * 16 for i in range(256)]
@@ -77,11 +76,11 @@ class MCMaterials(object):
         self.allBlocks = []
         self.blocksByID = {}
 
-        self.lightEmission = zeros(256, dtype='uint8')
+        self.lightEmission = np.zeros(256, dtype='uint8')
         self.lightEmission[:] = self.defaultBrightness
-        self.lightAbsorption = zeros(256, dtype='uint8')
+        self.lightAbsorption = np.zeros(256, dtype='uint8')
         self.lightAbsorption[:] = self.defaultOpacity
-        self.flatColors = zeros((256, 16, 4), dtype='uint8')
+        self.flatColors = np.zeros((256, 16, 4), dtype='uint8')
         self.flatColors[:] = self.defaultColor
         
         self.idStr = {}
@@ -556,11 +555,11 @@ classicMaterials.MossStone = classicMaterials[48]
 classicMaterials.Obsidian = classicMaterials[49]
 
 
-_indices = rollaxis(indices( (256, 16) ), 0, 3)
+_indices = np.rollaxis(np.indices( (256, 16) ), 0, 3)
 
 def _filterTable(filters, unavailable, default = (0, 0) ):
     #a filter table is a 256x16 table of (ID, data) pairs.
-    table = zeros((256, 16, 2), dtype='uint8')
+    table = np.zeros((256, 16, 2), dtype='uint8')
     table[:] = _indices
     for u in unavailable:
         try:

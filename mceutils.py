@@ -32,7 +32,7 @@ from datetime import datetime
 import directories
 from errorreporting import reportCrash, reportException
 import mcplatform
-import numpy
+import numpy as np
 from OpenGL import GL, GLU
 import os
 import platform
@@ -64,7 +64,7 @@ def drawFace(box, face, type=GL.GL_QUADS):
 
     if face == pymclevel.faces.FaceXDecreasing:
 
-        faceVertices = numpy.array(
+        faceVertices = np.array(
             (x, y2, z2,
             x, y2, z,
             x, y, z,
@@ -73,7 +73,7 @@ def drawFace(box, face, type=GL.GL_QUADS):
 
     elif face == pymclevel.faces.FaceXIncreasing:
 
-        faceVertices = numpy.array(
+        faceVertices = np.array(
             (x2, y, z2,
             x2, y, z,
             x2, y2, z,
@@ -81,7 +81,7 @@ def drawFace(box, face, type=GL.GL_QUADS):
             ), dtype='f4')
 
     elif face == pymclevel.faces.FaceYDecreasing:
-        faceVertices = numpy.array(
+        faceVertices = np.array(
             (x2, y, z2,
             x, y, z2,
             x, y, z,
@@ -89,7 +89,7 @@ def drawFace(box, face, type=GL.GL_QUADS):
             ), dtype='f4')
 
     elif face == pymclevel.faces.FaceYIncreasing:
-        faceVertices = numpy.array(
+        faceVertices = np.array(
             (x2, y2, z,
             x, y2, z,
             x, y2, z2,
@@ -97,7 +97,7 @@ def drawFace(box, face, type=GL.GL_QUADS):
             ), dtype='f4')
 
     elif face == pymclevel.faces.FaceZDecreasing:
-        faceVertices = numpy.array(
+        faceVertices = np.array(
             (x, y, z,
             x, y2, z,
             x2, y2, z,
@@ -105,7 +105,7 @@ def drawFace(box, face, type=GL.GL_QUADS):
             ), dtype='f4')
 
     elif face == pymclevel.faces.FaceZIncreasing:
-        faceVertices = numpy.array(
+        faceVertices = np.array(
             (x2, y, z2,
             x2, y2, z2,
             x, y2, z2,
@@ -117,7 +117,7 @@ def drawFace(box, face, type=GL.GL_QUADS):
     dims = [0, 1, 2]
     dims.remove(dim)
 
-    texVertices = numpy.array(
+    texVertices = np.array(
         faceVertices[:, dims],
         dtype='f4'
     ).flatten()
@@ -133,7 +133,7 @@ def drawFace(box, face, type=GL.GL_QUADS):
     GL.glEnable(GL.GL_POLYGON_OFFSET_LINE)
 
     if type is GL.GL_LINE_STRIP:
-        indexes = numpy.array((0, 1, 2, 3, 0), dtype='uint32')
+        indexes = np.array((0, 1, 2, 3, 0), dtype='uint32')
         GL.glDrawElements(type, 5, GL.GL_UNSIGNED_INT, indexes)
     else:
         GL.glDrawArrays(type, 0, 4)
@@ -147,7 +147,7 @@ def drawCube(box, cubeType=GL.GL_QUADS, blockType=0, texture=None, textureVertic
     x, y, z, = box.origin
     x2, y2, z2 = box.maximum
     dx, dy, dz = x2 - x, y2 - y, z2 - z
-    cubeVertices = numpy.array(
+    cubeVertices = np.array(
         (
         x, y, z,
         x, y2, z,
@@ -180,7 +180,7 @@ def drawCube(box, cubeType=GL.GL_QUADS, blockType=0, texture=None, textureVertic
         x2, y2, z2,
                             ), dtype='f4')
     if textureVertices is None:
-        textureVertices = numpy.array(
+        textureVertices = np.array(
         (
         0, -dy * 16,
         0, 0,
@@ -305,8 +305,8 @@ def loadTerrainTexture():
 def loadPNGData(filename):
     # Load image and convert to rgba
     image = Image.open(filename).convert("RGBA")
-    # Convert the data to a numpy array
-    data = numpy.array(image)
+    # Convert the data to a np array
+    data = np.array(image)
     # Extract the weight and width from the shape
     w, h = data.shape[:2]
 
@@ -321,7 +321,7 @@ def loadPNGFile(filename):
     assert (w in powers) and (h in powers)  # how crude
     
 
-    ndata = numpy.array(data, dtype='uint8')
+    ndata = np.array(data, dtype='uint8')
 
     return w, h, data
 
@@ -350,7 +350,7 @@ def normalize(x):
     l = x[0] * x[0] + x[1] * x[1] + x[2] * x[2]
     if l <= 0.0:
         return [0, 0, 0]
-    size = numpy.sqrt(l)
+    size = np.sqrt(l)
     if size <= 0.0:
         return [0, 0, 0]
     return [a / size for a in x]
@@ -360,7 +360,7 @@ def normalize_size(x):
     l = x[0] * x[0] + x[1] * x[1] + x[2] * x[2]
     if l <= 0.0:
         return [0., 0., 0.], 0.
-    size = numpy.sqrt(l)
+    size = np.sqrt(l)
     if size <= 0.0:
         return [0, 0, 0], 0
     return (x / size), size

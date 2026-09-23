@@ -29,7 +29,7 @@ import os
 import csv
 import copy
 import time
-import numpy
+import numpy as np
 import config
 import frustum
 import logging
@@ -282,10 +282,10 @@ class CameraViewport(GLViewport):
 
     def updateFov(self, val=None):
         hfov = self.fovSetting
-        fov = numpy.degrees(2.0 * numpy.arctan(self.size[0] / self.size[1] * numpy.tan(numpy.radians(hfov) * 0.5)))
+        fov = np.degrees(2.0 * np.arctan(self.size[0] / self.size[1] * np.tan(np.radians(hfov) * 0.5)))
 
         self.fov = fov
-        self.tang = numpy.tan(numpy.radians(fov))
+        self.tang = np.tan(np.radians(fov))
 
     def stopMoving(self):
         self.velocity = [0, 0, 0]
@@ -347,9 +347,9 @@ class CameraViewport(GLViewport):
 
         velocity = self.velocity  # xxx learn to use matrix/vector libs
         i = inputs
-        yaw = numpy.radians(self.yaw)
-        cosyaw = -numpy.cos(yaw)
-        sinyaw = numpy.sin(yaw)
+        yaw = np.radians(self.yaw)
+        cosyaw = -np.cos(yaw)
+        sinyaw = np.sin(yaw)
         if alignMovementToAxes:
             cosyaw = int(cosyaw * 1.4)
             sinyaw = int(sinyaw * 1.4)
@@ -411,7 +411,7 @@ class CameraViewport(GLViewport):
 
     def setModelview(self):
         pos = self.cameraPosition
-        look = numpy.array(self.cameraPosition)
+        look = np.array(self.cameraPosition)
         look += self.cameraVector
         up = (0, 1, 0)
         GLU.gluLookAt(pos[0], pos[1], pos[2],
@@ -428,9 +428,9 @@ class CameraViewport(GLViewport):
             else:
                 return x
 
-        dx = -numpy.sin(numpy.radians(yaw)) * numpy.cos(numpy.radians(pitch))
-        dy = -numpy.sin(numpy.radians(pitch))
-        dz = numpy.cos(numpy.radians(yaw)) * numpy.cos(numpy.radians(pitch))
+        dx = -np.sin(np.radians(yaw)) * np.cos(np.radians(pitch))
+        dy = -np.sin(np.radians(pitch))
+        dz = np.cos(np.radians(yaw)) * np.cos(np.radians(pitch))
         return list(map(nanzero, [dx, dy, dz]))
 
     def updateMouseVector(self):
@@ -448,7 +448,7 @@ class CameraViewport(GLViewport):
         y = self.get_root().height - y
         point1 = unproject(x, y, 0.0)
         point2 = unproject(x, y, 1.0)
-        v = numpy.array(point2) - point1
+        v = np.array(point2) - point1
         v = mceutils.normalize(v)
         return v
 
@@ -509,7 +509,7 @@ class CameraViewport(GLViewport):
         d = [0, 0, 0]
 
         try:
-            intProjectedPoint = list(map(int, list(map(numpy.floor, projectedPoint))))
+            intProjectedPoint = list(map(int, list(map(np.floor, projectedPoint))))
         except ValueError:
             return None  # catch NaNs
         intProjectedPoint[1] = max(0, intProjectedPoint[1])
@@ -969,11 +969,11 @@ class CameraViewport(GLViewport):
 
         if evt.num_clicks == 2:
             def distance2(p1, p2):
-                return numpy.sum(list(map(lambda a, b: (a - b) ** 2, p1, p2)))
+                return np.sum(list(map(lambda a, b: (a - b) ** 2, p1, p2)))
 
             point, face = self.blockFaceUnderCursor
             if point is not None:
-                point = [int(numpy.floor(x)) for x in point]
+                point = [int(np.floor(x)) for x in point]
                 if self.editor.currentTool is self.editor.selectionTool:
                     block = self.editor.level.blockAt(*point)
                     if distance2(point, self.cameraPosition) > 4:
@@ -1070,7 +1070,7 @@ class CameraViewport(GLViewport):
     def tooltipText(self):
         return self.editor.currentTool.worldTooltipText
 
-    floorQuad = numpy.array(((-4000.0, 0.0, -4000.0),
+    floorQuad = np.array(((-4000.0, 0.0, -4000.0),
                      (-4000.0, 0.0, 4000.0),
                      (4000.0, 0.0, 4000.0),
                      (4000.0, 0.0, -4000.0),
@@ -1083,7 +1083,7 @@ class CameraViewport(GLViewport):
                      (4000.0, 0.0, -4000.0),
                      )
 
-        floorQuad = numpy.array(floorQuad, dtype='float32')
+        floorQuad = np.array(floorQuad, dtype='float32')
         if self.editor.renderer.inSpace():
             floorQuad *= 8.0
         floorQuad += (self.cameraPosition[0], 0.0, self.cameraPosition[2])
@@ -1105,7 +1105,7 @@ class CameraViewport(GLViewport):
             lines.append((maxx, 0, z))
 
         GL.glColor(0.3, 0.7, 0.9)
-        GL.glVertexPointer(3, GL.GL_FLOAT, 0, numpy.array(lines, dtype='float32'))
+        GL.glVertexPointer(3, GL.GL_FLOAT, 0, np.array(lines, dtype='float32'))
 
         GL.glEnable(GL.GL_DEPTH_TEST)
         GL.glDepthMask(False)
@@ -1185,8 +1185,8 @@ class CameraViewport(GLViewport):
         GL.glLoadIdentity()
         GL.glEnableClientState(GL.GL_COLOR_ARRAY)
 
-        quad = numpy.array([-1, -1, -1, 1, 1, 1, 1, -1], dtype='float32')
-        colors = numpy.array([0x48, 0x49, 0xBA, 0xff,
+        quad = np.array([-1, -1, -1, 1, 1, 1, 1, -1], dtype='float32')
+        colors = np.array([0x48, 0x49, 0xBA, 0xff,
                          0x8a, 0xaf, 0xff, 0xff,
                          0x8a, 0xaf, 0xff, 0xff,
                          0x48, 0x49, 0xBA, 0xff, ], dtype='uint8')
@@ -1220,8 +1220,8 @@ class CameraViewport(GLViewport):
     def drawFog(self, val):
         self._drawFog = val
 
-    fogColor = numpy.array([0.6, 0.8, 1.0, 1.0], dtype='float32')
-    fogColorBlack = numpy.array([0.0, 0.0, 0.0, 1.0], dtype='float32')
+    fogColor = np.array([0.6, 0.8, 1.0, 1.0], dtype='float32')
+    fogColorBlack = np.array([0.0, 0.0, 0.0, 1.0], dtype='float32')
 
     def enableFog(self):
         GL.glEnable(GL.GL_FOG)
@@ -1237,7 +1237,7 @@ class CameraViewport(GLViewport):
 
     def getCameraPoint(self):
         distance = self.editor.currentTool.cameraDistance
-        return [i for i in map(lambda p, d: int(numpy.floor(p + d * distance)),
+        return [i for i in map(lambda p, d: int(np.floor(p + d * distance)),
                                                       self.cameraPosition,
                                                       self.cameraVector)]
 
@@ -1689,16 +1689,16 @@ class LevelEditor(GLViewport):
     def analyzeBox(self, level, box):
         entityCounts = defaultdict(int)
         tileEntityCounts = defaultdict(int)
-        types = numpy.zeros(4096, dtype='uint32')
+        types = np.zeros(4096, dtype='uint32')
 
         def _analyzeBox():
             i = 0
             for (chunk, slices, point) in level.getChunkSlices(box):
                 i += 1
                 yield i, box.chunkCount
-                blocks = numpy.array(chunk.Blocks[slices], dtype='uint16')
-                blocks |= (numpy.array(chunk.Data[slices], dtype='uint16') << 8)
-                b = numpy.bincount(blocks.ravel())
+                blocks = np.array(chunk.Blocks[slices], dtype='uint16')
+                blocks |= (np.array(chunk.Data[slices], dtype='uint16') << 8)
+                b = np.bincount(blocks.ravel())
                 types[:b.shape[0]] += b
 
                 for ent in chunk.getEntitiesInBox(box):
@@ -1714,8 +1714,8 @@ class LevelEditor(GLViewport):
         with mceutils.setWindowCaption("ANALYZING - "):
             mceutils.showProgress("Analyzing {0} blocks...".format(box.volume), _analyzeBox(), cancel=True)
 
-        entitySum = numpy.sum(list(entityCounts.values()))
-        tileEntitySum = numpy.sum(list(tileEntityCounts.values()))
+        entitySum = np.sum(list(entityCounts.values()))
+        tileEntitySum = np.sum(list(tileEntityCounts.values()))
         presentTypes = types.nonzero()
 
         blockCounts = sorted([(level.materials[t & 0xff, t >> 8], types[t]) for t in presentTypes[0]])
@@ -1866,7 +1866,7 @@ class LevelEditor(GLViewport):
             lightColor = (0x80, 0x80, 0x80, 0xff)
             w, h, = 256, 256
 
-            teximage = numpy.zeros((w, h, 4), dtype='uint8')
+            teximage = np.zeros((w, h, 4), dtype='uint8')
             teximage[:] = 0xff
             teximage[:, ::16] = lightColor
             teximage[::16, :] = lightColor
@@ -1974,7 +1974,7 @@ class LevelEditor(GLViewport):
             try:
                 self.currentViewport.cameraPosition = level.playerSpawnPosition()
             except KeyError:  # TagNotFound
-                self.currentViewport.cameraPosition = numpy.array((0, level.Height * 0.75, 0))
+                self.currentViewport.cameraPosition = np.array((0, level.Height * 0.75, 0))
                 self.mainViewport.yaw = -45.
                 self.mainViewport.pitch = 0.0
 
@@ -2308,7 +2308,7 @@ class LevelEditor(GLViewport):
 
         r = starDistance
 
-        randPoints = (numpy.random.random(size=starCount * 3)) * 2.0 * r
+        randPoints = (np.random.random(size=starCount * 3)) * 2.0 * r
         randPoints.shape = (starCount, 3)
 
         nearbyPoints = (randPoints[:, 0] < r) & (randPoints[:, 1] < r) & (randPoints[:, 2] < r)
@@ -2319,23 +2319,23 @@ class LevelEditor(GLViewport):
         randPoints[::4, 2] = -randPoints[::4, 2]
         randPoints[1::4, 2] = -randPoints[1::4, 2]
 
-        randsizes = numpy.random.random(size=starCount) * 6 + 0.8
+        randsizes = np.random.random(size=starCount) * 6 + 0.8
 
         vertsPerStar = 4
 
-        vertexBuffer = numpy.zeros((starCount, vertsPerStar, 3), dtype='float32')
+        vertexBuffer = np.zeros((starCount, vertsPerStar, 3), dtype='float32')
 
         def normvector(x):
-            return x / numpy.sqrt(numpy.sum(x * x, 1))[:, numpy.newaxis]
+            return x / np.sqrt(np.sum(x * x, 1))[:, np.newaxis]
 
         viewVector = normvector(randPoints)
 
-        rmod = numpy.random.random(size=starCount * 3) * 2.0 - 1.0
+        rmod = np.random.random(size=starCount * 3) * 2.0 - 1.0
         rmod.shape = (starCount, 3)
         referenceVector = viewVector + rmod
 
-        rightVector = normvector(numpy.cross(referenceVector, viewVector)) * randsizes[:, numpy.newaxis]  # vector perpendicular to viewing line
-        upVector = normvector(numpy.cross(rightVector, viewVector)) * randsizes[:, numpy.newaxis]  # vector perpendicular previous vector and viewing line
+        rightVector = normvector(np.cross(referenceVector, viewVector)) * randsizes[:, np.newaxis]  # vector perpendicular to viewing line
+        upVector = normvector(np.cross(rightVector, viewVector)) * randsizes[:, np.newaxis]  # vector perpendicular previous vector and viewing line
 
         p = randPoints
         p1 = p + (- upVector - rightVector)
@@ -3138,13 +3138,13 @@ class LevelEditor(GLViewport):
         self.frameSamples.pop(0)
         self.frameSamples.append(timeDelta)
 
-        frameTotal = numpy.sum(self.frameSamples)
+        frameTotal = np.sum(self.frameSamples)
 
         self.averageFPS = 1000000. / ((frameTotal.microseconds + 1000000 * frameTotal.seconds) / float(len(self.frameSamples)) + 0.00001)
 
         r = self.renderer
 
-        chunkTotal = numpy.sum(r.chunkSamples)
+        chunkTotal = np.sum(r.chunkSamples)
         cps = 1000000. / ((chunkTotal.microseconds + 1000000 * chunkTotal.seconds) / float(len(r.chunkSamples)) + 0.00001)
         self.averageCPS = cps
 
@@ -3266,7 +3266,7 @@ class LevelEditor(GLViewport):
                         blockID, self.level.materials.names[blockID][0])
 
         except Exception as e:
-            self.inspectionString += "Chunk {0} had an error: {1!r}".format((int(numpy.floor(blockPosition[0])) >> 4, int(numpy.floor(blockPosition[2])) >> 4), e)
+            self.inspectionString += "Chunk {0} had an error: {1!r}".format((int(np.floor(blockPosition[0])) >> 4, int(np.floor(blockPosition[2])) >> 4), e)
             pass
 
     def drawWireCubeReticle(self, color=(1.0, 1.0, 1.0, 1.0), position=None):
@@ -3530,13 +3530,13 @@ class EditorToolbar(GLOrtho):
 
         self.guiTexture.bind()
 
-        GL.glVertexPointer(3, GL.GL_FLOAT, 0, numpy.array((
+        GL.glVertexPointer(3, GL.GL_FLOAT, 0, np.array((
                                1, h + 1, 0.5,
                                w + 1, h + 1, 0.5,
                                w + 1, 1, 0.5,
                                1, 1, 0.5,
                             ), dtype="f4"))
-        GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, numpy.array((
+        GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, np.array((
                              0, 0,
                              w, 0,
                              w, h,
@@ -3559,13 +3559,13 @@ class EditorToolbar(GLOrtho):
                 h = 16
 
                 self.toolTextures[tool.toolIconName].bind()
-                GL.glVertexPointer(3, GL.GL_FLOAT, 0, numpy.array((
+                GL.glVertexPointer(3, GL.GL_FLOAT, 0, np.array((
                                    x, y + h, 1,
                                    x + w, y + h, 1,
                                    x + w, y, 1,
                                    x, y, 1,
                                 ), dtype="f4"))
-                GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, numpy.array((
+                GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, np.array((
                                  0, 0,
                                  w * 16, 0,
                                  w * 16, h * 16,
@@ -3615,14 +3615,14 @@ class EditorToolbar(GLOrtho):
             GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
             self.guiTexture.bind()
-            GL.glVertexPointer(3, GL.GL_FLOAT, 0, numpy.array((
+            GL.glVertexPointer(3, GL.GL_FLOAT, 0, np.array((
                             tx, ty, 2,
                             tx + tw, ty, 2,
                             tx + tw, ty + th, 2,
                             tx, ty + th, 2,
                             ), dtype="f4"))
 
-            GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, numpy.array((
+            GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, np.array((
                               texx, texy + texh,
                               texx + texw, texy + texh,
                               texx + texw, texy,
@@ -3634,7 +3634,7 @@ class EditorToolbar(GLOrtho):
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
         GL.glDisable(GL.GL_TEXTURE_2D)
 
-        redOutBoxes = numpy.zeros(9 * 4 * 2, dtype='float32')
+        redOutBoxes = np.zeros(9 * 4 * 2, dtype='float32')
         cursor = 0
         for i in range(len(self.tools)):
             t = self.tools[i]

@@ -12,7 +12,7 @@ Based on code from:
 
 
 import logging
-import numpy
+import numpy as np
 from OpenGL import GL
 context_log = logging.getLogger()
 
@@ -46,20 +46,20 @@ def viewingMatrix(projection=None, model=None):
         if model:
             return model
         else:
-            return numpy.identity(4, 'd')
-    if numpy.allclose(projection, -1.79769313e+308):
+            return np.identity(4, 'd')
+    if np.allclose(projection, -1.79769313e+308):
         context_log.warn(
             """Attempt to retrieve projection matrix when uninitialised %s, model=%s""",
             projection, model,
         )
         return model
-    if numpy.allclose(model, -1.79769313e+308):
+    if np.allclose(model, -1.79769313e+308):
         context_log.warn(
             """Attempt to retrieve model-view matrix when uninitialised %s, projection=%s""",
             model, projection,
         )
         return projection
-    return numpy.dot(model, projection)
+    return np.dot(model, projection)
 
 
 class Frustum (object):
@@ -86,15 +86,15 @@ class Frustum (object):
         frustcullaccel C extension module)
         """
 
-        distances = sum(self.planes[numpy.newaxis, :, :] * points[:, numpy.newaxis, :], -1)
+        distances = sum(self.planes[np.newaxis, :, :] * points[:, np.newaxis, :], -1)
         return ~any(distances < -radius, -1)
 
     def visible1(self, point, radius):
-        #return self.visible(array(point[numpy.newaxis, :]), radius)
+        #return self.visible(array(point[np.newaxis, :]), radius)
 
         distance = sum(self.planes * point, -1)
         vis = ~any(distance < -radius)
-        #assert vis == self.visible(array(point)[numpy.newaxis, :], radius)
+        #assert vis == self.visible(array(point)[np.newaxis, :], radius)
 
         return vis
 
@@ -115,8 +115,8 @@ class Frustum (object):
         """
         if matrix is None:
             matrix = viewingMatrix()
-        clip = numpy.ravel(matrix)
-        frustum = numpy.zeros((6, 4), 'd')
+        clip = np.ravel(matrix)
+        frustum = np.zeros((6, 4), 'd')
         # right
         frustum[0][0] = clip[3] - clip[0]
         frustum[0][1] = clip[7] - clip[4]
@@ -157,10 +157,10 @@ class Frustum (object):
     @classmethod
     def normalize(cls, frustum):
         """Normalize clipping plane equations"""
-        magnitude = numpy.sqrt(frustum[:, 0] * frustum[:, 0] + frustum[:, 1] * frustum[:, 1] + frustum[:, 2] * frustum[:, 2])
+        magnitude = np.sqrt(frustum[:, 0] * frustum[:, 0] + frustum[:, 1] * frustum[:, 1] + frustum[:, 2] * frustum[:, 2])
         # eliminate any planes which have 0-length vectors,
         # those planes can't be used for excluding anything anyway...
-        frustum = numpy.compress(magnitude, frustum, 0)
-        magnitude = numpy.compress(magnitude, magnitude, 0)
-        magnitude = numpy.reshape(magnitude.astype('d'), (len(frustum), 1))
+        frustum = np.compress(magnitude, frustum, 0)
+        magnitude = np.compress(magnitude, magnitude, 0)
+        magnitude = np.reshape(magnitude.astype('d'), (len(frustum), 1))
         return frustum / magnitude

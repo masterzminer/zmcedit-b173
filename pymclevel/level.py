@@ -129,7 +129,7 @@ class MCLevel(object):
     Subclasses must also have Blocks, and optionally Data and BlockLight.
     """
 
-    ###common to Creative, Survival and Indev. these routines assume
+    ###common to Creative, Survival. these routines assume
     ###self has Width, Height, Length, and Blocks
 
     materials = classicMaterials
@@ -238,9 +238,14 @@ class MCLevel(object):
         return [], []
 
     def getChunk(self, cx, cz) -> FakeChunk:
-        """Synthesize a FakeChunk object representing the chunk at the given
+        """
+        Synthesize a FakeChunk object representing the chunk at the given
         position. Subclasses override fakeBlocksForChunk and fakeDataForChunk
-        to fill in the chunk arrays"""
+        to fill in the chunk arrays
+
+        cx: The chunk x coordinate, not block coordinate
+        cy: The chunk y coordinate, not block coordinate
+        """
 
         
         f = FakeChunk()
@@ -252,7 +257,7 @@ class MCLevel(object):
 
         f.Data = self.fakeDataForChunk(cx, cz)
 
-        whiteLight = zeros_like(f.Blocks)
+        whiteLight = np.zeros_like(f.Blocks)
         whiteLight[:] = 15
 
         f.BlockLight = whiteLight
@@ -785,7 +790,7 @@ class ChunkBase(EntityLevel):
     def __init__(self):
         super().__init__()
         self.Blocks: np.ndarray[any]
-        """ 3D array, indexed as (x, z, y), 16 size width and length, then 128 height. Values in the array are the block ids """
+        """ 3D array, normally indexed as (x, z, y), 16 size width and length, then 128 height, can be other dimensions for partial representations of chunks. Values in the array are the block ids """
         self.HeightMap: np.ndarray[any]
         """ 2D array, seems to be indexed as (z, x), 16x16, represents the max height of each (z, x) block in the chunk """
 
