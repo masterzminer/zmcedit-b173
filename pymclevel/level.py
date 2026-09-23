@@ -785,7 +785,7 @@ class ChunkBase(EntityLevel):
     def __init__(self):
         super().__init__()
         self.Blocks: np.ndarray[any]
-        """ 3D array, indexed as (x, z, y), 16 size width and length, then 128 height """
+        """ 3D array, indexed as (x, z, y), 16 size width and length, then 128 height. Values in the array are the block ids """
         self.HeightMap: np.ndarray[any]
         """ 2D array, seems to be indexed as (z, x), 16x16, represents the max height of each (z, x) block in the chunk """
 
@@ -835,14 +835,23 @@ class LightedChunk(ChunkBase):
         skylight = self.SkyLight
         heightmap = self.HeightMap
 
+        # Go through every point in the x z plane
         for x, z in itertools.product(range(16), range(16)):
 
+            # Find the highest point on the chunk that is exposed to air, it's light will be 15
             skylight[x, z, heightmap[z, x]:] = 15
+            # The lighting for each y column will start at 15
             lv = 15
+            # From the top of the column of blocks, go down
             for y in reversed(list(range(heightmap[z, x]))):
-                lv -= (la[blocks[x, z, y]] or 1)
+                # The next light value will go down by the absorption of that block type, always at least one
+                # Water absorbs more light than air, etc
+                lv -= int(la[blocks[x, z, y]] or 1)
 
+                # If there's no more light, there's no more work to do in this column
                 if lv <= 0:
                     break
+
+                # Now assign the updated sky light value
                 skylight[x, z, y] = lv
 
