@@ -1079,8 +1079,8 @@ class MCRegionFile(object):
             self.freeSectors = [True] * (filesize // self.SECTOR_BYTES)
             self.freeSectors[0:2] = False, False
 
-            self.offsets = np.frombuffer(offsetsData, dtype='>u4')
-            self.modTimes = np.frombuffer(modTimesData, dtype='>u4')
+            self.offsets = np.frombuffer(offsetsData, dtype='>u4').copy()
+            self.modTimes = np.frombuffer(modTimesData, dtype='>u4').copy()
 
         needsRepair = False
 
@@ -1259,7 +1259,7 @@ class MCRegionFile(object):
         sectorsAllocated = offset & 0xff
 
 
-        sectorsNeeded = (len(data) + self.CHUNK_HEADER_SIZE) / self.SECTOR_BYTES + 1
+        sectorsNeeded = (len(data) + self.CHUNK_HEADER_SIZE) // self.SECTOR_BYTES + 1
         if sectorsNeeded >= 256: return
 
         if sectorNumber != 0 and sectorsAllocated >= sectorsNeeded:
@@ -1346,7 +1346,7 @@ class MCRegionFile(object):
         self.offsets[cx + cz * 32] = offset
         with self.file as f:
             f.seek(0)
-            f.write(self.offsets.tostring())
+            f.write(self.offsets)
 
 
 
@@ -1910,18 +1910,26 @@ class ChunkedLevelMixin(object):
         oldLeftEdge = np.zeros((1, 16, self.Height), 'uint8')
         oldBottomEdge = np.zeros((16, 1, self.Height), 'uint8')
         oldChunk = np.zeros((16, 16, self.Height), 'uint8')
+
+        # Only block light is used in the nether
         if self.dimNo in (-1, 1):
             lights = ("BlockLight",)
+        # The overworld has block and sky light
         else:
             lights = ("BlockLight", "SkyLight")
         info(u"Dispersing light...")
         
-        def clipLight(light):
+        def clipLight(light: np.ndarray):
+            """
+            Force all light values to be between 0 and 15
+
+            Light: a 3D array of all light values
+            """
+
             #light arrays are all uint8 by default, so when results go negative
             #they become large instead.  reinterpret as signed int using view()
             #and then clip to range
-            # TODO figure out how to fix this, currently this breaks saving
-            light.view('int8').clip(0, 15, light)
+            light[:] = light.view('int8').clip(0, 15)
             
         for j, light in enumerate(lights):
             zerochunkLight = getattr(zeroChunk, light)
