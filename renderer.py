@@ -55,7 +55,7 @@ import sys
 from functools import reduce
 import traceback
 from pymclevel.level import FakeChunk
-
+from pymclevel.materials import MCMaterials
 
 def chunkMarkers(chunkSet):
     """ Returns a mapping { size: [position, ...] } for different powers of 2
@@ -213,9 +213,6 @@ class ChunkRenderer(object):
                 yield
 
         else:
-            # TODO does this need to return StopIteration for some weird logic?
-            # raise StopIteration
-            # yield
             return
 
     def vertexArraysDone(self):
@@ -292,8 +289,6 @@ elementByteLength = 24
 
 def createPrecomputedVertices():
     height = 16
-    # TODO consider not doing this giant cache, just make the vertexes for one block and reuse it
-    # TODO probably will need to re optimize this later, for now make it simpler so that the rendering works
     precomputedVertices = [np.zeros(shape=(16, 16, height, 4, 6),  # x,y,z,s,t,rg, ba
                                   dtype='float32') for d in faceVertexTemplates]
 
@@ -324,17 +319,24 @@ class ChunkCalculator (object):
     precomputedVertices = createPrecomputedVertices()
 
     def __init__(self, level):
-        self.makeRenderstates(level.materials)
+        self.makeRenderStates(level.materials)
 
-        # TODO probably remove, nullVertices doesn't appear anywhere else
-            # del xArray, zArray, yArray
-        self.nullVertices = np.zeros((0,) * len(self.precomputedVertices[0].shape), dtype=self.precomputedVertices[0].dtype)
         from leveleditor import Settings
 
         Settings.fastLeaves.addObserver(self)
         Settings.roughGraphics.addObserver(self)
 
-    class renderstatePlain(object):
+        self.materialMap: np.ndarray
+        """
+        A 1D array of 256 ints defaulting to zero, seems to use block ids as an index to an int that represents the kind of block to render
+        """
+
+        self.blockRendererClasses: list
+        """
+        A list of all renderers for different kinds of blocks, the first element should be for rendering normal full blocks
+        """
+
+    class renderStatePlain(object):
         @classmethod
         def bind(self):
             pass
@@ -343,7 +345,7 @@ class ChunkCalculator (object):
         def release(self):
             pass
 
-    class renderstateLowDetail(object):
+    class renderStateLowDetail(object):
         @classmethod
         def bind(self):
             GL.glDisable(GL.GL_CULL_FACE)
@@ -354,7 +356,7 @@ class ChunkCalculator (object):
             GL.glEnable(GL.GL_CULL_FACE)
             GL.glEnable(GL.GL_TEXTURE_2D)
 
-    class renderstateAlphaTest(object):
+    class renderStateAlphaTest(object):
         @classmethod
         def bind(self):
             GL.glEnable(GL.GL_ALPHA_TEST)
@@ -372,13 +374,13 @@ class ChunkCalculator (object):
         def release(self):
             GL.glDisable(GL.GL_BLEND)
 
-    class renderstateWater(_renderstateAlphaBlend):
+    class renderStateWater(_renderstateAlphaBlend):
         pass
 
-    class renderstateIce(_renderstateAlphaBlend):
+    class renderStateIce(_renderstateAlphaBlend):
         pass
 
-    class renderstateEntity(object):
+    class renderStateEntity(object):
         @classmethod
         def bind(self):
             GL.glDisable(GL.GL_DEPTH_TEST)
@@ -393,16 +395,20 @@ class ChunkCalculator (object):
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glDisable(GL.GL_BLEND)
 
-    renderstates = (
-        renderstatePlain,
-        renderstateLowDetail,
-        renderstateAlphaTest,
-        renderstateIce,
-        renderstateWater,
-        renderstateEntity,
+    renderStates = (
+        renderStatePlain,
+        renderStateLowDetail,
+        renderStateAlphaTest,
+        renderStateIce,
+        renderStateWater,
+        renderStateEntity,
     )
 
-    def makeRenderstates(self, materials):
+    def makeRenderStates(self, materials: MCMaterials):
+        """
+        materials: All data for every type of block
+        """
+
         self.blockRendererClasses = [
             GenericBlockRenderer,
             LeafBlockRenderer,
@@ -431,20 +437,36 @@ class ChunkCalculator (object):
             # portal
             ]
 
-        self.materialMap = materialMap = np.zeros((256,), 'uint8')
-        materialMap[1:] = 1  # generic blocks
+        # Init the materials to all zeros
+        self.materialMap = materialMap = np.zeros((256,), np.uint8)
+        # All materials after index 0 will be 1 by default. Value 0 is for air, value 1 is a normal block
+        materialMap[1:] = 1
 
-        materialCount = 2
+        # At this point, there are two materials, air and normal blocks
+        currentMaterialMapId = 2
 
-        for br in self.blockRendererClasses[1:]:  # skip generic blocks
-            materialMap[br.getBlocktypes(materials)] = materialCount
-            br.materialIndex = materialCount
-            materialCount += 1
+        # Go through all types of rendering, skipping the first element, which should be for rendering normal blocks
+        for br in self.blockRendererClasses[1:]:
+            # For all block ids that can be rendered by the current renderer br, set the material map render int to the current count, i.e. next renderer index
+            materialMap[br.getBlocktypes(materials)] = currentMaterialMapId
+            # Assign the current renderer index to the current renderer
+            br.materialIndex = currentMaterialMapId
+            # Move onto the next index
+            currentMaterialMapId += 1
 
+        # Copy the renderer indexes into another array for this class
         self.exposedMaterialMap = np.array(materialMap)
-        self.addTransparentMaterials(self.exposedMaterialMap, materialCount)
+        # Give each transparent block type its own material id
+        self.addTransparentMaterials(self.exposedMaterialMap, currentMaterialMapId)
 
-    def addTransparentMaterials(self, mats, materialCount):
+    def addTransparentMaterials(self, mats, currentMaterialMapId):
+        """
+        mats: The array indexing block id to the index of the block renderer to use
+
+        currentMaterialMapId: The next available material renderer id to assign
+        """
+
+        # Defining materials that should be considered transparent
         transparentMaterials = [
             pymclevel.materials.alphaMaterials.Glass,
             pymclevel.materials.alphaMaterials.GlassPane,
@@ -453,9 +475,10 @@ class ChunkCalculator (object):
             pymclevel.materials.alphaMaterials.Vines,
             pymclevel.materials.alphaMaterials.Fire,
         ]
+        # For each transparent material, give each one its own material renderer id
         for b in transparentMaterials:
-            mats[b.ID] = materialCount
-            materialCount += 1
+            mats[b.ID] = currentMaterialMapId
+            currentMaterialMapId += 1
 
     hiddenOreMaterials = np.arange(256, dtype='uint8')
     hiddenOreMaterials[2] = 1  # don't show boundaries between dirt,grass,sand,gravel,stone
@@ -665,7 +688,16 @@ class ChunkCalculator (object):
         for i in self.computeGeometry(chunk, areaBlockMats, facingBlockIndices, areaBlockLights, cr, blockRenderers):
             yield
 
-    def computeGeometry(self, chunk: FakeChunk, areaBlockMats, facingBlockIndices, areaBlockLights, chunkRenderer, blockRenderers):
+    def computeGeometry(self, chunk: FakeChunk, areaBlockMats, facingBlockIndices: list, areaBlockLights, chunkRenderer, blockRenderers):
+        """
+        chunk: The chunk data to compute geometry on
+
+        areaBlockMats: A 3D array that is 2 longer than every axis as the block data
+
+        facingBlockIndices: A list of the 6 faces, each containing a 3D array the size of the block array in the chunk, representing which blocks for that face should be rendered
+        """
+
+        # Grab the block ids and their data/damage values from the chunk
         blocks, blockData = chunk.Blocks, chunk.Data
         blockData = blockData & 0xf
         blockMaterials = areaBlockMats[1:-1, 1:-1, 1:-1]
@@ -687,11 +719,23 @@ class ChunkCalculator (object):
                     chunk.materials,
                     blockMaterials[sx, sz, sy],
                     [f[sx, sz, sy] for f in facingBlockIndices],
-                    areaBlockLights[asx, asz, asy],
-                    chunkRenderer):
+                    areaBlockLights[asx, asz, asy]):
                 yield
 
-    def computeCubeGeometry(self, y, blockRenderers, blocks, blockData, materials, blockMaterials, facingBlockIndices, areaBlockLights, chunkRenderer):
+    def computeCubeGeometry(self, y, blockRenderers, blocks, blockData, materials, blockMaterials: np.ndarray, facingBlockIndices: list, areaBlockLights):
+        """
+        blocks: A 3D array of block ids needed to compute
+        
+        blockData: A 3D array of block data/damage values associated with the block ids in blocks
+
+        materials: Object with a field for each block name and its associated block information
+
+        blockMaterials: A 1D array indexing block id to the index of the block renderer to use for rendering that block
+
+        facingBlockIndices: A list of the 6 faces, each containing a 3D array the size of the block array in the chunk, representing which blocks for that face should be rendered
+        """
+
+        # Convert blockMaterials to a 1D array, then count how the number of occurrences of each material id
         materialCounts = np.bincount(blockMaterials.ravel())
 
         def texMap(blocks, blockData=0, direction=slice(None)):
@@ -712,6 +756,13 @@ class ChunkCalculator (object):
             yield
 
     def makeTemplate(self, direction, blockIndices):
+        """
+        direction: The index [0, 5] of the face to get the template for
+        
+        blockIndices: A 3D boolean array of which block coordinates of the precomputed vertices should be included
+
+        returns: A 1D array of the coordinates selected by blockIndices, where each element is a 4x6 array of the vertices for the position coordinates, texture coordinates, and color information
+        """
         return self.precomputedVertices[direction][blockIndices]
 
 
@@ -738,7 +789,7 @@ class BlockRenderer(object):
         pymclevel.faces.FaceZDecreasing: np.s_[1:-1, :-2, 1:-1],
         pymclevel.faces.FaceZIncreasing: np.s_[1:-1, 2:, 1:-1],
     }
-    renderstate = ChunkCalculator.renderstateAlphaTest
+    renderstate = ChunkCalculator.renderStateAlphaTest
 
     def __init__(self, cc):
         self.makeTemplate = cc.makeTemplate
@@ -749,6 +800,11 @@ class BlockRenderer(object):
 
     @classmethod
     def getBlocktypes(cls, mats):
+        """
+        mats: All materials that exist
+
+        Returns: The block ids that this renderer is able draw
+        """
         return cls.blocktypes
 
     def setAlpha(self, alpha):
@@ -815,7 +871,7 @@ class BlockRenderer(object):
 
 
 class EntityRendererGeneric(BlockRenderer):
-    renderstate = ChunkCalculator.renderstateEntity
+    renderstate = ChunkCalculator.renderStateEntity
     detailLevels = (0, 1, 2)
 
     def drawFaceVertices(self, buf):
@@ -1030,7 +1086,7 @@ class TerrainPopulatedRenderer(EntityRendererGeneric):
 
 
 class LowDetailBlockRenderer(BlockRenderer):
-    renderstate = ChunkCalculator.renderstateLowDetail
+    renderstate = ChunkCalculator.renderStateLowDetail
     detailLevels = (1,)
 
     def drawFaceVertices(self, buf):
@@ -1168,11 +1224,17 @@ class OverheadBlockRenderer(LowDetailBlockRenderer):
 
 
 class GenericBlockRenderer(BlockRenderer):
-    renderstate = ChunkCalculator.renderstateAlphaTest
+    renderstate = ChunkCalculator.renderStateAlphaTest
 
     materialIndex = 1
 
     def makeGenericVertices(self, facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
+        """
+        facingBlockIndices: A array of each of the 6 faces, each array element containing a 3D boolean array of which faces are exposed at which array indexes
+
+        blocks: A 3D array of the block ids at each position
+        """
+
         vertexArrays = []
         materialIndices = self.getMaterialIndices(blockMaterials)
         yield
@@ -1232,9 +1294,9 @@ class LeafBlockRenderer(BlockRenderer):
     @property
     def renderstate(self):
         if self.chunkCalculator.fastLeaves:
-            return ChunkCalculator.renderstatePlain
+            return ChunkCalculator.renderStatePlain
         else:
-            return ChunkCalculator.renderstateAlphaTest
+            return ChunkCalculator.renderStateAlphaTest
 
     def makeLeafVertices(self, facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
         arrays = []
@@ -1299,6 +1361,8 @@ class LeafBlockRenderer(BlockRenderer):
 class PlantBlockRenderer(BlockRenderer):
     @classmethod
     def getBlocktypes(cls, mats):
+        # Plant block types are any block ids where their type is one of the below types of blocks for how they're rendered
+
         # blocktypes = [6, 37, 38, 39, 40, 59, 83]
         # if mats.name != "Classic": blocktypes += [31, 32]  # shrubs, tall grass
         # if mats.name == "Alpha": blocktypes += [115]  # nether wart
@@ -1306,7 +1370,7 @@ class PlantBlockRenderer(BlockRenderer):
 
         return blocktypes
 
-    renderstate = ChunkCalculator.renderstateAlphaTest
+    renderstate = ChunkCalculator.renderStateAlphaTest
 
     def makePlantVertices(self, facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
         arrays = []
@@ -1357,7 +1421,7 @@ class PlantBlockRenderer(BlockRenderer):
 
 class TorchBlockRenderer(BlockRenderer):
     blocktypes = [50, 75, 76]
-    renderstate = ChunkCalculator.renderstateAlphaTest
+    renderstate = ChunkCalculator.renderStateAlphaTest
     torchOffsetsStraight = [
         [  # FaceXIncreasing
             (-7 / 16., 0, 0),
@@ -1512,7 +1576,7 @@ class TorchBlockRenderer(BlockRenderer):
 
 class RailBlockRenderer(BlockRenderer):
     blocktypes = [pymclevel.materials.alphaMaterials.Rail.ID, pymclevel.materials.alphaMaterials.PoweredRail.ID, pymclevel.materials.alphaMaterials.DetectorRail.ID]
-    renderstate = ChunkCalculator.renderstateAlphaTest
+    renderstate = ChunkCalculator.renderStateAlphaTest
 
     railTextures = np.array([
         [(0, 128), (0, 144), (16, 144), (16, 128)],  # east-west
@@ -1822,6 +1886,7 @@ class FeatureBlockRenderer(BlockRenderer):
 class StairBlockRenderer(BlockRenderer):
     @classmethod
     def getBlocktypes(cls, mats):
+        # Renders specifically blocks that are stairs
         return [a.ID for a in mats.AllStairs]
 
     # South - FaceXIncreasing
@@ -1910,7 +1975,7 @@ class SlabBlockRenderer(BlockRenderer):
 class WaterBlockRenderer(BlockRenderer):
     waterID = 9
     blocktypes = [8, waterID]
-    renderstate = ChunkCalculator.renderstateWater
+    renderstate = ChunkCalculator.renderStateWater
 
     def waterFaceVertices(self, direction, blockIndices, exposedFaceIndices, blocks, blockData, blockLight, facingBlockLight, texMap):
         blockIndices = blockIndices & exposedFaceIndices
@@ -1925,7 +1990,7 @@ class WaterBlockRenderer(BlockRenderer):
 class IceBlockRenderer(BlockRenderer):
     iceID = 79
     blocktypes = [iceID]
-    renderstate = ChunkCalculator.renderstateIce
+    renderstate = ChunkCalculator.renderStateIce
 
     def iceFaceVertices(self, direction, blockIndices, exposedFaceIndices, blocks, blockData, blockLight, facingBlockLight, texMap):
         blockIndices = blockIndices & exposedFaceIndices
@@ -2581,18 +2646,18 @@ class MCRenderer(object):
                 self.needsImmediateRedraw = shouldRecreateAgain
 
         def callMasterLists(self):
-            for renderstate in self.chunkCalculator.renderstates:
+            for renderstate in self.chunkCalculator.renderStates:
                 if renderstate not in self.masterLists:
                     continue
 
-                if self.alpha != 0xff and renderstate is not ChunkCalculator.renderstateLowDetail:
+                if self.alpha != 0xff and renderstate is not ChunkCalculator.renderStateLowDetail:
                     GL.glEnable(GL.GL_BLEND)
                 renderstate.bind()
 
                 GL.glCallLists(self.masterLists[renderstate])
 
                 renderstate.release()
-                if self.alpha != 0xff and renderstate is not ChunkCalculator.renderstateLowDetail:
+                if self.alpha != 0xff and renderstate is not ChunkCalculator.renderStateLowDetail:
                     GL.glDisable(GL.GL_BLEND)
 
     errorLimit = 10
@@ -2657,7 +2722,6 @@ class MCRenderer(object):
         addDebugString("CR: {0}, ".format(len(self.chunkRenderers),))
 
     def __next__(self):
-        # TODO is this hitting the return statement while still having next() get called? Need to end the call to next early
         next(self.chunkWorker)
 
     def makeWorkIterator(self):
@@ -2747,9 +2811,6 @@ class MCRenderer(object):
             if self.viewingFrustum:
                 # if not self.viewingFrustum.visible(np.array([[c[0] * 16 + 8, 64, c[1] * 16 + 8, 1.0]]), 64).any():
                 if not self.viewingFrustum.visible1([c[0] * 16 + 8, self.level.Height / 2, c[1] * 16 + 8, 1.0], self.level.Height / 2):
-                    # TODO does this need to return StopIteration for some weird logic?
-                    # raise StopIteration
-                    # yield
                     return
 
             faceInfoCalculator = self.calcFacesForChunkRenderer(cr)
