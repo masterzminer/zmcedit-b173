@@ -56,6 +56,7 @@ from functools import reduce
 import traceback
 from pymclevel.level import FakeChunk
 from pymclevel.materials import MCMaterials
+import pymclevel.faces as Faces
 
 def chunkMarkers(chunkSet):
     """ Returns a mapping { size: [position, ...] } for different powers of 2
@@ -481,12 +482,17 @@ class ChunkCalculator (object):
             currentMaterialMapId += 1
 
     hiddenOreMaterials = np.arange(256, dtype='uint8')
-    hiddenOreMaterials[2] = 1  # don't show boundaries between dirt,grass,sand,gravel,stone
+    """A 1D array of each block id mapped to itself, and for specific blocks, they are instead set to 1 (stone)"""
+
+    # don't show boundaries between dirt,grass,sand,gravel,stone
+    hiddenOreMaterials[2] = 1
     hiddenOreMaterials[3] = 1
     hiddenOreMaterials[12] = 1
     hiddenOreMaterials[13] = 1
 
     roughMaterials = np.ones((256,), dtype='uint8')
+    """A 1D array of each block id mapped to a 1, and for transparent blocks, incrementing values"""
+
     roughMaterials[0] = 0
     addTransparentMaterials(None, roughMaterials, 2)
 
@@ -554,38 +560,63 @@ class ChunkCalculator (object):
         cr.vertexArraysDone()
         return
 
-    def getNeighboringChunks(self, chunk):
+    def getNeighboringChunks(self, chunk: FakeChunk):
+        """
+        chunk: The chunk to look for nearby chunks
+
+        returns: A list of the 4 chunks next to the given chunk, these chunks may be fake empty chunks if none exists in that direction
+        """
+        
         cx, cz = chunk.chunkPosition
         level = chunk.world
 
         neighboringChunks = {}
-        for dir, dx, dz in ((pymclevel.faces.FaceXDecreasing, -1, 0),
-                           (pymclevel.faces.FaceXIncreasing, 1, 0),
-                           (pymclevel.faces.FaceZDecreasing, 0, -1),
-                           (pymclevel.faces.FaceZIncreasing, 0, 1)):
+        # Go through each of the 4 horizontal directions
+        for dir, dx, dz in ((Faces.FaceXDecreasing, -1, 0),
+                            (Faces.FaceXIncreasing, 1, 0),
+                            (Faces.FaceZDecreasing, 0, -1),
+                            (Faces.FaceZIncreasing, 0, 1)):
+            # If the chunk next to the given chunk doesn't exist, then there will be an empty chunk "next" to it
             if not level.containsChunk(cx + dx, cz + dz):
                 neighboringChunks[dir] = pymclevel.infiniteworld.ZeroChunk(level.Height)
             else:
-                # if not level.chunkIsLoaded(cx+dx,cz+dz):
-                #    raise StopIteration
                 try:
+                    # Set the chunk for that direction 
                     neighboringChunks[dir] = level.getChunk(cx + dx, cz + dz)
                 except (pymclevel.mclevelbase.ChunkNotPresent, pymclevel.mclevelbase.ChunkMalformed):
+                    # If there are any issues in getting the chunk, fall back to an empty chunk
                     neighboringChunks[dir] = pymclevel.infiniteworld.ZeroChunk(level.Height)
         return neighboringChunks
 
     def getAreaBlocks(self, chunk, neighboringChunks):
-        chunkWidth, chunkLength, chunkHeight = chunk.Blocks.shape
+        """
+        chunk: The chunk to get blocks near
 
+        neighboringChunks: the chunks that are directly next to the given chunk in each of the 4 horizontal directions
+
+        returns: A copy of the given chunk, with all axes expanded by one block containing the blocks of the chunks next to it on the 4 horizontal directions
+        """
+
+        # Create an initial array of all zeros, one block longer on every axis
+        chunkWidth, chunkLength, chunkHeight = chunk.Blocks.shape
         areaBlocks = np.zeros((chunkWidth + 2, chunkLength + 2, chunkHeight + 2), np.uint8)
+
+        # Copy the blocks of the given chunk into the areaBlocks, offset by one, leaving a one block edge around the chunk
         areaBlocks[1:-1, 1:-1, 1:-1] = chunk.Blocks
+        # Copy the edge of each chunk next to the given chunk into the areaBlocks
         areaBlocks[:1, 1:-1, 1:-1] = neighboringChunks[pymclevel.faces.FaceXDecreasing].Blocks[-1:, :chunkLength, :chunkHeight]
         areaBlocks[-1:, 1:-1, 1:-1] = neighboringChunks[pymclevel.faces.FaceXIncreasing].Blocks[:1, :chunkLength, :chunkHeight]
         areaBlocks[1:-1, :1, 1:-1] = neighboringChunks[pymclevel.faces.FaceZDecreasing].Blocks[:chunkWidth, -1:, :chunkHeight]
         areaBlocks[1:-1, -1:, 1:-1] = neighboringChunks[pymclevel.faces.FaceZIncreasing].Blocks[:chunkWidth, :1, :chunkHeight]
         return areaBlocks
 
-    def getFacingBlockIndices(self, areaBlocks, areaBlockMats):
+    def getFacingBlockIndices(self, areaBlockMats):
+        """
+        areaBlockMats: a 3D array of blocks, storing some id for rendering?
+
+        returns: A list of each of the 6 faces, where each face is a slice of that faces block data from areaBlockMats
+        """
+
         facingBlockIndices = [None] * 6
 
         exposedFacesX = (areaBlockMats[:-1, 1:-1, 1:-1] != areaBlockMats[1:, 1:-1, 1:-1])
@@ -605,6 +636,14 @@ class ChunkCalculator (object):
         return facingBlockIndices
 
     def getAreaBlockLights(self, chunk, neighboringChunks):
+        """
+        chunk: The chunk to get lighting for
+
+        neighboringChunks: The chunks directly next to the given chunk on the 4 horizontal directions
+
+        returns: The expected light values for the chunk with one block expanded on every axis of the given chunk
+        """
+
         chunkWidth, chunkLength, chunkHeight = chunk.Blocks.shape
         lights = chunk.BlockLight
         skyLight = chunk.SkyLight
@@ -615,11 +654,14 @@ class ChunkCalculator (object):
         if skyLight is not None:
             finalLight = np.maximum(skyLight, lights)
 
+        # Build out a chunk expanded by one block on all axes and default all light values to max
         areaBlockLights = np.ones((chunkWidth + 2, chunkLength + 2, chunkHeight + 2), np.uint8)
         areaBlockLights[:] = 15
 
+        # Set all blocks of the original chunk to the computed light value
         areaBlockLights[1:-1, 1:-1, 1:-1] = finalLight
 
+        # For each of the 4 directions at the edges of the chunk, use the maximum of either the computed skylight or block light at each of those positions
         nc = neighboringChunks[pymclevel.faces.FaceXDecreasing]
         np.maximum(nc.SkyLight[-1:, :chunkLength, :chunkHeight],
                 nc.BlockLight[-1:, :chunkLength, :chunkHeight],
@@ -640,35 +682,47 @@ class ChunkCalculator (object):
                 nc.BlockLight[:chunkWidth, :1, :chunkHeight],
                 areaBlockLights[1:-1, -1:, 1:-1])
 
+        #  Force everything to be at least a light level of 4
         minimumLight = 4
-        # areaBlockLights[areaBlockLights<minimumLight]=minimumLight
         np.clip(areaBlockLights, minimumLight, 16, areaBlockLights)
 
         return areaBlockLights
 
-    def calcHighDetailFaces(self, cr: ChunkRenderer, blockRenderers):  # ForChunk(self, chunkPosition = (0,0), level = None, alpha = 1.0):
-        """ calculate the geometry for a chunk renderer from its blockMats, data,
-        and lighting array. fills in the cr's blockRenderers with verts
-        for each block facing and material"""
+    def calcHighDetailFaces(self, cr: ChunkRenderer, blockRenderers):
+        """
+        calculate the geometry for a chunk renderer from its blockMats, data,
+        and lighting array. fills in the cr's blockRenderers with vertices
+        for each block facing and material
 
-        # chunkBlocks and chunkLights shall be indexed [x,z,y] to follow infdev's convention
+        blockRenderers: A list to append renderers onto for how to render blocks
+        """
+
+        # chunkBlocks and chunkLights are indexed (x,z,y)
+        # Get the position to render the chunk and the level containing the chunk
         cx, cz = cr.chunkPosition
         level = cr.renderer.level
 
+        # Find the chunk that needs to be rendered
         chunk = level.getChunk(cx, cz)
+        # Find the chunks that are next to the chunk to render
         neighboringChunks = self.getNeighboringChunks(chunk)
 
+        # Find the blocks ids of the chunk with one extra block on each axis from the chunks next to it
         areaBlocks = self.getAreaBlocks(chunk, neighboringChunks)
         yield
 
+        # Same as areaBlocks, but stores lighting values instead of block ids
         areaBlockLights = self.getAreaBlockLights(chunk, neighboringChunks)
         yield
 
+        # Checking if there are any slabs, and if there are, set the light values of the slabs to the light value above it
         slabs = areaBlocks == pymclevel.materials.alphaMaterials.StoneSlab.ID
         if slabs.any():
             areaBlockLights[slabs] = areaBlockLights[:, :, 1:][slabs[:, :, :-1]]
         yield
 
+        # Find which materials should be visible through solid blocks
+        # facingMats maps block id to the id for the renderer for that block?
         showHiddenOres = cr.renderer.showHiddenOres
         if showHiddenOres:
             facingMats = self.hiddenOreMaterials[areaBlocks]
@@ -677,49 +731,65 @@ class ChunkCalculator (object):
 
         yield
 
+        # areaBlockMats maps block id to some renderer for that block?
         if self.roughGraphics:
             areaBlockMats = self.roughMaterials[areaBlocks]
         else:
             areaBlockMats = self.materialMap[areaBlocks]
 
-        facingBlockIndices = self.getFacingBlockIndices(areaBlocks, facingMats)
+
+        facingBlockIndices = self.getFacingBlockIndices(facingMats)
         yield
 
-        for i in self.computeGeometry(chunk, areaBlockMats, facingBlockIndices, areaBlockLights, cr, blockRenderers):
+        # Figure out rendering geometry for the chunk, iterating through every calculation needed by computeGeometry
+        for _ in self.computeGeometry(chunk, areaBlockMats, facingBlockIndices, areaBlockLights, blockRenderers):
             yield
 
-    def computeGeometry(self, chunk: FakeChunk, areaBlockMats, facingBlockIndices: list, areaBlockLights, chunkRenderer, blockRenderers):
+    def computeGeometry(self, chunk: FakeChunk, areaBlockMats: np.ndarray, facingBlockIndices: list, areaBlockLights, blockRenderers):
         """
         chunk: The chunk data to compute geometry on
 
         areaBlockMats: A 3D array that is 2 longer than every axis as the block data
 
-        facingBlockIndices: A list of the 6 faces, each containing a 3D array the size of the block array in the chunk, representing which blocks for that face should be rendered
+        facingBlockIndices: A list of the 6 faces, each containing a 3D array the size of the block array in the chunk, representing which blocks, via array indices for coordinates, for that face should be rendered
+
+        areaBlockLights: Same as areaBlockMats, but indexes the light values of each block
+
+        blockRenderers: A list to append renderers onto for how to render blocks
         """
 
         # Grab the block ids and their data/damage values from the chunk
         blocks, blockData = chunk.Blocks, chunk.Data
         blockData = blockData & 0xf
+        # Find the block "material" id from the blocks of the original chunk
         blockMaterials = areaBlockMats[1:-1, 1:-1, 1:-1]
+        # If using simple graphics, only use rendering modes 0 and 1 (empty and full block)
         if self.roughGraphics:
             blockMaterials.clip(0, 1, blockMaterials)
 
+        # Represents indexing into the original chunk data and the chunk data expanded by one block on all sides
         sx = sz = slice(0, 16)
         asx = asz = slice(0, 18)
 
+        # Go through every 16 block height increment of the chunk
         for y in range(0, chunk.world.Height, 16):
+            # Get the indexing to get that specific height section of the chunk
             sy = slice(y, y + 16)
             asy = slice(y, y + 18)
 
-            for _i in self.computeCubeGeometry(
+            # Continue to compute geometry for every value needed
+            for _ in self.computeCubeGeometry(
                     y,
                     blockRenderers,
-                    blocks[sx, sz, sy],
-                    blockData[sx, sz, sy],
-                    chunk.materials,
-                    blockMaterials[sx, sz, sy],
+                    # Use only the needed block data for this 16 tall sub section
+                    blocks[sx, sz, sy], blockData[sx, sz, sy],
+                    # Similarly, use only the needed material renderers
+                    chunk.materials, blockMaterials[sx, sz, sy],
+                    # Similarly, use the section of which blocks are facing where for this sub section
                     [f[sx, sz, sy] for f in facingBlockIndices],
-                    areaBlockLights[asx, asz, asy]):
+                    # For the lighting, use the expanded selection
+                    areaBlockLights[asx, asz, asy]
+            ):
                 yield
 
     def computeCubeGeometry(self, y, blockRenderers, blocks, blockData, materials, blockMaterials: np.ndarray, facingBlockIndices: list, areaBlockLights):
@@ -733,22 +803,31 @@ class ChunkCalculator (object):
         blockMaterials: A 1D array indexing block id to the index of the block renderer to use for rendering that block
 
         facingBlockIndices: A list of the 6 faces, each containing a 3D array the size of the block array in the chunk, representing which blocks for that face should be rendered
+
+        areaBlockLights: a 3D array of the light values for each block, expanded by one block on every axis from the given blocks
         """
 
         # Convert blockMaterials to a 1D array, then count how the number of occurrences of each material id
         materialCounts = np.bincount(blockMaterials.ravel())
 
         def texMap(blocks, blockData=0, direction=slice(None)):
+            """
+            returns: The textures needed for that block id in the given direction
+            """
             return materials.blockTextures[blocks, blockData, direction]  # xxx slow
 
+        # Go through each type of block renderer, figure out the index it should be using depending on if that material needs to be rendered, and add its renderer to the given list
         for blockRendererClass in self.blockRendererClasses:
+            # Skip if no blocks need this renderer
             mi = blockRendererClass.materialIndex
             if mi >= len(materialCounts) or materialCounts[mi] == 0:
                 continue
 
+            # Setup the renderer, including updating its y position
             blockRenderer = blockRendererClass(self)
             blockRenderer.y = y
             blockRenderer.materials = materials
+            # Figure out all vertex data needed for those blocks 
             for _ in blockRenderer.makeVertices(facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
                 yield
             blockRenderers.append(blockRenderer)
@@ -761,9 +840,13 @@ class ChunkCalculator (object):
         
         blockIndices: A 3D boolean array of which block coordinates of the precomputed vertices should be included
 
-        returns: A 1D array of the coordinates selected by blockIndices, where each element is a 4x6 array of the vertices for the position coordinates, texture coordinates, and color information
+        returns: A 1D array of the coordinates selected by blockIndices, where each element is a 4x6 array, 4 vertices, each vertex containing 6 floats representing position coordinates, texture coordinates, and color information
         """
-        return self.precomputedVertices[direction][blockIndices]
+        # Start with the (16,16,16) precomputed vertices
+        # Take a subset the shape of the given indexes
+        # Take only those coordinates from in the indexes
+        x, z, y = blockIndices.shape
+        return self.precomputedVertices[direction][:x, :z, :y][blockIndices]
 
 
 class Layer:
@@ -789,6 +872,9 @@ class BlockRenderer(object):
         pymclevel.faces.FaceZDecreasing: np.s_[1:-1, :-2, 1:-1],
         pymclevel.faces.FaceZIncreasing: np.s_[1:-1, 2:, 1:-1],
     }
+    """
+    Maps each direction to the relevant blocks of a block selection expanded by 1 block on all axes?
+    """
     renderstate = ChunkCalculator.renderStateAlphaTest
 
     def __init__(self, cc):
@@ -815,7 +901,12 @@ class BlockRenderer(object):
     def bufferSize(self):
         return sum(a.size for a in self.vertexArrays) * 4
 
-    def getMaterialIndices(self, blockMaterials):
+    def getMaterialIndices(self, blockMaterials: np.ndarray):
+        """
+        blockMaterials: 3D array of the block renderer ids
+
+        returns: a 3D array of booleans, of which blocks are a material to render?
+        """
         return blockMaterials == self.materialIndex
 
     def makeVertices(self, facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
@@ -1230,22 +1321,37 @@ class GenericBlockRenderer(BlockRenderer):
 
     def makeGenericVertices(self, facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
         """
-        facingBlockIndices: A array of each of the 6 faces, each array element containing a 3D boolean array of which faces are exposed at which array indexes
+        facingBlockIndices: A array of each of the 6 faces, each array element containing a 3D boolean array of which faces at which positions via indices are exposed to air
 
         blocks: A 3D array of the block ids at each position
+
+        blockMaterials: a 3D array of the "renderer" id to use for each block
+
+        blockData: a 3D array of the data/damage value of each block
+
+        areaBlockLights: a 3D array of the light values for each block, expanded by one block on every axis from the given blocks
+
+        texMap: Texture data for the blocks
         """
 
         vertexArrays = []
+        # Finding a boolean mask for how blocks should be rendered?
         materialIndices = self.getMaterialIndices(blockMaterials)
         yield
 
+        # For each of the 6 edges of the blocks, compute vertex data
         for (direction, exposedFaceIndices) in enumerate(facingBlockIndices):
+            # Find the light levels of the blocks on that face of the given blocks?
             facingBlockLight = areaBlockLights[self.directionOffsets[direction]]
+            # Find a boolean mask of the blocks that have exposed faces, and also match some boolean condition for rendering the material?
             blockIndices = materialIndices & exposedFaceIndices
 
+            # Find a 1D array of the block coordinates that need to be rendered?
             theseBlocks = blocks[blockIndices]
+            # The same but for the data/damage value
             bdata = blockData[blockIndices]
 
+            # Use the precomputed vertex data to make the actual vertex array
             vertexArray = self.makeTemplate(direction, blockIndices)
             if not len(vertexArray):
                 continue

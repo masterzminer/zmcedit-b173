@@ -3,3 +3,5 @@ add command line arguments
     specifying a dimension and or position to load into the save with
 
 remove create new world and load a world from the Minecraft install, not going to support generating terrain or an empty world, that's what Minecraft is for
+
+fix the brush sizes not always saving after changing them and closing out of mcedit

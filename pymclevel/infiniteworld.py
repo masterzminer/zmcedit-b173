@@ -587,17 +587,24 @@ class MCServerChunkGenerator(object):
         return version
 
 _zeros = {}
-def ZeroChunk(height=512):
+def ZeroChunk(height=128):
+    """
+    height: The total height the chunk should be
+
+    returns: A simple empty chunk with all air blocks
+    """
+    # See if this empty chunk has been generated before, if it is, use the cached version
     z = _zeros.get(height)
     if z is None:
+        # If it doesn't exist, compute it
         z = _zeros[height] = _ZeroChunk(height)
     return z
 
 from .level import ChunkBase
 
 class _ZeroChunk(ChunkBase):
-    " a placebo for neighboring-chunk routines "
-    def __init__(self, height=512):
+    "An empty 16x16 chunk of the given height"
+    def __init__(self, height=128):
         zeroChunk = np.zeros((16, 16, height), np.uint8)
         whiteLight = zeroChunk + 15
         self.Blocks = zeroChunk
