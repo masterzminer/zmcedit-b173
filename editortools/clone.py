@@ -446,7 +446,7 @@ class CloneTool(EditorTool):
         self.pickUp()
 
     def safeToolDistance(self):
-        return sqrt(sum([self.level.Width ** 2, self.level.Height ** 2, self.level.Length ** 2]))
+        return np.sqrt(sum([self.level.Width ** 2, self.level.Height ** 2, self.level.Length ** 2]))
 
     def toolSelected(self):
         box = self.selectionBox()
@@ -481,80 +481,40 @@ class CloneTool(EditorTool):
 
     @alertException
     def rescaleLevel(self, factor):
-        # if self.level.cloneToolScaleFactor == newFactor:
-        #    return
-        # oldfactor = self.level.cloneToolScaleFactor
-        # factor = newFactor / oldfactor
         if factor == 1:
             self.level = self.originalLevel
             self.setupPreview()
             return
 
-        oldshape = self.originalLevel.Blocks.shape
+        old_shape = self.originalLevel.Blocks.shape
         blocks = self.originalLevel.Blocks
         data = self.originalLevel.Data
 
         if factor < 1.0:
-            roundedShape = [int(int(x * factor) / factor) for x in oldshape]
+            roundedShape = [int(int(x * factor) / factor) for x in old_shape]
             roundedSlices = [slice(0, x) for x in roundedShape]
             blocks = blocks[roundedSlices]
             data = data[roundedSlices]
         else:
-            roundedShape = oldshape
+            roundedShape = old_shape
 
-        newshape = [int(x * factor) for x in oldshape]
-        xyzshape = newshape[0], newshape[2], newshape[1]
-        newlevel = MCSchematic(xyzshape, mats=self.editor.level.materials)
+        new_shape = [int(x * factor) for x in old_shape]
+        xyz_shape = new_shape[0], new_shape[2], new_shape[1]
+        new_level = MCSchematic(xyz_shape, mats=self.editor.level.materials)
 
-        srcgrid = mgrid[0:roundedShape[0]:1.0 / factor, 0:roundedShape[1]:1.0 / factor, 0:roundedShape[2]:1.0 / factor].astype('uint')
-        dstgrid = mgrid[0:newshape[0], 0:newshape[1], 0:newshape[2]].astype('uint')
-        srcgrid = srcgrid[list(map(slice, dstgrid.shape))]
-        dstgrid = dstgrid[list(map(slice, srcgrid.shape))]
+        src_grid = np.mgrid[0:roundedShape[0]:1.0 / factor, 0:roundedShape[1]:1.0 / factor, 0:roundedShape[2]:1.0 / factor].astype('uint')
+        dst_grid = np.mgrid[0:new_shape[0], 0:new_shape[1], 0:new_shape[2]].astype('uint')
+        src_grid = src_grid[tuple(map(slice, dst_grid.shape))]
+        dst_grid = dst_grid[tuple(map(slice, src_grid.shape))]
 
         def copyArray(dest, src):
-            dest[dstgrid[0], dstgrid[1], dstgrid[2]] = src[srcgrid[0], srcgrid[1], srcgrid[2]]
+            dest[dst_grid[0], dst_grid[1], dst_grid[2]] = src[src_grid[0], src_grid[1], src_grid[2]]
 
-        copyArray(newlevel.Blocks, blocks)
-        copyArray(newlevel.Data, data)
+        copyArray(new_level.Blocks, blocks)
+        copyArray(new_level.Data, data)
 
-        self.level = newlevel
+        self.level = new_level
         self.setupPreview()
-#
-#        """
-#        use array broadcasting to fill in the extra dimensions with copies of the
-#        existing ones, then later change the shape to "fold" the extras back
-#        into the original three
-#        """
-#        # if factor > 1.0:
-#        sourceSlice = slice(0, 1)
-#        destSlice = slice(None)
-#
-#        # if factor < 1.0:
-#
-#        destfactor = factor
-#        srcfactor = 1
-#        if factor < 1.0:
-#            destfactor = 1.0
-#            srcfactor = 1.0 / factor
-#
-#        intershape = newshape[0]/destfactor, destfactor, newshape[1]/destfactor, destfactor, newshape[2]/destfactor, destfactor
-#        srcshape = roundedShape[0]/srcfactor, srcfactor, roundedShape[1]/srcfactor, srcfactor, roundedShape[2]/srcfactor, srcfactor
-#
-#        newlevel = MCSchematic(xyzshape)
-#
-#        def copyArray(dest, src):
-#            dest.shape = intershape
-#            src.shape = srcshape
-#
-#            dest[:, destSlice, :, destSlice, :, destSlice] = src[:, sourceSlice, :, sourceSlice, :, sourceSlice]
-#            dest.shape = newshape
-#            src.shape = roundedShape
-#
-#        copyArray(newlevel.Blocks, blocks)
-#        copyArray(newlevel.Data, data)
-#
-#        newlevel.cloneToolScaleFactor = newFactor
-#
 
     @alertException
     def updateSchematic(self):
@@ -691,7 +651,7 @@ class CloneTool(EditorTool):
 
         color = self.color
         if self.destPoint is not None:
-            alpha = sin((self.editor.frameStartTime.second + self.editor.frameStartTime.microsecond / 1000000) * 3.14) * 0.124 + 0.25
+            alpha = np.sin((self.editor.frameStartTime.second + self.editor.frameStartTime.microsecond / 1000000) * 3.14) * 0.124 + 0.25
             color = (self.color[0], self.color[1], self.color[2], 0.06)
             box = self.getDestBox()
             if self.draggingFace is not None:
@@ -793,14 +753,14 @@ class CloneTool(EditorTool):
         return p
 
     def _draggingOrigin(self):
-        dragPos = list(map(int, list(map(floor, self.positionOnDraggingPlane()))))
-        delta = list(map(lambda s, e: e - int(floor(s)), self.draggingStartPoint, dragPos))
+        dragPos = list(map(int, list(map(np.floor, self.positionOnDraggingPlane()))))
+        delta = list(map(lambda s, e: e - int(np.floor(s)), self.draggingStartPoint, dragPos))
 
         if key.get_mods() & KMOD_SHIFT:
             ad = list(map(abs, delta))
-            midx = ad.index(max(ad))
+            mid_x = ad.index(max(ad))
             d = [0, 0, 0]
-            d[midx] = delta[midx]
+            d[mid_x] = delta[mid_x]
             dragY = self.draggingFace >> 1
             d[dragY] = delta[dragY]
             delta = d
@@ -910,7 +870,7 @@ class CloneTool(EditorTool):
 
         # pick up the object. reset the tool distance to the object's distance from the camera
         d = list(map(lambda a, b, c: abs(a - b - c / 2), self.editor.mainViewport.cameraPosition, self.destPoint, box.size))
-        self.cloneCameraDistance = sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
+        self.cloneCameraDistance = np.sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
         self.destPoint = None
         # self.panel.performButton.enabled = False
         print("Picked up")
@@ -1087,7 +1047,7 @@ class ConstructionTool(CloneTool):
             self.repeatCount = 1
             self.destPoint = None
 
-            self.editor.currentTool = self  # because save window triggers loseFocus, which triggers tool.cancel... hmmmmmm
+            self.editor.currentTool = self  # because save window triggers loseFocus, which triggers tool.cancel
 
             self.cloneCameraDistance = self.safeToolDistance()
 
