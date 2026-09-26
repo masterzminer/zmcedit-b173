@@ -18,3 +18,5 @@ filters
         figure out overflow error during subtraction
 
 make some way of viewing the current biome of a block
+
+fix buttons and other non full blocks rendering weirdly

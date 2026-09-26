@@ -1699,8 +1699,9 @@ class LevelEditor(GLViewport):
                 yield i, box.chunkCount
                 blocks = np.array(chunk.Blocks[slices], dtype='uint16')
                 blocks |= (np.array(chunk.Data[slices], dtype='uint16') << 8)
-                b = np.bincount(blocks.ravel())
-                types[:b.shape[0]] += b
+                b = np.bincount(blocks.ravel()).astype(np.uint32)
+                size = min(len(types), len(b))
+                types[:size] += b[:size]
 
                 for ent in chunk.getEntitiesInBox(box):
                     if ent["id"].value == "Item":
@@ -1719,7 +1720,8 @@ class LevelEditor(GLViewport):
         tileEntitySum = np.sum(list(tileEntityCounts.values()))
         presentTypes = types.nonzero()
 
-        blockCounts = sorted([(level.materials[t & 0xff, t >> 8], types[t]) for t in presentTypes[0]])
+        unsorted = [(level.materials[t & 0xff, t >> 8], types[t]) for t in presentTypes[0]]
+        blockCounts = sorted(unsorted, key=lambda t: t[1], reverse=True)
 
         counts = []
         c = 0
