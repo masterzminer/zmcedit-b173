@@ -65,11 +65,11 @@ def win32_utf8_argv():
 
 
 def findDirectories():
-    argzero = os.fsdecode(sys.argv[0])
+    arg_zero = os.fsdecode(sys.argv[0])
 
     if sys.platform == "win32":
         if sys.executable.endswith("python.exe") or sys.executable.endswith("pythonw.exe"):
-            dataDir = os.path.split(argzero)[0]
+            dataDir = os.path.split(arg_zero)[0]
             runningInEditor = True
         else:
             dataDir = os.path.split(sys.executable.decode(sys.getfilesystemencoding()))[0]
@@ -78,8 +78,8 @@ def findDirectories():
         dataDir = os.getcwd()
         runningInEditor = False
     else:
-        if argzero.endswith("mcedit.pyo"):
-            dataDir = os.path.split(argzero)[0]
+        if arg_zero.endswith("mcedit.pyo"):
+            dataDir = os.path.split(arg_zero)[0]
             runningInEditor = False
         else:
             dataDir = os.getcwd()

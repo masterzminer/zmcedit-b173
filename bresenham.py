@@ -1,6 +1,6 @@
 def bresenham(p1, p2):
     """Bresenham line algorithm
-    adapted for 3d.  slooooow."""
+    adapted for 3d.  slow."""
     steep = 0
     coords = []
     x, y, z = p1

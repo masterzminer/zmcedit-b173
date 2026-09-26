@@ -22,13 +22,8 @@ Pythonesque wrappers around certain OpenGL functions.
 
 from OpenGL import GL
 from OpenGL.GL.ARB import window_pos
-import numpy
-import functools
+import numpy as np
 from contextlib import contextmanager
-
-from albow import Label
-from albow.openglwidgets import GLOrtho
-import config
 
 import weakref
 from OpenGL.GL.EXT import framebuffer_object as FBO
@@ -42,20 +37,20 @@ class gl(object):
 
     @classmethod
     @contextmanager
-    def glPushMatrix(cls, matrixmode):
+    def glPushMatrix(cls, matrix_mode):
         try:
-            GL.glMatrixMode(matrixmode)
+            GL.glMatrixMode(matrix_mode)
             GL.glPushMatrix()
             yield
         finally:
-            GL.glMatrixMode(matrixmode)
+            GL.glMatrixMode(matrix_mode)
             GL.glPopMatrix()
 
     @classmethod
     @contextmanager
-    def glPushAttrib(cls, attribs):
+    def glPushAttrib(cls, attributes):
         try:
-            GL.glPushAttrib(attribs)
+            GL.glPushAttrib(attributes)
             yield
         finally:
             GL.glPopAttrib()
@@ -111,11 +106,11 @@ class DisplayList(object):
     @classmethod
     def invalidateAllLists(self):
         allLists = []
-        for listref in self.allLists:
-            list = listref()
+        for list_ref in self.allLists:
+            list = list_ref()
             if list:
                 list.invalidate()
-                allLists.append(listref)
+                allLists.append(list_ref)
 
         self.allLists = allLists
 
@@ -141,7 +136,7 @@ class DisplayList(object):
         #    print "Error while compiling display list. Retrying display list code to pinpoint error"
         #    self.drawFunc()
 
-        self._list = numpy.array([l], 'uintc')
+        self._list = np.array([l], np.uintc)
 
     def getList(self, drawFunc=None):
         self.makeList(drawFunc)
@@ -206,14 +201,14 @@ class FramebufferTexture(Texture):
         self._texID = tex
         if bool(FBO.glGenFramebuffersEXT):
             buf = FBO.glGenFramebuffersEXT(1)
-            depthbuffer = FBO.glGenRenderbuffersEXT(1)
+            depth_buffer = FBO.glGenRenderbuffersEXT(1)
 
             FBO.glBindFramebufferEXT(FBO.GL_FRAMEBUFFER_EXT, buf)
 
-            FBO.glBindRenderbufferEXT(FBO.GL_RENDERBUFFER_EXT, depthbuffer)
+            FBO.glBindRenderbufferEXT(FBO.GL_RENDERBUFFER_EXT, depth_buffer)
             FBO.glRenderbufferStorageEXT(FBO.GL_RENDERBUFFER_EXT, GL.GL_DEPTH_COMPONENT, width, height)
 
-            FBO.glFramebufferRenderbufferEXT(FBO.GL_FRAMEBUFFER_EXT, FBO.GL_DEPTH_ATTACHMENT_EXT, FBO.GL_RENDERBUFFER_EXT, depthbuffer)
+            FBO.glFramebufferRenderbufferEXT(FBO.GL_FRAMEBUFFER_EXT, FBO.GL_DEPTH_ATTACHMENT_EXT, FBO.GL_RENDERBUFFER_EXT, depth_buffer)
             FBO.glFramebufferTexture2DEXT(FBO.GL_FRAMEBUFFER_EXT, FBO.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, tex, 0)
 
             status = FBO.glCheckFramebufferStatusEXT(FBO.GL_FRAMEBUFFER_EXT)
@@ -230,7 +225,7 @@ class FramebufferTexture(Texture):
 
             FBO.glBindFramebufferEXT(FBO.GL_FRAMEBUFFER_EXT, 0)
             FBO.glDeleteFramebuffersEXT(1, [buf])
-            FBO.glDeleteRenderbuffersEXT(1, [depthbuffer])
+            FBO.glDeleteRenderbuffersEXT(1, [depth_buffer])
             self.enabled = True
         else:
             GL.glReadBuffer(GL.GL_BACK)

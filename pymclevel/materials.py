@@ -33,7 +33,7 @@ class Block(object):
     def __cmp__(self, other):
         if not isinstance(other, Block): return -1
         key = lambda a:a and (a.ID, a.blockData)
-        return cmp( key(self), key(other))
+        return np.cmp( key(self), key(other))
         
     hasVariants = False #True if blockData defines additional blocktypes
     def __init__(self, materials, blockID, blockData=0):

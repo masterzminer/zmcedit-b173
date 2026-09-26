@@ -43,6 +43,7 @@ import itertools
 import mcplatform
 import pymclevel
 import renderer
+import traceback
 
 from math import isnan
 from os.path import dirname, isdir
@@ -203,7 +204,8 @@ class ControlPanel(Panel):
 def unproject(x, y, z):
     try:
         return GLU.gluUnProject(x, y, z)
-    except ValueError:  # projection failed
+    except ValueError:
+        traceback.print_exc()  # projection failed
         return 0, 0, 0
 
 
@@ -348,19 +350,19 @@ class CameraViewport(GLViewport):
         velocity = self.velocity  # xxx learn to use matrix/vector libs
         i = inputs
         yaw = np.radians(self.yaw)
-        cosyaw = -np.cos(yaw)
-        sinyaw = np.sin(yaw)
+        cos_yaw = -np.cos(yaw)
+        sin_yaw = np.sin(yaw)
         if alignMovementToAxes:
-            cosyaw = int(cosyaw * 1.4)
-            sinyaw = int(sinyaw * 1.4)
+            cos_yaw = int(cos_yaw * 1.4)
+            sin_yaw = int(sin_yaw * 1.4)
             dx = int(dx * 1.4)
             dy = int(dy * 1.6)
             dz = int(dz * 1.4)
 
         directedInputs = mceutils.normalize((
-            i[0] * cosyaw + i[2] * dx,
+            i[0] * cos_yaw + i[2] * dx,
             i[1] + i[2] * dy,
-            i[2] * dz - i[0] * sinyaw,
+            i[2] * dz - i[0] * sin_yaw,
         ))
 
         # give the camera an impulse according to the state of the inputs and in the direction of the camera
@@ -422,7 +424,7 @@ class CameraViewport(GLViewport):
         return self._anglesToVector(self.yaw, self.pitch)
 
     def _anglesToVector(self, yaw, pitch):
-        def nanzero(x):
+        def nan_zero(x):
             if isnan(x):
                 return 0
             else:
@@ -431,7 +433,7 @@ class CameraViewport(GLViewport):
         dx = -np.sin(np.radians(yaw)) * np.cos(np.radians(pitch))
         dy = -np.sin(np.radians(pitch))
         dz = np.cos(np.radians(yaw)) * np.cos(np.radians(pitch))
-        return list(map(nanzero, [dx, dy, dz]))
+        return list(map(nan_zero, [dx, dy, dz]))
 
     def updateMouseVector(self):
         self.mouseVector = self._mouseVector()
@@ -479,11 +481,10 @@ class CameraViewport(GLViewport):
 
         try:
             pixel = GL.glReadPixels(x, y, 1, 1, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT)
-            newpoint = unproject(x, y, pixel[0])
+            return unproject(int(x), int(y), float(np.asarray(pixel).flat[0]))
         except Exception:
+            traceback.print_exc()
             return 0, 0, 0
-
-        return newpoint
 
     def updateBlockFaceUnderCursor(self):
         focusPair = None
@@ -1794,6 +1795,7 @@ class LevelEditor(GLViewport):
                 try:
                     csvfile = csv.writer(open(filename, "wb"))
                 except Exception as e:
+                    traceback.print_exc()
                     alert(str(e))
                 else:
                     csvfile.writerows(rows)

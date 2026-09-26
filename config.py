@@ -40,10 +40,10 @@ def loadConfig():
     class keyDict (collections.abc.MutableMapping):
         def __init__(self, *args, **kwargs):
             self.dict = dict(*args, **kwargs)
-            self.keyorder = []
+            self.key_order = []
 
         def keys(self):
-            return list(self.keyorder)
+            return list(self.key_order)
 
         def items(self):
             return list(self.__iteritems__())
@@ -59,13 +59,13 @@ def loadConfig():
 
         def __setitem__(self, k, v):
             self.dict[k] = v
-            if not k in self.keyorder:
-                self.keyorder.append(k)
+            if not k in self.key_order:
+                self.key_order.append(k)
 
         def __delitem__(self, k):
             del self.dict[k]
-            if k in self.keyorder:
-                self.keyorder.remove(k)
+            if k in self.key_order:
+                self.key_order.remove(k)
 
         def __contains__(self, k):
             return self.dict.__contains__(k)
@@ -76,7 +76,7 @@ def loadConfig():
         def copy(self):
             k = keyDict()
             k.dict = self.dict.copy()
-            k.keyorder = list(self.keyorder)
+            k.key_order = list(self.key_order)
             return k
 
     config = configparser.RawConfigParser([], keyDict)
@@ -192,16 +192,16 @@ def _setProperty(section, name, value):
 def _notifyObservers(section, name, value):
     observers = config.observers.get((section.lower(), name.lower()), {})
     newObservers = {}
-    for targetref, attr in observers:
-        target = targetref()
+    for target_ref, attr in observers:
+        target = target_ref()
         if target:
             log.debug("Notifying %s", target)
             setattr(target, attr, value)
-            callback = observers[targetref, attr]
+            callback = observers[target_ref, attr]
             if callback:
                 callback(value)
 
-            newObservers[targetref, attr] = callback
+            newObservers[target_ref, attr] = callback
 
     config.observers[(section, name)] = newObservers
 
@@ -222,8 +222,8 @@ def addObserver(section, name, target, attr=None, dtype=str, callback=None, defa
     log.debug("Subscribing %s.%s", target, attr)
 
     attr = sys.intern(attr)
-    targetref = weakref.ref(target)
-    observers.setdefault((targetref, attr), callback)
+    target_ref = weakref.ref(target)
+    observers.setdefault((target_ref, attr), callback)
 
     val = _getProperty(section, name, dtype, default)
 

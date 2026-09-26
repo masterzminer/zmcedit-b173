@@ -261,10 +261,10 @@ class SelectionTool(EditorTool):
 
     def describeBlockAt(self, pos):
         blockID = self.editor.level.blockAt(*pos)
-        blockdata = self.editor.level.blockDataAt(*pos)
+        block_data = self.editor.level.blockDataAt(*pos)
         text = "X: {pos[0]}\nY: {pos[1]}\nZ: {pos[2]}\n".format(pos=pos)
         text += "L: {0} S: {1}\n".format(self.editor.level.blockLightAt(*pos), self.editor.level.skylightAt(*pos))
-        text += "{name} ({bid}:{bdata})\n".format(name=self.editor.level.materials.names[blockID][blockdata], bid=blockID, pos=pos, bdata=blockdata)
+        text += "{name} ({bid}:{bdata})\n".format(name=self.editor.level.materials.names[blockID][block_data], bid=blockID, pos=pos, bdata=block_data)
         t = self.editor.level.tileEntityAt(*pos)
         if t:
             text += "TileEntity:\n"
@@ -294,30 +294,26 @@ class SelectionTool(EditorTool):
                 elif self.dragResizeFace is not None:
                     return None
                 else:
-
                     return self.describeBlockAt(pos)
 
-                return text.strip()
-
             else:
-
                 return self.worldTooltipForBlock(pos) or size
 
         except Exception as e:
+            traceback.print_exc()
             return repr(e)
 
     def worldTooltipForBlock(self, pos):
 
         x, y, z = pos
-        cx, cz = x / 16, z / 16
+        cx, cz = x // 16, z // 16
         if isinstance(self.editor.level, MCBetaLevel):
-
             if y == 0:
                 try:
                     chunk = self.editor.level.getChunk(cx, cz)
                 except ChunkNotPresent:
                     return "Chunk not present."
-                if not any(chunk.HeightMap):
+                if not chunk.HeightMap.any():
                     if self.editor.level.blockAt(x, y, z):
                         return "Chunk HeightMap is incorrect! Please relight this chunk as soon as possible!"
                     else:
