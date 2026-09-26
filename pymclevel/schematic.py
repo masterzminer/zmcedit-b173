@@ -94,8 +94,8 @@ class MCSchematic (EntityLevel):
             self.packChunkData()
 
             buf = BytesIO()
-            with closing(gzip.GzipFile(fileobj=buf, mode='wb', compresslevel=2)) as gzipper:
-                self.root_tag.save(buf=gzipper)
+            with closing(gzip.GzipFile(fileobj=buf, mode='wb', compresslevel=2)) as g_zipper:
+                self.root_tag.save(buf=g_zipper)
 
             self.compressedTag = buf.getvalue()
 
@@ -341,29 +341,29 @@ class MCSchematic (EntityLevel):
         shape = (x, z, y)
 
 
-        self.root_tag[Blocks].value = zeros(dtype='uint8', shape=shape)
-        self.root_tag[Data].value = zeros(dtype='uint8', shape=shape)
+        self.root_tag[Blocks].value = np.zeros(dtype='uint8', shape=shape)
+        self.root_tag[Data].value = np.zeros(dtype='uint8', shape=shape)
         self.shapeChunkData()
 
     def saveToFile(self, filename=None):
         """ save to file named filename, or use self.filename.  XXX NOT THREAD SAFE AT ALL. """
         if filename == None: filename = self.filename
         if filename == None:
-            warn(u"Attempted to save an unnamed schematic in place")
-            return #you fool!
+            print("Attempted to save an unnamed schematic in place")
+            return
 
         self.Materials = self.materials.name
 
         self.compress()
 
-        with open(filename, 'wb') as chunkfh:
-            chunkfh.write(self.compressedTag)
+        with open(filename, 'wb') as chunk_fh:
+            chunk_fh.write(self.compressedTag)
 
 
-    def setBlockDataAt(self, x, y, z, newdata):
+    def setBlockDataAt(self, x, y, z, new_data):
         if x < 0 or y < 0 or z < 0: return 0
         if x >= self.Width or y >= self.Height or z >= self.Length: return 0;
-        self.Data[x, z, y] = (newdata & 0xf)
+        self.Data[x, z, y] = (new_data & 0xf)
 
     def blockDataAt(self, x, y, z):
         if x < 0 or y < 0 or z < 0: return 0

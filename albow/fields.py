@@ -52,7 +52,6 @@ class TextEditor(Widget):
             draw.line(surface, fg, (x, y), (x, y + h - 1))
 
     def key_down(self, event):
-        print("-----------------", event)
         if not (event.cmd or event.alt):
             k = event.key
             if k == K_LEFT:

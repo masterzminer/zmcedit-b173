@@ -58,6 +58,7 @@ class MCJavaLevel(MCLevel):
             Height = 256
         return Width, Length, Height
 
+    # TODO when would these ever be the first 4 bytes? Every level.dat file for every world in every version I've checked so far has hex bytes 1f 8b 08 00
     @classmethod
     def _isDataLevel(cls, data):
         return (data[0] == 0x27 and

@@ -21,7 +21,6 @@ Copyright 2010 David Rio Vierra
 
 
 import collections
-import itertools
 import struct
 import gzip
 from io import BytesIO
@@ -29,7 +28,7 @@ import os
 from contextlib import closing
 import numpy as np
 
-TAGfmt = ">b"
+tag_format = ">b"
 
 class NBTFormatError(RuntimeError): pass
 
@@ -83,7 +82,7 @@ class TAG_Value(object):
 
 
     def write_tag(self, buf):
-        buf.write(struct.pack(TAGfmt, self.tag))
+        buf.write(struct.pack(tag_format, self.tag))
     def write_name(self, buf):
         if self.name != None:
             TAG_String(self.name).write_value(buf)
@@ -470,7 +469,7 @@ class TAG_List(TAG_Value, collections.abc.MutableSequence):
             self.value.insert(i, v)
 
     def write_value(self, buf):
-        buf.write(struct.pack(TAGfmt, self.list_type))
+        buf.write(struct.pack(tag_format, self.list_type))
         TAG_Int(len(self)).write_value(buf)
         for i in self.value:
             i.write_value(buf)

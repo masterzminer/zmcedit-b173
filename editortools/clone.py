@@ -580,9 +580,9 @@ class CloneTool(EditorTool):
 
         # print size; raise SystemExit
         if any(direction) and pos[1] >= 0:
-            x, y, z = list(map(lambda p, s, d: p - s / 2 + s * d / 2 + (d > 0), pos, size, direction))
+            x, y, z = list(map(lambda p, s, d: p - s // 2 + s * d // 2 + (d > 0), pos, size, direction))
         else:
-            x, y, z = list(map(lambda p, s: p - s / 2, pos, size))
+            x, y, z = list(map(lambda p, s: p - s // 2, pos, size))
 
         if self.chunkAlign:
             x = x & ~0xf

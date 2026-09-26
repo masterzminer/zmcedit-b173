@@ -1643,7 +1643,8 @@ class LevelEditor(GLViewport):
         panel.bg_color = (0.0, 0.0, 0.0, 0.5)
         self.thumbCache = thumbCache = self.thumbCache or {}
         self.fboCache = self.fboCache or {}
-        for k in self.thumbCache.keys():
+        thumb_keys = list(self.thumbCache.keys())
+        for k in thumb_keys:
             if k not in self.copyStack:
                 del self.thumbCache[k]
 
@@ -1762,10 +1763,10 @@ class LevelEditor(GLViewport):
                 table.reverseSort = not table.reverseSort
             else:
                 table.reverseSort = (col.title == "Count")
-            colnum = columns.index(col)
+            col_num = columns.index(col)
 
             def sortKey(x):
-                val = x[colnum]
+                val = x[col_num]
                 if isinstance(val, str):
                     alphanum_key(val)
                 return val

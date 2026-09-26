@@ -171,7 +171,7 @@ Copyright 2010 David Rio Vierra
 
 import os
 import logging
-from numpy import fromstring
+from numpy import frombuffer
 from . import nbt
 
 from .mclevelbase import *
@@ -208,17 +208,17 @@ def fromFile(filename) -> MCLevel:
         raise ValueError("Folder {0} was not identified as a Minecraft level.".format(os.path.basename(filename)))
 
     f = open(filename, 'rb')
-    rawdata = f.read()
+    raw_data = f.read()
     f.close()
-    if len(rawdata) < 4:
-        raise ValueError("{0} is too small! ({1}) ".format(filename, len(rawdata)))
+    if len(raw_data) < 4:
+        raise ValueError("{0} is too small! ({1}) ".format(filename, len(raw_data)))
 
     if MCBetaLevel._isLevel(filename):
         info(u"Detected level.dat")
         return MCBetaLevel(filename=filename)
 
 
-    data = fromstring(rawdata, dtype='uint8')
+    data = frombuffer(raw_data, dtype='uint8')
     if not data.any():
         raise ValueError("{0} contains only zeroes. This file is damaged beyond repair.")
 
@@ -233,12 +233,12 @@ def fromFile(filename) -> MCLevel:
     compressed = True
     unzippedData = None
     try:
-        unzippedData = gunzip(rawdata)
+        unzippedData = gunzip(raw_data)
     except Exception as e:
         info(u"Exception during Gzip operation, assuming {0} uncompressed: {1!r}".format(filename, e))
         if unzippedData is None:
             compressed = False
-            unzippedData = rawdata
+            unzippedData = raw_data
 
     #data = 
     data = unzippedData
