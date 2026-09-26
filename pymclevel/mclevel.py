@@ -8,7 +8,6 @@ import mclevel
 
 # Call mclevel.fromFile to identify and open any of these four file formats:
 #
-# Classic levels - gzipped serialized java objects.  Returns an instance of MCJavalevel
 # Schematics - gzipped NBT data in a single file.  Returns an MCSchematic.  
 #   MCSchematics have the special method rotateLeft which will reorient torches, stairs, and other tiles appropriately.
 # Alpha levels - world folder structure containing level.dat and chunk folders.  Single or Multiplayer.
@@ -16,16 +15,6 @@ import mclevel
 
 # Load a Classic level.
 level = mclevel.fromFile("server_level.dat"); 
-
-# fromFile identified the file type and returned a MCJavaLevel.  MCJavaLevel doesn't actually know any java. It guessed the
-# location of the Blocks array by starting at the end of the file and moving backwards until it only finds valid blocks.
-# It also doesn't know the dimensions of the level.  This is why you have to tell them to MCEdit via the filename.
-# This works here too:  If the file were 512 wide, 512 long, and 128 high, I'd have to name it "server_level_512_512_128.dat"
-#
-# This is one area for improvement.
-
-# Classic and Indev levels have all of their blocks in one place.
-blocks = level.Blocks
 
 # Sand to glass.
 blocks[blocks == level.materials.Sand.ID] = level.materials.Glass.ID
@@ -176,7 +165,6 @@ from . import nbt
 
 from .mclevelbase import *
 from .infiniteworld import *
-from .java import *
 from .level import *
 from .schematic import *
 
@@ -222,14 +210,6 @@ def fromFile(filename) -> MCLevel:
     if not data.any():
         raise ValueError("{0} contains only zeroes. This file is damaged beyond repair.")
 
-
-    if MCJavaLevel._isDataLevel(data):
-        info(u"Detected Java-style level")
-        lev = MCJavaLevel(filename, data)
-        lev.compressed = False
-        return lev
-
-    #ungzdata = None
     compressed = True
     unzippedData = None
     try:
@@ -240,27 +220,14 @@ def fromFile(filename) -> MCLevel:
             compressed = False
             unzippedData = raw_data
 
-    #data = 
     data = unzippedData
-    if MCJavaLevel._isDataLevel(data):
-        info(u"Detected compressed Java-style level")
-        lev = MCJavaLevel(filename, data)
-        lev.compressed = compressed
-        return lev
 
     try:
         root_tag = nbt.load(buf=data)
 
     except Exception as e:
-        info(u"Error during NBT load: {0!r}".format(e))
-        info(traceback.format_exc())
-        info(u"Fallback: Detected compressed flat block array, yzx ordered ")
-        try:
-            lev = MCJavaLevel(filename, data)
-            lev.compressed = compressed
-            return lev
-        except Exception as e2:
-            raise(LoadingError, ("Multiple errors encountered", e, e2), sys.exc_info()[2])
+        traceback.print_exc()
+        print(u"Error during NBT load: {0!r}".format(e))
 
     else:
         if MCSchematic._isTagLevel(root_tag):

@@ -41,7 +41,6 @@ from pygame import display
 
 from albow import request_new_filename, request_old_filename
 from pymclevel import saveFileDir, minecraftDir
-from pymclevel.infiniteworld import MCServerChunkGenerator, ServerJarStorage
 from pymclevel import items
 
 import shutil
@@ -427,12 +426,5 @@ if filtersDir not in [s
                       for s in sys.path]:
                           
     sys.path.append(filtersDir)
-
-if portable:
-    serverJarStorageDir = (os.path.join(parentDir, "ServerJarStorage"))
-    ServerJarStorage.defaultCacheDir = serverJarStorageDir
-    jarStorage = ServerJarStorage(serverJarStorageDir)
-else:
-    jarStorage = ServerJarStorage()
 
 items.items = items.Items(join(directories.dataDir, "pymclevel", "items.txt"))

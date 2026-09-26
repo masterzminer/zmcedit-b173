@@ -15,7 +15,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
 
 from .toolbasics import *
-from pymclevel.infiniteworld import MCServerChunkGenerator
 from albow.dialogs import Dialog
 import numpy as np
 
@@ -344,84 +343,27 @@ def GeneratorPanel():
     panel.grass = True
     panel.simulate = False
 
-    jarStorage = MCServerChunkGenerator.getDefaultJarStorage()
-    if jarStorage:
-        jarStorage.reloadVersions()
-
-    generatorChoice = ChoiceButton(["Minecraft Server", "Flatland"])
+    # TODO probably add options for an all air chunk vs a flatland
+    generatorChoice = ChoiceButton(["Flatland"])
     panel.generatorChoice = generatorChoice
     col = [Row((Label("Generator:"), generatorChoice))]
-    noVersionsRow = Label("Will automatically download and use the latest version")
     versionContainer = Widget()
 
-    heightinput = IntInputRow("Height: ", ref=AttrRef(panel, "chunkHeight"), min=0, max=128)
-    grassinput = CheckBoxLabel("Grass", ref=AttrRef(panel, "grass"))
+    height_input = IntInputRow("Height: ", ref=AttrRef(panel, "chunkHeight"), min=0, max=128)
+    grass_input = CheckBoxLabel("Grass", ref=AttrRef(panel, "grass"))
 
-    flatPanel = Column([heightinput, grassinput], align="l")
+    flatPanel = Column([height_input, grass_input], align="l")
 
     def generatorChoiceChanged():
-        serverPanel.visible = generatorChoice.selectedChoice == "Minecraft Server"
-        flatPanel.visible = not serverPanel.visible
+        flatPanel.visible = True
 
     generatorChoice.choose = generatorChoiceChanged
 
-    versionChoice = None
-
-    if len(jarStorage.versions):
-        def checkForUpdates():
-            def _check():
-                yield
-                jarStorage.downloadCurrentServer()
-                yield
-
-            showProgress("Checking for server updates...", _check())
-            versionChoice.choices = sorted(jarStorage.versions, reverse=True)
-            versionChoice.choiceIndex = 0
-
-        versionChoice = ChoiceButton(sorted(jarStorage.versions, reverse=True))
-        versionChoiceRow = (Row((
-            Label("Server version:"),
-            versionChoice,
-            Label("or"),
-            Button("Check for Updates", action=checkForUpdates))))
-        panel.versionChoice = versionChoice
-        versionContainer.add(versionChoiceRow)
-    else:
-        versionContainer.add(noVersionsRow)
-
     versionContainer.shrink_wrap()
-
-    menu = Menu("Advanced", [
-        ("Open Server Storage", "revealStorage"),
-        ("Reveal World Cache", "revealCache"),
-        ("Delete World Cache", "clearCache")
-        ])
-
-    def presentMenu():
-        i = menu.present(advancedButton.parent, advancedButton.topleft)
-        if i != -1:
-            (revealStorage, revealCache, clearCache)[i]()
-
-    advancedButton = Button("Advanced...", presentMenu)
-
-    @alertException
-    def revealStorage():
-        mcplatform.platform_open(jarStorage.cacheDir)
-
-    @alertException
-    def revealCache():
-        mcplatform.platform_open(MCServerChunkGenerator.worldCacheDir)
-
-    #revealCacheRow = Row((Label("Minecraft Server Storage: "), Button("Open Folder", action=revealCache, tooltipText="Click me to install your own minecraft_server.jar if you have any.")))
-
-    @alertException
-    def clearCache():
-        MCServerChunkGenerator.clearWorldCache()
 
     simRow = CheckBoxLabel("Simulate world", ref=AttrRef(panel, "simulate"), tooltipText="Simulate the world for a few seconds after generating it. Reduces the save file size by processing all of the TileTicks.")
 
-    simRow = Row((simRow, advancedButton), anchor="lrh")
-    #deleteCacheRow = Row((Label("Delete Temporary World File Cache?"), Button("Delete Cache!", action=clearCache, tooltipText="Click me if you think your chunks are stale.")))
+    simRow = Row((simRow,), anchor="lrh")
 
     serverPanel = Column([versionContainer, simRow, ], align="l")
 
@@ -435,76 +377,52 @@ def GeneratorPanel():
     panel.shrink_wrap()
 
     def generate(level, arg):
-        useServer = generatorChoice.selectedChoice == "Minecraft Server"
+        def _createChunks():
+            height = panel.chunkHeight
+            grass = panel.grass and alphaMaterials.Grass.ID or alphaMaterials.Dirt.ID
+            if isinstance(arg, BoundingBox):
+                chunks = list(arg.chunkPositions)
+            else:
+                chunks = arg
 
-        if useServer:
-            def _createChunks():
+            if level.dimNo in (-1, 1):
+                maxskylight = 0
+            else:
+                maxskylight = 15
+
+            for i, (cx, cz) in enumerate(chunks):
+
+                yield i, len(chunks)
+                #surface = blockInput.blockInfo
+
+                #for cx, cz in :
                 try:
-                    if versionChoice:
-                        version = versionChoice.selectedChoice
+                    level.createChunk(cx, cz)
+                except ValueError as e:  # chunk already present
+                    print(e)
+                    continue
+                else:
+                    ch = level.getChunk(cx, cz)
+                    if height > 0:
+                        stoneHeight = max(0, height - 5)
+                        grassHeight = max(0, height - 1)
+
+                        ch.Blocks[:, :, grassHeight] = grass
+                        ch.Blocks[:, :, stoneHeight:grassHeight] = alphaMaterials.Dirt.ID
+                        ch.Blocks[:, :, :stoneHeight] = alphaMaterials.Stone.ID
+
+                        ch.Blocks[:, :, 0] = alphaMaterials.Bedrock.ID
+                        ch.SkyLight[:, :, height:] = maxskylight
+                        if maxskylight:
+                            ch.HeightMap[:] = height
+
                     else:
-                        version = None
-                    gen = MCServerChunkGenerator(version=version)
-                except Exception as e:
-                    traceback.print_exc()
-                    alert("Failed to start the chunk generator. {0!r}".format(e))
-                    yield "Failed"
-                    return
+                        ch.SkyLight[:] = maxskylight
 
-                if isinstance(arg, BoundingBox):
-                    for i in gen.createLevelIter(level, arg, simulate=panel.simulate):
-                        yield i
-                else:
-                    for i in gen.generateChunksInLevelIter(level, arg, simulate=panel.simulate):
-                        yield i
-
-        else:
-            def _createChunks():
-                height = panel.chunkHeight
-                grass = panel.grass and alphaMaterials.Grass.ID or alphaMaterials.Dirt.ID
-                if isinstance(arg, BoundingBox):
-                    chunks = list(arg.chunkPositions)
-                else:
-                    chunks = arg
-
-                if level.dimNo in (-1, 1):
-                    maxskylight = 0
-                else:
-                    maxskylight = 15
-
-                for i, (cx, cz) in enumerate(chunks):
-
-                    yield i, len(chunks)
-                    #surface = blockInput.blockInfo
-
-                    #for cx, cz in :
-                    try:
-                        level.createChunk(cx, cz)
-                    except ValueError as e:  # chunk already present
-                        print(e)
-                        continue
-                    else:
-                        ch = level.getChunk(cx, cz)
-                        if height > 0:
-                            stoneHeight = max(0, height - 5)
-                            grassHeight = max(0, height - 1)
-
-                            ch.Blocks[:, :, grassHeight] = grass
-                            ch.Blocks[:, :, stoneHeight:grassHeight] = alphaMaterials.Dirt.ID
-                            ch.Blocks[:, :, :stoneHeight] = alphaMaterials.Stone.ID
-
-                            ch.Blocks[:, :, 0] = alphaMaterials.Bedrock.ID
-                            ch.SkyLight[:, :, height:] = maxskylight
-                            if maxskylight:
-                                ch.HeightMap[:] = height
-
-                        else:
-                            ch.SkyLight[:] = maxskylight
-
-                        ch.needsLighting = False
-                        ch.dirty = True
-                        ch.save()
-                        ch.unload()
+                    ch.needsLighting = False
+                    ch.dirty = True
+                    ch.save()
+                    ch.unload()
 
         return _createChunks()
 

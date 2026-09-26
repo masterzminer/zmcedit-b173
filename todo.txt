@@ -20,3 +20,5 @@ filters
 make some way of viewing the current biome of a block
 
 fix buttons and other non full blocks rendering weirdly
+
+change creating a new world to just copying a baked in empty world with only one chunk of all air as a template
