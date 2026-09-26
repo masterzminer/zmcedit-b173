@@ -1242,7 +1242,7 @@ class LowDetailBlockRenderer(BlockRenderer):
             blockIndices[grid_axes] = nonAirBlocks
             h += 1
             np.clip(h, 0, chunkHeight - 1, out=h)
-            overblocks = blocks[grid_axes][nonAirBlocks].ravel()
+            over_blocks = blocks[grid_axes][nonAirBlocks].ravel()
 
         except ValueError as e:
             traceback.print_exc()
@@ -1251,8 +1251,7 @@ class LowDetailBlockRenderer(BlockRenderer):
         if nonAirBlocks.any():
             blockTypes = blocks[blockIndices]
 
-            flatcolors = level.materials.flatColors[blockTypes, ch.Data[blockIndices] & 0xf][:, np.newaxis, :]
-            # flatcolors[:,:,:3] *= (0.6 + (h * (0.4 / float(chunkHeight-1)))) [topBlocks != 0][:, np.newaxis, np.newaxis]
+            flat_colors = level.materials.flatColors[blockTypes, ch.Data[blockIndices] & 0xf][:, np.newaxis, :]
             x, z, y = blockIndices.nonzero()
 
             yield
@@ -1265,15 +1264,15 @@ class LowDetailBlockRenderer(BlockRenderer):
 
             va0[..., :3] += faceVertexTemplates[pymclevel.faces.FaceYIncreasing, ..., :3]
 
-            overmask = overblocks > 0
-            flatcolors[overmask] = level.materials.flatColors[:, 0][overblocks[overmask]][:, np.newaxis]
+            over_mask = over_blocks > 0
+            flat_colors[over_mask] = level.materials.flatColors[:, 0][over_blocks[over_mask]][:, np.newaxis]
 
             if self.detailLevel == 2:
-                heightfactor = (y / float(2.0 * ch.world.Height)) + 0.5
-                flatcolors[..., :3] *= heightfactor[:, np.newaxis, np.newaxis]
+                height_factor = (y / float(2.0 * ch.world.Height)) + 0.5
+                flat_colors[..., :3] = (flat_colors[..., :3].astype(np.float64) * height_factor[:, np.newaxis, np.newaxis]).astype(np.uint8)
 
             _RGBA = np.s_[..., 12:16]
-            va0.view('uint8')[_RGBA] = flatcolors
+            va0.view('uint8')[_RGBA] = flat_colors
 
             va0[_XYZ][:, :, 0] *= step
             va0[_XYZ][:, :, 2] *= step
@@ -1294,9 +1293,9 @@ class LowDetailBlockRenderer(BlockRenderer):
             va1[_XYZ][:, :, 2] *= step
 
             # Darken the colors
-            flatcolors = (flatcolors * 0.8).astype(np.uint8)
+            flat_colors = (flat_colors * 0.8).astype(np.uint8)
 
-            va1.view('uint8')[_RGBA] = flatcolors
+            va1.view('uint8')[_RGBA] = flat_colors
             grassmask = topBlocks[nonAirBlocks] == 2
             # color grass sides with dirt's color
             va1.view('uint8')[_RGBA][grassmask] = level.materials.flatColors[:, 0][[3]][:, np.newaxis]
