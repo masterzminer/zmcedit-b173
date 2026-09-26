@@ -17,6 +17,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 from .toolbasics import *
 from pymclevel.infiniteworld import MCServerChunkGenerator
 from albow.dialogs import Dialog
+import numpy as np
 
 
 class ChunkToolPanel(Panel):
@@ -140,10 +141,10 @@ class ChunkTool(EditorTool):
                     continue
                 chunks = array(chunks, dtype='float32')
 
-                chunkPosition = zeros(shape=(chunks.shape[0], 4, 3), dtype='float32')
+                chunkPosition = np.zeros(shape=(chunks.shape[0], 4, 3), dtype='float32')
                 chunkPosition[..., (0, 2)] = array(((0, 0), (0, 1), (1, 1), (1, 0)), dtype='float32')
                 chunkPosition[..., (0, 2)] *= size
-                chunkPosition[..., (0, 2)] += chunks[:, newaxis, :]
+                chunkPosition[..., (0, 2)] += chunks[:, np.newaxis, :]
                 chunkPosition *= 16
                 chunkPosition[..., 1] = self.editor.level.Height
                 glVertexPointer(3, GL_FLOAT, 0, chunkPosition.ravel())
@@ -153,7 +154,7 @@ class ChunkTool(EditorTool):
         for d, points, positions in lines:
             if 0 == len(positions):
                 continue
-            vertexArray = zeros((len(positions), 4, 3), dtype='float32')
+            vertexArray = np.zeros((len(positions), 4, 3), dtype='float32')
             vertexArray[..., [0, 2]] = positions
             vertexArray.shape = len(positions), 2, 2, 3
 
