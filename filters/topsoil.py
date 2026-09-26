@@ -7,7 +7,7 @@ from pymclevel.level import extractHeights
 
 am = alphaMaterials
 
-#naturally occuring materials
+#naturally occurring materials
 blocks = [
   am.Grass,
   am.Dirt,
@@ -27,13 +27,13 @@ blocks = [
   am.Clay,
   am.Glowstone
 ]
-blocktypes = [b.ID for b in blocks]
+block_types = [b.ID for b in blocks]
 
 
-def naturalBlockmask():
-    blockmask = zeros((256,), dtype='bool')
-    blockmask[blocktypes] = True
-    return blockmask
+def naturalBlockMask():
+    block_mask = zeros((256,), dtype='bool')
+    block_mask[block_types] = True
+    return block_mask
 
 inputs = (
   ("Depth", (4, -128, 128)),
@@ -46,12 +46,12 @@ def perform(level, box, options):
     blocktype = options["Pick a block:"]
 
     #compute a truth table that we can index to find out whether a block
-    # is naturally occuring and should be considered in a heightmap
-    blockmask = naturalBlockmask()
+    # is naturally occuring and should be considered in a height map
+    block_mask = naturalBlockMask()
 
-    # always consider the chosen blocktype to be "naturally occuring" to stop
+    # always consider the chosen blocktype to be "naturally occurring" to stop
     # it from adding extra layers
-    blockmask[blocktype.ID] = True
+    block_mask[blocktype.ID] = True
 
     #iterate through the slices of each chunk in the selection box
     for chunk, slices, point in level.getChunkSlices(box):
@@ -61,13 +61,13 @@ def perform(level, box, options):
         data = chunk.Data[slices]
 
         # use indexing to look up whether or not each block in blocks is
-        # naturally-occuring. these blocks will "count" for column height.
-        maskedBlocks = blockmask[blocks]
+        # naturally-occurring. these blocks will "count" for column height.
+        maskedBlocks = block_mask[blocks]
 
-        heightmap = extractHeights(maskedBlocks)
+        height_map = extractHeights(maskedBlocks)
 
-        for x, z in itertools.product(*list(map(xrange, heightmap.shape))):
-            h = heightmap[x, z]
+        for x, z in itertools.product(*list(map(range, height_map.shape))):
+            h = height_map[x, z]
             if depth > 0:
                 blocks[x, z, max(0, h - depth):h] = blocktype.ID
                 data[x, z, max(0, h - depth):h] = blocktype.blockData

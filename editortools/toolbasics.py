@@ -255,7 +255,7 @@ class BlockView(GLOrtho):
 
     def _gl_draw(self):
         blockInfo = self.blockInfo
-        if blockInfo.ID is 0:
+        if blockInfo.ID == 0:
             return
 
         glColor(1.0, 1.0, 1.0, 1.0)

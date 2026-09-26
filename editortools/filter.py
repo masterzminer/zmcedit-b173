@@ -16,7 +16,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 from .toolbasics import *
 from albow.dialogs import wrapped_label
 from albow import *
-
+import importlib
 
 def alertFilterException(func):
     def _func(*args, **kw):
@@ -30,15 +30,15 @@ def alertFilterException(func):
 
 def addNumField(page, optionName, val, min=None, max=None):
         if isinstance(val, float):
-            ftype = FloatField
+            f_type = FloatField
         else:
-            ftype = IntField
+            f_type = IntField
 
         if min == max:
             min = None
             max = None
 
-        field = ftype(value=val, width=100, min=min, max=max)
+        field = f_type(value=val, width=100, min=min, max=max)
         page.optionDict[optionName] = AttrRef(field, 'value')
 
         row = Row([Label(optionName), field])
@@ -142,10 +142,10 @@ class FilterModuleOptions(Widget):
                         rows.append(Row((Label(optionName), choiceButton)))
 
             elif isinstance(optionType, bool):
-                cbox = CheckBox(value=optionType)
-                page.optionDict[optionName] = AttrRef(cbox, 'value')
+                c_box = CheckBox(value=optionType)
+                page.optionDict[optionName] = AttrRef(c_box, 'value')
 
-                row = Row((Label(optionName), cbox))
+                row = Row((Label(optionName), c_box))
                 rows.append(row)
           
             elif isinstance(optionType, (int, float)):
@@ -350,18 +350,20 @@ class FilterTool(EditorTool):
     def reloadFilters(self):
         filterDir = mcplatform.filtersDir
         filterFiles = os.listdir(filterDir)
-        filterPyfiles = [x for x in filterFiles if x.endswith(".py")]
+        filterPyFiles = [x for x in filterFiles if x.endswith(".py")]
 
-        filterModules = (__import__(x[:-3]) for x in filterPyfiles)
+        filterModules = (__import__(x[:-3]) for x in filterPyFiles)
         filterModules = [module for module in filterModules if hasattr(module, "perform")]
 
         self.filterModules = dict((self.moduleDisplayName(x), x) for x in filterModules)
-        [reload(m) for m in self.filterModules.values()]
-        filterModules = (__import__(x[:-3]) for x in filterPyfiles)
+        [importlib.reload(m) for m in self.filterModules.values()]
+        filterModules = (__import__(x[:-3]) for x in filterPyFiles)
 
     @property
     def filterNames(self):
-        return [self.moduleDisplayName(module) for module in self.filterModules.values()]
+        names = [self.moduleDisplayName(module) for module in self.filterModules.values()]
+        names.sort()
+        return names
 
     def moduleDisplayName(self, module):
         return module.displayName if hasattr(module, 'displayName') else module.__name__.capitalize()

@@ -15,12 +15,7 @@ from pymclevel import TileEntity
 
 displayName = "Create Spawners"
 
-inputs = (
-	("Include position data", False),
-)
-
 def perform(level, box, options):
-	includePos = options["Include position data"]
 	entitiesToRemove = []
 
 	for (chunk, slices, point) in level.getChunkSlices(box):
@@ -39,8 +34,6 @@ def perform(level, box, options):
 				TileEntity.setpos(spawner, (x, y, z))
 				spawner["Delay"] = TAG_Short(120)
 				spawner["SpawnData"] = entity
-				if not includePos:
-					del spawner["SpawnData"]["Pos"]
 				spawner["EntityId"] = entity["id"]
 				
 				chunk.TileEntities.append(spawner)

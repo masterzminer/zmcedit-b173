@@ -3,31 +3,13 @@
 # http://youtube.com/SethBling
 
 
-from pymclevel import TAG_List
-from pymclevel import TAG_Byte
 from pymclevel import TAG_Int
-from pymclevel import TAG_Compound
 from pymclevel import TAG_Short
 from pymclevel import TAG_Double
-from pymclevel import TAG_String
+from pymclevel import TAG_Float
 
 displayName = "Change Mob Properties"
-
-Professions = {
-	"Farmer (brown)": 0,
-	"Librarian (white)": 1,
-	"Priest (purple)": 2,
-	"Blacksmith (black apron)": 3,
-	"Butcher (white apron)": 4,
-	"Villager (green)": 5,
-	}
 	
-ProfessionKeys = ("N/A",)
-for key in Professions.keys():
-	ProfessionKeys = ProfessionKeys + (key,)
-	
-	
-
 noop = -1337
 	
 inputs = (
@@ -40,13 +22,7 @@ inputs = (
 	("Air", noop),
 	("AttackTime", noop),
 	("HurtTime", noop),
-	("Lightning Creeper", ("N/A", "Lightning", "No Lightning")),
-	("Enderman Block Id", noop),
-	("Enderman Block Data", noop),
-	("Villager Profession", ProfessionKeys),
-	("Slime Size", noop),
-	("Breeding Mode Ticks", noop),
-	("Child/Adult Age", noop),
+	("Slime Size", noop)
 )
 
 def perform(level, box, options):
@@ -59,13 +35,7 @@ def perform(level, box, options):
 	air = options["Air"]
 	attackTime = options["AttackTime"]
 	hurtTime = options["HurtTime"]
-	powered = options["Lightning Creeper"]
-	blockId = options["Enderman Block Id"]
-	blockData = options["Enderman Block Data"]
-	profession = options["Villager Profession"]
 	size = options["Slime Size"]
-	breedTicks = options["Breeding Mode Ticks"]
-	age = options["Child/Adult Age"]
 	
 
 	for (chunk, slices, point) in level.getChunkSlices(box):
@@ -101,27 +71,7 @@ def perform(level, box, options):
 					if hurtTime != noop:
 						e["HurtTime"] = TAG_Short(hurtTime)
 					
-					if powered != "N/A" and e["id"].value == "Creeper":
-						if powered == "Lightning":
-							e["powered"] = TAG_Byte(1)
-						if powered == "No Lightning":
-							e["powered"] = TAG_Byte(0)
-
-					if blockId != noop and e["id"].value == "Enderman":
-						e["carried"] = TAG_Short(blockId)
-					if blockData != noop and e["id"].value == "Enderman":
-						e["carriedData"] = TAG_Short(blockData)
-					
-					if profession != "N/A" and e["id"].value == "Villager":
-						e["Profession"] = TAG_Int(Professions[profession])
-					
 					if size != noop and e["id"].value == "Slime":
 						e["Size"] = TAG_Int(size)
-					
-					if breedTicks != noop:
-						e["InLove"] = TAG_Int(breedTicks)
-					
-					if age != noop:
-						e["Age"] = TAG_Int(age)
 					
 					chunk.dirty = True

@@ -5,18 +5,8 @@
 #
 # If you modify and redistribute this code, please credit SethBling
 
-
-from pymclevel import MCSchematic
-from pymclevel import TAG_Compound
-from pymclevel import TAG_Short
-from pymclevel import TAG_Byte
-from pymclevel import TAG_Byte_Array
-from pymclevel import TAG_String
-from numpy import zeros
-
 inputs = (
     ("Biome", ("Desert",
-               "Mushroom Island",
                "Ocean",
                "Plains",
                "Mountains",
@@ -25,19 +15,15 @@ inputs = (
                "Swamp",
                "River",
                "Nether",
-               "Sky",
                "Frozen Ocean",
                "Frozen River",
                "Ice Plains",
                "Ice Mountains",
-               "Mushroom Shore",
                "Beach",
                "Desert Hills",
                "Forest Hills",
                "Taiga Hills",
                "Mountains Edge",
-               "Jungle",
-               "Jungle Hills",
                )),
 )
 
@@ -51,20 +37,15 @@ biomes = {
     "Swamp":6,
     "River":7,
     "Nether":8,
-    "Sky":9,
     "Frozen Ocean":10,
     "Frozen River":11,
     "Ice Plains":12,
     "Ice Mountains":13,
-    "Mushroom Island":14,
-    "Mushroom Shore":15,
     "Beach":16,
     "Desert Hills":17,
     "Forest Hills":18,
     "Taiga Hills":19,
     "Mountains Edge":20,
-    "Jungle":21,
-    "Jungle Hills":22,
     }
 
 def perform(level, box, options):

@@ -53,13 +53,13 @@ def perform(level, box, options):
     '''Load the file, create the trees, and save the new file.
     '''
     # set up the non 1 to 1 mappings of options to Forester global names
-    optmap = {
-        "Tree Height": "CENTERHEIGHT",
+    opt_map = {
+        "Tree Height": "CENTER_HEIGHT",
     }
     # automatically set the options that map 1 to 1 from options to Forester
 
     def setOption(opt):
-        OPT = optmap.get(opt, opt.replace(" ", "").upper())
+        OPT = opt_map.get(opt, opt.replace(" ", "").upper())
         if OPT in dir(Forester):
             val = options[opt]
             if isinstance(val, str):
@@ -70,26 +70,26 @@ def perform(level, box, options):
     # set all of the options
     for option in options:
         setOption(option)
-    # set the EDGEHEIGHT the same as CENTERHEIGHT
-    Forester.EDGEHEIGHT = Forester.CENTERHEIGHT
+    # set the EDGE_HEIGHT the same as CENTER_HEIGHT
+    Forester.EDGE_HEIGHT = Forester.CENTER_HEIGHT
     # set the materials
     wood = options["Wood Material"]
     leaf = options["Leaf Material"]
     grass = options["Plant On"]
 
-    Forester.WOODINFO = {"B": wood.ID, "D": wood.blockData}
-    Forester.LEAFINFO = {"B": leaf.ID, "D": leaf.blockData}
-    Forester.PLANTON = [grass.ID]
+    Forester.WOOD_INFO = {"B": wood.ID, "D": wood.blockData}
+    Forester.LEAF_INFO = {"B": leaf.ID, "D": leaf.blockData}
+    Forester.PLANT_ON = [grass.ID]
 
     # calculate the plant-on center and radius
     x_center = int(box.minx + (box.width / 2))
     z_center = int(box.minz + (box.length / 2))
-    edge_padding = int(Forester.EDGEHEIGHT * 0.618)
+    edge_padding = int(Forester.EDGE_HEIGHT * 0.618)
     max_dim = min(box.width, box.length)
     planting_radius = (max_dim / 2) - edge_padding
     if planting_radius <= 1:
         planting_radius = 1
-        Forester.TREECOUNT = 1
+        Forester.TREE_COUNT = 1
         print("Box isn't wide and/or long enough. Only planting one tree.")
     # set the position to plant
     Forester.X = x_center
@@ -100,13 +100,13 @@ def perform(level, box, options):
     # set the Forester settings that are not in the inputs
     # and should be a specific value
     # take these out if added to settings
-    Forester.LIGHTINGFIX = False
-    Forester.MAXTRIES = 5000
+    Forester.LIGHTING_FIX = False
+    Forester.MAX_TRIES = 5000
     Forester.VERBOSE = True
 
     # create the dummy map object
-    mcmap = mcInterface.MCLevelAdapter(level, box)
+    mc_map = mcInterface.MCLevelAdapter(level, box)
     # call forester's main function on the map object.
-    Forester.main(mcmap)
+    Forester.main(mc_map)
 
     level.markDirtyBox(box)

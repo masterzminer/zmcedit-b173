@@ -2708,7 +2708,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
         the chunk is done later, accesses to chunk attributes may 
         raise ChunkMalformed"""
 
-        if not self.containsChunk(cx, cz) :
+        if not self.containsChunk(cx, cz):
             raise ChunkNotPresent(cx, cz)
 
         if not (cx, cz) in self._loadedChunks:

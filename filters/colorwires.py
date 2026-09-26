@@ -4,7 +4,7 @@ def perform(level, box, options):
     for x in range(box.minx, box.maxx):
         for y in range(box.miny, box.maxy):
             for z in range(box.minz, box.maxz):
-                groups.testblock((x, y, z))
+                groups.test_block((x, y, z))
 
     groups.changeBlocks()
 
@@ -14,50 +14,50 @@ TransparentBlocks = [0, 6, 8, 9, 10, 11, 18, 20, 26, 27, 28, 29, 30, 31, 32, 33,
 
 class RedstoneGroups:
     group = {}
-    currentgroup = 0
+    current_group = 0
 
     def __init__(self, level):
         self.level = level
 
-    def isRedstone(self, blockid):
-        return blockid == 55 or blockid == 93 or blockid == 94
+    def isRedstone(self, block_id):
+        return block_id == 55 or block_id == 93 or block_id == 94
 
-    def testblock(self, pos):
+    def test_block(self, pos):
         (x, y, z) = pos
-        blockid = self.level.blockAt(x, y, z)
-        if self.isRedstone(blockid):
+        block_id = self.level.blockAt(x, y, z)
+        if self.isRedstone(block_id):
             if (x, y, z) in self.group:
                 return
-            self.group[pos] = self.currentgroup
-            self.testneighbors(pos)
-            self.currentgroup = self.currentgroup + 1
+            self.group[pos] = self.current_group
+            self.test_neighbors(pos)
+            self.current_group = self.current_group + 1
 
-    def testneighbors(self, xxx_todo_changeme):
-        (x, y, z) = xxx_todo_changeme
+    def test_neighbors(self, position):
+        (x, y, z) = position
         for dy in range(-1, 2, 1):
             if y + dy >= 0 and y + dy <= 255:
-                self.testneighbor((x, y, z), (x-1, y+dy, z))
-                self.testneighbor((x, y, z), (x+1, y+dy, z))
-                self.testneighbor((x, y, z), (x, y+dy, z-1))
-                self.testneighbor((x, y, z), (x, y+dy, z+1))
+                self.test_neighbor((x, y, z), (x-1, y+dy, z))
+                self.test_neighbor((x, y, z), (x+1, y+dy, z))
+                self.test_neighbor((x, y, z), (x, y+dy, z-1))
+                self.test_neighbor((x, y, z), (x, y+dy, z+1))
 
-    def testneighbor(self, pos1, pos2):
+    def test_neighbor(self, pos1, pos2):
         if pos2 in self.group:
             return
 
         if self.connected(pos1, pos2):
-            self.group[pos2] = self.currentgroup
-            self.testneighbors(pos2)
+            self.group[pos2] = self.current_group
+            self.test_neighbors(pos2)
 
-    def getBlockAt(self, xxx_todo_changeme1):
-        (x, y, z) = xxx_todo_changeme1
+    def getBlockAt(self, position):
+        (x, y, z) = position
         return self.level.blockAt(x, y, z)
 
-    def repeaterAlignedWith(self, xxx_todo_changeme2, xxx_todo_changeme3):
-        (x1, y1, z1) = xxx_todo_changeme2
-        (x2, y2, z2) = xxx_todo_changeme3
-        blockid = self.getBlockAt((x1, y1, z1))
-        if blockid != 93 and blockid != 94:
+    def repeaterAlignedWith(self, pos1, pos2):
+        (x1, y1, z1) = pos1
+        (x2, y2, z2) = pos2
+        block_id = self.getBlockAt((x1, y1, z1))
+        if block_id != 93 and block_id != 94:
             return False
 
         direction = self.level.blockDataAt(x1, y1, z1) % 4
@@ -69,11 +69,11 @@ class RedstoneGroups:
 
         return True
 
-    def repeaterPointingTowards(self, xxx_todo_changeme4, xxx_todo_changeme5):
-        (x1, y1, z1) = xxx_todo_changeme4
-        (x2, y2, z2) = xxx_todo_changeme5
-        blockid = self.getBlockAt((x1, y1, z1))
-        if blockid != 93 and blockid != 94:
+    def repeaterPointingTowards(self, pos1, pos2):
+        (x1, y1, z1) = pos1
+        (x2, y2, z2) = pos2
+        block_id = self.getBlockAt((x1, y1, z1))
+        if block_id != 93 and block_id != 94:
             return False
 
         direction = self.level.blockDataAt(x1, y1, z1) % 4
@@ -89,11 +89,11 @@ class RedstoneGroups:
 
         return False
 
-    def repeaterPointingAway(self, xxx_todo_changeme6, xxx_todo_changeme7):
-        (x1, y1, z1) = xxx_todo_changeme6
-        (x2, y2, z2) = xxx_todo_changeme7
-        blockid = self.getBlockAt((x1, y1, z1))
-        if blockid != 93 and blockid != 94:
+    def repeaterPointingAway(self, pos1, pos2):
+        (x1, y1, z1) = pos1
+        (x2, y2, z2) = pos2
+        block_id = self.getBlockAt((x1, y1, z1))
+        if block_id != 93 and block_id != 94:
             return False
 
         direction = self.level.blockDataAt(x1, y1, z1) % 4
@@ -110,37 +110,37 @@ class RedstoneGroups:
         return False
     
 
-    def connected(self, xxx_todo_changeme8, xxx_todo_changeme9):
-        (x1, y1, z1) = xxx_todo_changeme8
-        (x2, y2, z2) = xxx_todo_changeme9
-        blockid1 = self.level.blockAt(x1, y1, z1)
-        blockid2 = self.level.blockAt(x2, y2, z2)
+    def connected(self, pos1, pos2):
+        (x1, y1, z1) = pos1
+        (x2, y2, z2) = pos2
+        block_id1 = self.level.blockAt(x1, y1, z1)
+        block_id2 = self.level.blockAt(x2, y2, z2)
 
         pos1 = (x1, y1, z1)
         pos2 = (x2, y2, z2)
         
         if y1 == y2:
-            if blockid1 == 55:
-                if blockid2 == 55:
+            if block_id1 == 55:
+                if block_id2 == 55:
                     return True
                 elif self.repeaterAlignedWith(pos2, pos1):
                     return True                    
-            elif self.repeaterAlignedWith(pos1, pos2) and blockid2 == 55:
+            elif self.repeaterAlignedWith(pos1, pos2) and block_id2 == 55:
                 return True
             elif self.repeaterPointingTowards(pos1, pos2) and self.repeaterPointingAway(pos2, pos1):
                 return True
             elif self.repeaterPointingAway(pos1, pos2) and self.repeaterPointingTowards(pos2, pos1):
                 return True
         elif y2 == y1 - 1:
-            aboveid = self.level.blockAt(x2, y2+1, z2)
+            above_id = self.level.blockAt(x2, y2+1, z2)
             
-            if blockid1 == 55:
-                if blockid2 == 55 and TransparentBlocks.count(aboveid) == 1:
+            if block_id1 == 55:
+                if block_id2 == 55 and TransparentBlocks.count(above_id) == 1:
                     return True
                 elif self.repeaterAlignedWith(pos2, pos1):
                     return True
             elif self.repeaterPointingTowards(pos1, pos2):
-                if blockid2 == 55 and TransparentBlocks.count(aboveid) == 0:
+                if block_id2 == 55 and TransparentBlocks.count(above_id) == 0:
                     return True
         elif y2 == y1 + 1:
             return self.connected(pos2, pos1)
@@ -152,9 +152,9 @@ class RedstoneGroups:
     def changeBlocks(self):
         for ((x, y, z), gr) in self.group.items():
             if y > 0:
-                blockid = self.level.blockAt(x, y-1, z)
-                if self.SkipBlocks.count(blockid) == 1:
+                block_id = self.level.blockAt(x, y-1, z)
+                if self.SkipBlocks.count(block_id) == 1:
                     continue
                 self.level.setBlockAt(x, y-1, z, 35)
                 self.level.setBlockDataAt(x, y-1, z, gr % 16)
-                self.level.getChunk(x / 16, z / 16).dirty = True
+                self.level.getChunk(x // 16, z // 16).dirty = True

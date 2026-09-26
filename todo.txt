@@ -5,3 +5,16 @@ add command line arguments
 remove create new world and load a world from the Minecraft install, not going to support generating terrain or an empty world, that's what Minecraft is for
 
 fix the brush sizes not always saving after changing them and closing out of mcedit
+
+filters
+    make the last filter used, along with its settings, for the next time mc edit starts
+    make the default filter something generally useful
+    forester
+        figure out if it works
+    set biome
+        fix it locking up controls after running it
+        verify which biomes are valid
+    topsoil
+        figure out overflow error during subtraction
+
+make some way of viewing the current biome of a block

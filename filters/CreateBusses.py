@@ -16,7 +16,7 @@ def perform(level, box, options):
 	bus.pickAllPaths()
 	bus.createAllBusses()
 	
-HorizDirs = [
+HorizontalDirs = [
 	(1, 0, 0),
 	(-1, 0, 0),
 	(0, 0, 1),
@@ -26,9 +26,9 @@ HorizDirs = [
 Down = (0, -1, 0)
 Up = (0, 1, 0)
 
-def getHorizDir(xxx_todo_changeme9, xxx_todo_changeme10):
-	(x1, y1, z1) = xxx_todo_changeme9
-	(x2, y2, z2) = xxx_todo_changeme10
+def getHorizontalDir(pos1, pos2):
+	(x1, y1, z1) = pos1
+	(x2, y2, z2) = pos2
 	if abs(x2-x1) > abs(z2-z1):
 		return (sign(x2-x1), 0, 0)
 	else:
@@ -37,25 +37,25 @@ def getHorizDir(xxx_todo_changeme9, xxx_todo_changeme10):
 		else:
 			return (0, 0, sign(z2-z1))
 
-def getSecondaryDir(xxx_todo_changeme11, xxx_todo_changeme12):
-	(x1, y1, z1) = xxx_todo_changeme11
-	(x2, y2, z2) = xxx_todo_changeme12
+def getSecondaryDir(pos1, pos2):
+	(x1, y1, z1) = pos1
+	(x2, y2, z2) = pos2
 	if abs(x2-x1) > abs(z2-z1):
 		return (0, 0, sign(z2-z1))
 	else:
 		return (sign(x2-x1), 0, 0)
 		
-def leftOf(xxx_todo_changeme13, xxx_todo_changeme14):
-	(dx1, dy1, dz1) = xxx_todo_changeme13
-	(dx2, dy2, dz2) = xxx_todo_changeme14
+def leftOf(pos1, pos2):
+	(dx1, dy1, dz1) = pos1
+	(dx2, dy2, dz2) = pos2
 	return dx1 == dz2 or dz1 == dx2 * -1
 
-def rotateRight(xxx_todo_changeme15):
-	(dx, dy, dz) = xxx_todo_changeme15
+def rotateRight(pos):
+	(dx, dy, dz) = pos
 	return ((-dz, dy, dx))
 
-def rotateLeft(xxx_todo_changeme16):
-	(dx, dy, dz) = xxx_todo_changeme16
+def rotateLeft(pos):
+	(dx, dy, dz) = pos
 	return ((dz, dy, -dx))
 
 def allAdjacentSamePlane(dir, secondaryDir):
@@ -166,28 +166,28 @@ def allAdjacentDown(dir, secondaryDir):
 			getDir(back, Up),
 			)
 		
-def getDir(xxx_todo_changeme17, xxx_todo_changeme18):
-	(x, y, z) = xxx_todo_changeme17
-	(dx, dy, dz) = xxx_todo_changeme18
+def getDir(pos1, pos2):
+	(x, y, z) = pos1
+	(dx, dy, dz) = pos2
 	return (x+dx, y+dy, z+dz)
 
-def dist(xxx_todo_changeme19, xxx_todo_changeme20):
-	(x1, y1, z1) = xxx_todo_changeme19
-	(x2, y2, z2) = xxx_todo_changeme20
+def dist(pos1, pos2):
+	(x1, y1, z1) = pos1
+	(x2, y2, z2) = pos2
 	return abs(x2-x1) + abs(y2-y1) + abs(z2-z1)
 	
-def above(xxx_todo_changeme21, xxx_todo_changeme22):
-	(x1, y1, z1) = xxx_todo_changeme21
-	(x2, y2, z2) = xxx_todo_changeme22
+def above(pos1, pos2):
+	(x1, y1, z1) = pos1
+	(x2, y2, z2) = pos2
 	return y1 > y2
 
-def below(xxx_todo_changeme23, xxx_todo_changeme24):
-	(x1, y1, z1) = xxx_todo_changeme23
-	(x2, y2, z2) = xxx_todo_changeme24
+def below(pos1, pos2):
+	(x1, y1, z1) = pos1
+	(x2, y2, z2) = pos2
 	return y1 < y2
 	
-def insideBox(box, xxx_todo_changeme25):
-	(x, y, z) = xxx_todo_changeme25
+def insideBox(box, pos):
+	(x, y, z) = pos
 	return x >= box.minx and x < box.maxx and y >= box.miny and y < box.maxy and z >= box.minz and z < box.maxz
 
 Colors = {
@@ -257,10 +257,10 @@ class BusCreator:
 						self.guides[color].append(rs)
 					
 	
-	def isTerminal(self, xxx_todo_changeme):
-		(x, y, z) = xxx_todo_changeme
+	def isTerminal(self, pos):
+		(x, y, z) = pos
 		pos = (x, y, z)
-		for dir in HorizDirs:
+		for dir in HorizontalDirs:
 			otherPos = getDir(pos, dir)
 			
 			towards = self.repeaterPointingTowards(pos, otherPos)
@@ -325,21 +325,21 @@ class BusCreator:
 			prevGuide = guide
 			
 			
-	def createConnection(self, pos1, pos2, color):
-		currentPos = pos1
+	def createConnection(self, prevGuide, guide, color):
+		currentPos = prevGuide
 	
-		while currentPos != pos2:
+		while currentPos != guide:
 			self.power = self.power + 1
 			
-			hdir = getHorizDir(currentPos, pos2)
-			secondaryDir = getSecondaryDir(currentPos, pos2)
+			h_dir = getHorizontalDir(currentPos, guide)
+			secondaryDir = getSecondaryDir(currentPos, guide)
 
-			if above(currentPos, pos2):
-				dirs = allAdjacentDown(hdir, secondaryDir)
-			elif below(currentPos, pos2):
-				dirs = allAdjacentUp(hdir, secondaryDir)
+			if above(currentPos, guide):
+				dirs = allAdjacentDown(h_dir, secondaryDir)
+			elif below(currentPos, guide):
+				dirs = allAdjacentUp(h_dir, secondaryDir)
 			else:
-				dirs = allAdjacentSamePlane(hdir, secondaryDir)
+				dirs = allAdjacentSamePlane(h_dir, secondaryDir)
 				
 			if self.power == 1:
 				restrictions = 2
@@ -351,7 +351,7 @@ class BusCreator:
 			placed = False
 			for dir in dirs:
 				pos = getDir(currentPos, dir)
-				if self.canPlaceRedstone(pos, currentPos, pos2, restrictions):
+				if self.canPlaceRedstone(pos, currentPos, guide, restrictions):
 					if self.power == 15:
 						self.placeRepeater(pos, dir, color)
 						self.power = 0
@@ -406,8 +406,8 @@ class BusCreator:
 			if testPos == destinationPos or testPos == getDir(destinationPos, Down):
 				continue
 
-			blockid = self.getBlockAt(testPos)
-			if blockid != 0:
+			block_id = self.getBlockAt(testPos)
+			if block_id != 0:
 				return False
 		
 		return True
@@ -417,37 +417,37 @@ class BusCreator:
 		self.setBlockAt(pos, 55) #redstone
 		self.setBlockAt(getDir(pos, Down), 35, color) # wool
 		
-	def placeRepeater(self, pos, xxx_todo_changeme1, color):
-		(dx, dy, dz) = xxx_todo_changeme1
+	def placeRepeater(self, pos1, pos2, color):
+		(dx, dy, dz) = pos2
 		if dz == -1:
-			self.setBlockAt(pos, 93, 0) #north
+			self.setBlockAt(pos1, 93, 0) #north
 		elif dx == 1:
-			self.setBlockAt(pos, 93, 1) #east
+			self.setBlockAt(pos1, 93, 1) #east
 		elif dz == 1:
-			self.setBlockAt(pos, 93, 2) #south
+			self.setBlockAt(pos1, 93, 2) #south
 		elif dx == -1:
-			self.setBlockAt(pos, 93, 3) #west
+			self.setBlockAt(pos1, 93, 3) #west
 			
-		self.setBlockAt(getDir(pos, Down), 35, color) #wool
+		self.setBlockAt(getDir(pos1, Down), 35, color) #wool
 		
-	def getBlockAt(self, xxx_todo_changeme2):
-		(x, y, z) = xxx_todo_changeme2
+	def getBlockAt(self, pos):
+		(x, y, z) = pos
 		return self.level.blockAt(x, y, z)
 		
-	def getBlockDataAt(self, xxx_todo_changeme3):
-		(x, y, z) = xxx_todo_changeme3
+	def getBlockDataAt(self, pos):
+		(x, y, z) = pos
 		return self.level.blockDataAt(x, y, z)
 		
-	def setBlockAt(self, xxx_todo_changeme4, id, dmg = 0):
-		(x, y, z) = xxx_todo_changeme4
+	def setBlockAt(self, pos, id, dmg = 0):
+		(x, y, z) = pos
 		self.level.setBlockAt(x, y, z, id)
 		self.level.setBlockDataAt(x, y, z, dmg)
 				
-	def repeaterPointingTowards(self, xxx_todo_changeme5, xxx_todo_changeme6):
-		(x1, y1, z1) = xxx_todo_changeme5
-		(x2, y2, z2) = xxx_todo_changeme6
-		blockid = self.getBlockAt((x1, y1, z1))
-		if blockid != 93 and blockid != 94:
+	def repeaterPointingTowards(self, pos1, pos2):
+		(x1, y1, z1) = pos1
+		(x2, y2, z2) = pos2
+		block_id = self.getBlockAt((x1, y1, z1))
+		if block_id != 93 and block_id != 94:
 			return False
 
 		direction = self.level.blockDataAt(x1, y1, z1) % 4
@@ -463,11 +463,11 @@ class BusCreator:
 
 		return False
 
-	def repeaterPointingAway(self, xxx_todo_changeme7, xxx_todo_changeme8):
-		(x1, y1, z1) = xxx_todo_changeme7
-		(x2, y2, z2) = xxx_todo_changeme8
-		blockid = self.getBlockAt((x1, y1, z1))
-		if blockid != 93 and blockid != 94:
+	def repeaterPointingAway(self, pos1, pos2):
+		(x1, y1, z1) = pos1
+		(x2, y2, z2) = pos2
+		block_id = self.getBlockAt((x1, y1, z1))
+		if block_id != 93 and block_id != 94:
 			return False
 
 		direction = self.level.blockDataAt(x1, y1, z1) % 4

@@ -52,9 +52,9 @@ def perform(level, box, options):
     # The first is using level.blockAt and level.setBlockAt
     # These are slower than the other two methods, but easier to start using
     if method == "Use blockAt":
-        for x in xrange(box.minx, box.maxx):
-            for z in xrange(box.minz, box.maxz):
-                for y in xrange(box.miny, box.maxy):  # nested loops can be slow
+        for x in range(box.minx, box.maxx):
+            for z in range(box.minz, box.maxz):
+                for y in range(box.miny, box.maxy):  # nested loops can be slow
 
                     # replaces gold with TNT. straightforward.
                     if level.blockAt(x, y, z) == 14:
@@ -111,6 +111,6 @@ def perform(level, box, options):
     # Beware though, you only get to undo the area within the specified box
 
     pos = level.getPlayerPosition()
-    cpos = pos[0] >> 4, pos[2] >> 4
-    chunk = level.getChunk(*cpos)
+    c_pos = pos[0] >> 4, pos[2] >> 4
+    chunk = level.getChunk(*c_pos)
     chunk.Blocks[::4, ::4, :64] = 46  # replace every 4x4th column of land with TNT
