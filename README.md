@@ -1,63 +1,32 @@
-# MCEdit
+# Introduction
+This is a port of MC Edit, developed around editing worlds for Minecraft Beta 1.7.3
 
-MCEdit is an open-source, BSD-licenced world editor for the viral indie hit [Minecraft](http://www.minecraft.net/).
+This ports the original python2 application, build 0.1.5, to python3 and modern libraries
 
-## For Developers
+This port was developed around being a fully stand alone application for modifying existing Minecraft worlds.
+It intentionally does not interface with the vanilla Minecraft install, jars, or resources. I highly recommend
+against using the vanilla launcher when playing old versions of the game. Prism launcher is my go to as of the
+date of writing this readme file.
 
-MCEdit is written in Python using a variety of open source modules. When developing it is recommended to use virtualenv to keep dependencies sane and for easy deployment.
+As of this commit, this readme file is mostly a stub, TODO need to expand on this
 
-### Development Quick Guide
 
-You'll need Python 2.6+ and `easy_install`/`pip` at a minimum before getting started. This quick guide assumes a unix-y OS.
+# Installing
 
-Clone MCEdit:
+Need to add instructions here
 
-```bash
-git clone https://github.com/mcedit/mcedit
-cd mcedit
-git submodule init
-git submodule update
-```
+installing.txt has some rough notes made during development
 
-Optionally (but highly recommended), setup and activate [virtualenv](http://pypi.python.org/pypi/virtualenv). virtualenv will simplify development by creating an isolated and barebones Python environment. Anything you install while virtualenv is active won't affect your system-wide Python installation, for example.
 
-```bash
-easy_install virtualenv
-virtualenv ENV
-. ENV/bin/activate
-```
+# Removed Features
 
-Install various dependencies. This may take a bit (especially numpy). If installing pygame errors, try installing from a [binary packages](http://pygame.org/install.html) or following one of the guides from that page to install from source.
+Many features of the original MC Edit application have been removed and or modified for this non-exhaustive list of reasons
+- The feature doesn't exist in beta 1.7.3 i.e. creative mode
+- For the sake of simpler development
+- Avoiding porting
 
-```bash
-easy_install PyOpenGL
-easy_install numpy
-easy_install pygame
-easy_install pyyaml
-```
-
-You should now be able to run MCEdit with `python mcedit.py` assuming you've installed all the dependencies correctly.
-
-### Freezing/Packaging
-
-"Freezing" Python applications to deploy them for use by non-technical users is not in any way fun, expect errors and edge cases.
-
-Additional dependencies are required to package MCEdit. Regardless of which platform you're targetting, [esky](http://pypi.python.org/pypi/esky/) will be required.
-
-#### OS X
-*Note:* These instructions have only been tested on OS X Lion.
-
-You will run into errors attempting to use the system Python when packaging anything under OS X. The easiest way to install a new Python is by using [Homebrew](http://mxcl.github.com/homebrew/).
-
-If you were using the system python while developing and using virtualenv, you'll need to overwrite it with your newly installed version.
-
-```bash
-brew install python
-virtualenv -p /usr/local/bin/python ENV
-
-easy_install esky
-easy_install py2app
-python setup.py bdist_esky
-```
-
-This will leave  you with a zip file in `dist/` that contains a portable `.app` bundle.
+Some of the features removed
+- Support for Anvil format worlds, i.e. worlds with a 256 block height limit
+- Pocket edition support
+- Inf dev support
+- Generating worlds based on jars

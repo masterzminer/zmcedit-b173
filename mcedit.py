@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 #!/usr/bin/env python
 # -*- coding: utf8 -*_
 """
@@ -49,7 +51,7 @@ ESCAPE = '\033'
 class FileOpener(albow.Widget):
     is_gl_container = True
 
-    def __init__(self, mcedit, *args, **kwargs):
+    def __init__(self, mcedit: MCEdit, *args, **kwargs):
         kwargs['rect'] = mcedit.rect
         albow.Widget.__init__(self, *args, **kwargs)
         self.anchor = 'tlbr'
@@ -84,8 +86,12 @@ class FileOpener(albow.Widget):
         helpColumn = albow.Column(helpColumn, align="r")
         helpColumn.topright = self.topright
         helpColumn.anchor = "whrt"
-        #helpColumn.is_gl_container = True
         self.add(helpColumn)
+
+        infoButtonsColumn = mcedit.makeInfoButtonsColumn()
+        infoButtonsColumn.anchor = 'whrb'
+        infoButtonsColumn.bottomright = self.bottomright
+        self.add(infoButtonsColumn)
 
         keysColumn = [albow.Label("")]
         buttonsColumn = [leveleditor.ControlPanel.getHeader()]
@@ -111,7 +117,6 @@ class FileOpener(albow.Widget):
             short_names.append(shortname)
 
         hotkeys = ([('N', 'Create New World', self.createNewWorld),
-            ('L', 'Load World...', self.mcedit.editor.askLoadWorld),
             ('O', 'Open a level...', self.promptOpenAndLoad)] + [
             ('F{0}'.format(i + 1), short_names[i], self.createLoadButtonHandler(world))
             for i, world in enumerate(self.mcedit.recentWorlds())])
@@ -146,8 +151,6 @@ class FileOpener(albow.Widget):
             self.promptOpenAndLoad()
         if keyname == "n":
             self.createNewWorld()
-        if keyname == "l":
-            self.mcedit.editor.askLoadWorld()
 
     def promptOpenAndLoad(self):
         try:
@@ -678,37 +681,53 @@ class MCEdit(GLViewport):
             config.config.set("Recent Worlds", str(i), filename.encode('utf-8'))
 
     def makeSideColumn(self):
+        hotkeys = ([
+            ("",
+                "Keys",
+                self.showKeyConfig
+            ),
+            ("",
+                "Graphics",
+                self.showGraphicOptions
+            ),
+            ("",
+                "Options",
+                self.showOptions
+            ),
+        ])
+
+        return mceutils.HotkeyColumn(hotkeys)
+
+    def makeInfoButtonsColumn(self):
         def showLicense():
             platform_open(os.path.join(directories.dataDir, "LICENSE.txt"))
 
-        readmePath = os.path.join(directories.dataDir, "README.html")
+        readmePath = os.path.join(directories.dataDir, "README.md")
 
-        hotkeys = ([("",
-                  "Keys",
-                  self.showKeyConfig),
-                  ("",
-                  "Graphics",
-                  self.showGraphicOptions),
-                  ("",
-                  "Options",
-                  self.showOptions),
-                  ("",
-                  "Source Code",
-                  lambda: platform_open("http://www.github.com/mcedit/mcedit")),
-                  ("",
-                  "View Readme",
-                  lambda: platform_open(readmePath)),
-                  ("",
-                  "Recent Changes",
-                  lambda: platform_open("https://github.com/mcedit/mcedit/wiki/Version-History")),
-                  ("",
-                  "License",
-                  showLicense),
-                  ])
+        column = ([
+            albow.Button(
+                "zMCEdit-b173 Repo",
+                lambda: platform_open("https://github.com/masterzminer/zmcedit-b173")
+            ),
+            albow.Button(
+                "Source of zMCEdit-b173 fork",
+                lambda: platform_open("https://github.com/Khroki/mcedit-old/releases/tag/0.1.5")
+            ),
+            albow.Button(
+                "Original MC Edit Repo",
+                lambda: platform_open("http://www.github.com/mcedit/mcedit")
+            ),
+            albow.Button(
+                "View Readme",
+                lambda: platform_open(readmePath)
+            ),
+            albow.Button(
+                "License",
+                showLicense
+            ),
+        ])
 
-        c = mceutils.HotkeyColumn(hotkeys)
-
-        return c
+        return albow.Column(column, align="r")
 
     def resized(self, dw, dh):
         """
@@ -819,7 +838,7 @@ class MCEdit(GLViewport):
             mcedit.loadFile(mcedit.droppedLevel)
 
         if mcedit.closeMinecraftWarning:
-            answer = albow.ask("Warning: You must close Minecraft completely before editing. Save corruption may result. Get Satisfaction to learn more.", ["Don't remind me again.", "OK"], default=1, cancel=1)
+            answer = albow.ask("Warning: You must close Minecraft completely before editing. Save corruption may result", ["Don't remind me again.", "OK"], default=1, cancel=1)
             if answer == "Don't remind me again.":
                 mcedit.closeMinecraftWarning = False
 

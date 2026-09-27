@@ -159,7 +159,6 @@ class ControlPanel(Panel):
         cmd = mcplatform.cmd_name
         hotkeys = ([(cmd + "-N", "Create New World", editor.mcedit.createNewWorld),
                     (cmd + "-O", "Open World...", editor.askOpenFile),
-                    (cmd + "-L", "Load World...", editor.askLoadWorld),
                     (cmd + "-S", "Save", editor.saveFile),
                     (cmd + "-R", "Reload", editor.reload),
                     (cmd + "-W", "Close", editor.closeEditor),
@@ -2485,8 +2484,6 @@ class LevelEditor(GLViewport):
 
             if keyname == 'o':
                 self.askOpenFile()
-            if keyname == 'l':
-                self.askLoadWorld()
             if keyname == 'z':
                 self.undo()
             if keyname == 's':
@@ -2810,80 +2807,6 @@ class LevelEditor(GLViewport):
         self.renderer.viewDistance = max(self.renderer.minViewDistance, self.renderer.viewDistance - 2)
         self.addWorker(self.renderer)
         Settings.viewDistance.set(self.renderer.viewDistance)
-
-    @mceutils.alertException
-    def askLoadWorld(self):
-        if not os.path.isdir(pymclevel.saveFileDir):
-            alert(u"Could not find the Minecraft saves directory!\n\n({0} was not found or is not a directory)".format(pymclevel.saveFileDir))
-            return
-
-        worldPanel = Widget()
-
-        potentialWorlds = os.listdir(pymclevel.saveFileDir)
-        potentialWorlds = [os.path.join(pymclevel.saveFileDir, p) for p in potentialWorlds]
-        worldFiles = [p for p in potentialWorlds if pymclevel.MCLevel.isLevel(p)]
-        worlds = []
-        for f in worldFiles:
-            try:
-                lev = pymclevel.MCBetaLevel(f)
-            except Exception:
-                continue
-            else:
-                worlds.append(lev)
-        if len(worlds) == 0:
-            alert("No worlds found! You should probably play Minecraft to create your first world.")
-            return
-
-        def loadWorld():
-            self.mcedit.loadFile(worldData[worldTable.selectedWorldIndex][3].filename)
-
-        def click_row(i, evt):
-            worldTable.selectedWorldIndex = i
-            if evt.num_clicks == 2:
-                loadWorld()
-                d.dismiss("Cancel")
-
-        worldTable = TableView(columns=[
-            TableColumn("Last Played", 250, "l"),
-            TableColumn("Level Name (filename)", 400, "l"),
-            TableColumn("Dims", 100, "r"),
-
-        ])
-
-        def dateobj(lp):
-            try:
-                return datetime.utcfromtimestamp(lp / 1000.0)
-            except:
-                return datetime.utcfromtimestamp(0.0)
-
-        def dateFormat(lp):
-            try:
-                return lp.strftime("%x %X").decode('utf-8')
-            except:
-                return u"{0} seconds since the epoch.".format(lp)
-
-        def nameFormat(w):
-            if w.LevelName == w.displayName:
-                return w.LevelName
-            return u"{0} ({1})".format(w.LevelName, w.displayName)
-
-        worldData = [[dateFormat(d), nameFormat(w), str(list(w.dimensions.keys()))[1:-1], w, d]
-            for w, d in ((w, dateobj(w.LastPlayed)) for w in worlds)]
-        worldData.sort(key=lambda a_b_dim_w_d: a_b_dim_w_d[4], reverse=True)
-        # worlds = [w[2] for w in worldData]
-
-        worldTable.selectedWorldIndex = 0
-        worldTable.num_rows = lambda: len(worldData)
-        worldTable.row_data = lambda i: worldData[i]
-        worldTable.row_is_selected = lambda x: x == worldTable.selectedWorldIndex
-        worldTable.click_row = click_row
-
-        worldPanel.add(worldTable)
-        worldPanel.shrink_wrap()
-
-        d = Dialog(worldPanel, ["Load", "Cancel"])
-        if d.present() == "Load":
-            loadWorld()
 
     def askOpenFile(self):
         self.mouseLookOff()

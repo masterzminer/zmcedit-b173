@@ -1,4 +1,8 @@
 Copyright (c) 2010 David Rio Vierra
+Copyright (c) 2026 masterzminer
+
+This is a port of the original library for modifying Minecraft data files by David Rio Vierra (aka codewarrior0).
+The project was updated to use a modern version of python 3, and many misc changes were made by masterzminer
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above

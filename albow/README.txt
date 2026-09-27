@@ -1,4 +1,7 @@
 ALBOW - A Little Bit of Widgetry for PyGame
+
+Updated and ported for python 3 by masterzminer for the purpose of porting a modern version of MC Edit
+
 -------------------------------------------
 
 Version 1.1

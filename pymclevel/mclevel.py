@@ -26,9 +26,6 @@ level.saveToFile("server_level_glassy.dat");
 # Loading an Alpha world immediately scans the folder for chunk files.  This takes longer for large worlds.
 ourworld = mclevel.fromFile("C:\\Minecraft\\OurWorld");
 
-# Convenience method to load a numbered world from the saves folder.
-world1 = mclevel.loadWorldNumber(1);
-
 # Find out which chunks are present. Doing this will scan the chunk folders the
 # first time it is used. If you already know where you want to be, skip to 
 # world1.getChunk(xPos, zPos)
@@ -243,9 +240,4 @@ def fromFile(filename) -> MCLevel:
 
 def loadWorld(name):
     filename = os.path.join(saveFileDir, name)
-    return fromFile(filename)
-
-def loadWorldNumber(i):
-    #deprecated
-    filename = u"{0}{1}{2}{3}{1}".format(saveFileDir, os.sep, u"World", i)
     return fromFile(filename)

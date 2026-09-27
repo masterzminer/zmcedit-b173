@@ -24,3 +24,5 @@ fix buttons and other non full blocks rendering weirdly
 change creating a new world to just copying a baked in empty world with only one chunk of all air as a template
 
 add a way to teleport the camera to the block the mouse is selecting
+
+save previously opened worlds and show them on the main menu
