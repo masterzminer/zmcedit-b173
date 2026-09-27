@@ -312,9 +312,9 @@ class ChunkTool(EditorTool):
 
     @alertException
     def repopChunks(self):
-        for cpos in self.selectedChunks():
+        for c_pos in self.selectedChunks():
             try:
-                chunk = self.editor.level.getChunk(*cpos)
+                chunk = self.editor.level.getChunk(*c_pos)
                 chunk.TerrainPopulated = False
             except ChunkNotPresent:
                 continue
@@ -322,9 +322,9 @@ class ChunkTool(EditorTool):
 
     @alertException
     def dontRepopChunks(self):
-        for cpos in self.selectedChunks():
+        for c_pos in self.selectedChunks():
             try:
-                chunk = self.editor.level.getChunk(*cpos)
+                chunk = self.editor.level.getChunk(*c_pos)
                 chunk.TerrainPopulated = True
             except ChunkNotPresent:
                 continue

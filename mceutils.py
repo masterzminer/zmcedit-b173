@@ -178,43 +178,53 @@ def drawCube(box, cubeType=GL.GL_QUADS, blockType=0, texture=None, textureVertic
         x2, y, z,
         x2, y2, z,
         x2, y2, z2,
-                            ), dtype='f4')
+    ), dtype=np.float32)
+
     if textureVertices is None:
-        textureVertices = np.array(
-        (
-        0, -dy * 16,
-        0, 0,
-        dx * 16, 0,
-        dx * 16, -dy * 16,
+        textureVertices = np.array([
+        [
+        [0, -dy * 16,],
+        [0, 0,],
+        [dx * 16, 0,],
+        [dx * 16, -dy * 16,],
+        ],
 
-        dx * 16, -dy * 16,
-        dx * 16, 0,
-        0, 0,
-        0, -dy * 16,
+        [
+        [dx * 16, -dy * 16,],
+        [dx * 16, 0,],
+        [0, 0,],
+        [0, -dy * 16,],
+        ],
 
-        dx * 16, -dz * 16,
-        0, -dz * 16,
-        0, 0,
-        dx * 16, 0,
+        [
+        [dx * 16, -dz * 16,],
+        [0, -dz * 16,],
+        [0, 0,],
+        [dx * 16, 0,],
+        ],
 
-        dx * 16, 0,
-        0, 0,
-        0, -dz * 16,
-        dx * 16, -dz * 16,
+        [
+        [dx * 16, 0,],
+        [0, 0,],
+        [0, -dz * 16,],
+        [dx * 16, -dz * 16,],
+        ],
 
-        dz * 16, 0,
-        0, 0,
-        0, -dy * 16,
-        dz * 16, -dy * 16,
+        [
+        [dz * 16, 0,],
+        [0, 0,],
+        [0, -dy * 16,],
+        [dz * 16, -dy * 16,],
+        ],
 
-        dz * 16, -dy * 16,
-        0, -dy * 16,
-        0, 0,
-        dz * 16, 0,
+        [
+        [dz * 16, -dy * 16,],
+        [0, -dy * 16,],
+        [0, 0,],
+        [dz * 16, 0,],
+        ]
 
-        ), dtype='f4')
-
-        textureVertices.shape = (6, 4, 2)
+        ], dtype=np.float32)
 
         if selectionBox:
             textureVertices[0:2] += (16 * (x & 15), 16 * (y2 & 15))
@@ -308,7 +318,7 @@ def loadPNGData(filename):
     # Convert the data to a np array
     data = np.array(image)
     # Extract the weight and width from the shape
-    w, h = data.shape[:2]
+    h, w = data.shape[:2]
 
     # Return final data
     return w, h, data
@@ -326,17 +336,17 @@ def loadPNGFile(filename):
     return w, h, data
 
 
-def loadTextureFunc(w, h, ndata):
-    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, w, h, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, ndata)
+def loadTextureFunc(w, h, n_data):
+    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, w, h, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, n_data)
     return w, h
 
 
 def loadPNGTexture(filename):
     try:
-        w, h, ndata = loadPNGFile(filename)
+        w, h, n_data = loadPNGFile(filename)
 
-        tex = glutils.Texture(functools.partial(loadTextureFunc, w, h, ndata))
-        tex.data = ndata
+        tex = glutils.Texture(functools.partial(loadTextureFunc, w, h, n_data))
+        tex.data = n_data
         return tex
     except Exception as e:
         print("Exception loading ", filename, ": ", repr(e))
