@@ -282,7 +282,7 @@ class RootWidget(Widget):
         def call(ref):
             widget = ref()
             if widget:
-                widget.idleevent(event)
+                widget.idle_event(event)
             else:
                 print("Idle ref died!")
             return bool(widget)

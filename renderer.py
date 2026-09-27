@@ -2168,9 +2168,9 @@ class MCRenderer(object):
     calculatorClass = ChunkCalculator
 
     minViewDistance = 2
-    maxViewDistance = 24
+    maxViewDistance = 64
 
-    _viewDistance = 8
+    _viewDistance = 16
 
     needsRedraw = True
 

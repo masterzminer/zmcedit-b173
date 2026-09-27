@@ -48,12 +48,6 @@ import shutil
 texturePacksDir = os.path.join(minecraftDir, "texturepacks")
 
 
-def getTexturePacks():
-    try:
-        return os.listdir(texturePacksDir)
-    except:
-        return []
-
 # for k,v in os.environ.iteritems():
 #    try:
 #        os.environ[k] = v.decode(sys.getfilesystemencoding())

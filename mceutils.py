@@ -23,25 +23,15 @@ Exception catching, some basic box drawing, texture pack loading, oddball UI ele
 # libpng warning: iCCP: cHRM chunk does not match sRGB
 
 
-
 from albow.controls import ValueDisplay
 from albow import alert, ask, Button, Column, Label, root, Row, ValueButton, Widget
-import config
 from io import BytesIO
 from datetime import datetime
-import directories
-from errorreporting import reportCrash, reportException
-import mcplatform
 import numpy as np
-from OpenGL import GL, GLU
-import os
-import platform
+from OpenGL import GL
 from pygame import display, image, Surface
 import pymclevel
-import release
-import sys
 import traceback
-import zipfile
 from PIL import Image
 
 
@@ -52,8 +42,8 @@ def alertException(func):
         except root.Cancel:
             alert("Canceled.")
         except Exception as e:
-            if ask("Error during {0}: {1!r}".format(func, e)[:1000], ["Report Error", "Okay"], default=1, cancel=0) == "Report Error":
-                reportException(e)
+            ask("Error during {0}: {1!r}".format(func, e)[:1000], ["Okay"], default=1, cancel=0)
+            traceback.print_exc()
 
     return _alertException
 
@@ -271,28 +261,25 @@ def drawTerrainCuttingWire(box,
 
     GL.glDepthFunc(GL.GL_LEQUAL)
     GL.glDisable(GL.GL_DEPTH_TEST)
-    # glDepthMask(True)
-
-# texturePacksDir = os.path.join(pymclevel.minecraftDir, "texturepacks")
 
 
 def loadTerrainTexture():
     pngFile = None
 
-    texW, texH, terraindata = loadPNGFile("terrain.png")
+    texW, texH, terrain_data = loadPNGFile("terrain.png")
 
     def slurpZipExt(zipextfile):
         # zipextfile.read() doesn't read all available data
-        alldata = ""
+        all_data = ""
         data = zipextfile.read()
         while len(data):
-            alldata += data
+            all_data += data
             data = zipextfile.read()
-        return BytesIO(alldata)
+        return BytesIO(all_data)
 
     if pngFile is not None:
         try:
-            texW, texH, terraindata = loadPNGData(slurpZipExt(pngFile))
+            texW, texH, terrain_data = loadPNGData(slurpZipExt(pngFile))
 
         except Exception as e:
             traceback.print_exc()
@@ -305,10 +292,10 @@ def loadTerrainTexture():
     GenericBlockRenderer.grassColor = GenericBlockRenderer.grassColorDefault
 
     def _loadFunc():
-        loadTextureFunc(texW, texH, terraindata)
+        loadTextureFunc(texW, texH, terrain_data)
 
     tex = glutils.Texture(_loadFunc)
-    tex.data = terraindata
+    tex.data = terrain_data
     return tex
 
 
@@ -326,13 +313,6 @@ def loadPNGData(filename):
 
 def loadPNGFile(filename):
     (w, h, data) = loadPNGData(filename)
-
-    powers = (16, 32, 64, 128, 256, 512, 1024, 2048, 4096)
-    assert (w in powers) and (h in powers)  # how crude
-    
-
-    ndata = np.array(data, dtype='uint8')
-
     return w, h, data
 
 
@@ -604,7 +584,7 @@ def showProgress(progressText, progressIterator, cancel=False):
             if cancel:
                 self.dismiss(False)
 
-        def idleevent(self, evt):
+        def idle_event(self, evt):
             self.invalidate()
 
     widget = ProgressWidget()

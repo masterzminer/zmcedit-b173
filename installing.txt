@@ -13,4 +13,5 @@ pip install pygame
 pip install numpy
 pip install pyyaml
 pip install Pillow
+pip install setuptools
 TODO determine which dependencies are strictly needed

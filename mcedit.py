@@ -90,7 +90,7 @@ class FileOpener(albow.Widget):
         keysColumn = [albow.Label("")]
         buttonsColumn = [leveleditor.ControlPanel.getHeader()]
 
-        shortnames = []
+        short_names = []
         for world in self.mcedit.recentWorlds():
             shortname = os.path.basename(world)
             try:
@@ -108,12 +108,12 @@ class FileOpener(albow.Widget):
 
             if len(shortname) > 40:
                 shortname = shortname[:37] + "..."
-            shortnames.append(shortname)
+            short_names.append(shortname)
 
         hotkeys = ([('N', 'Create New World', self.createNewWorld),
             ('L', 'Load World...', self.mcedit.editor.askLoadWorld),
             ('O', 'Open a level...', self.promptOpenAndLoad)] + [
-            ('F{0}'.format(i + 1), shortnames[i], self.createLoadButtonHandler(world))
+            ('F{0}'.format(i + 1), short_names[i], self.createLoadButtonHandler(world))
             for i, world in enumerate(self.mcedit.recentWorlds())])
 
         commandRow = mceutils.HotkeyColumn(hotkeys, keysColumn, buttonsColumn)
@@ -132,7 +132,7 @@ class FileOpener(albow.Widget):
         #self.mcedit.editor.mainViewport.setPerspective();
         self.mcedit.editor.drawStars()
 
-    def idleevent(self, evt):
+    def idle_event(self, evt):
         self.mcedit.editor.doWorkUnit()
         #self.invalidate()
 
@@ -156,7 +156,7 @@ class FileOpener(albow.Widget):
                 self.mcedit.loadFile(filename)
         except Exception as e:
             traceback.print_exc()
-            logging.error('Error during proptOpenAndLoad: {0!r}'.format(e))
+            logging.error('Error during promptOpenAndLoad: {0!r}'.format(e))
 
     def createNewWorld(self):
         self.parent.createNewWorld()
@@ -283,8 +283,8 @@ class KeyConfigPanel(Dialog):
 
     def choosePreset(self):
         preset = self.choiceButton.selectedChoice
-        keypairs = self.presets[preset]
-        for configKey, key in keypairs:
+        key_pairs = self.presets[preset]
+        for configKey, key in key_pairs:
             config.config.set("Keys", configKey, key)
 
     def getRowData(self, i):
@@ -335,7 +335,7 @@ class KeyConfigPanel(Dialog):
         keyname = panel.present()
         if keyname != "escape":
             occupiedKeys = [(v, k) for (k, v) in config.config.items("Keys") if v == keyname]
-            oldkey = config.config.get("Keys", configKey)
+            old_key = config.config.get("Keys", configKey)
             config.config.set("Keys", configKey, keyname)
             for keyname, setting in occupiedKeys:
                 if self.askAssignKey(setting,
@@ -343,7 +343,7 @@ class KeyConfigPanel(Dialog):
                                      "Press a new key for the action \"{1}\"\n\n"
                                      "Press ESC to cancel."
                                      .format(keyname, setting)):
-                    config.config.set("Keys", configKey, oldkey)
+                    config.config.set("Keys", configKey, old_key)
                     return True
         else:
             return True
@@ -355,28 +355,11 @@ class GraphicsPanel(Panel):
 
         self.mcedit = mcedit
 
-        def getPacks():
-            return ["[Default]", "[Current]"] + mcplatform.getTexturePacks()
-
-        def packChanged():
-            self.texturePack = self.texturePackChoice.selectedChoice
-            packs = getPacks()
-            if self.texturePack not in packs:
-                self.texturePack = "[Default]"
-            self.texturePackChoice.selectedChoice = self.texturePack
-            self.texturePackChoice.choices = packs
-
-        self.texturePackChoice = texturePackChoice = mceutils.ChoiceButton(getPacks(), choose=packChanged)
-        if self.texturePack in self.texturePackChoice.choices:
-            self.texturePackChoice.selectedChoice = self.texturePack
-
-        texturePackRow = albow.Row((albow.Label("Skin: "), texturePackChoice))
-
         fieldOfViewRow = mceutils.FloatInputRow("Field of View: ",
             ref=Settings.fov.propertyRef(), width=100, min=25, max=120)
 
         targetFPSRow = mceutils.IntInputRow("Target FPS: ",
-            ref=Settings.targetFPS.propertyRef(), width=100, min=1, max=60)
+            ref=Settings.targetFPS.propertyRef(), width=100, min=1, max=600)
 
         bufferLimitRow = mceutils.IntInputRow("Vertex Buffer Limit (MB): ",
             ref=Settings.vertexBufferLimit.propertyRef(), width=100, min=0)
@@ -396,7 +379,6 @@ class GraphicsPanel(Panel):
         settingsColumn = albow.Column((fastLeavesRow,
                                   roughGraphicsRow,
                                   enableMouseLagRow,
-                                  texturePackRow,
                                   fieldOfViewRow,
                                   targetFPSRow,
                                   bufferLimitRow,
@@ -414,9 +396,6 @@ class GraphicsPanel(Panel):
     def _reloadTextures(self, pack):
         if hasattr(pymclevel.alphaMaterials, "terrainTexture"):
             self.mcedit.displayContext.loadTextures()
-
-    texturePack = Settings.skin.configProperty(_reloadTextures)
-
 
 class OptionsPanel(Dialog):
     anchor = 'wh'
@@ -475,7 +454,7 @@ class OptionsPanel(Dialog):
 
         longDistanceRow = mceutils.CheckBoxLabel("Long-Distance Mode",
             ref=Settings.longDistanceMode.propertyRef(),
-            tooltipText="Always target the farthest block under the cursor, even in mouselook mode. Shortcut: ALT-Z")
+            tooltipText="Always target the farthest block under the cursor, even in mouse look mode. Shortcut: ALT-Z")
 
         flyModeRow = mceutils.CheckBoxLabel("Fly Mode",
             ref=Settings.flyMode.propertyRef(),
@@ -485,10 +464,6 @@ class OptionsPanel(Dialog):
 
         goPortableButton.tooltipText = self.portableButtonTooltip()
         goPortableRow = albow.Row((albow.ValueDisplay(ref=albow.AttrRef(self, 'portableLabelText'), width=250, align='r'), goPortableButton))
-
-        reportRow = mceutils.CheckBoxLabel("Report Crashes",
-            ref=Settings.reportCrashes.propertyRef(),
-            tooltipText="Automatically report fatal errors to the author.")
 
         inputs = (
             spaceHeightRow,
@@ -510,18 +485,17 @@ class OptionsPanel(Dialog):
             ) + (
             ((sys.platform == "win32" and pygame.version.vernum == (1, 9, 1)) and (windowSizeRow,) or ())
             ) + (
-            reportRow,
             ) + (
             (sys.platform == "win32") and (setWindowPlacementRow,) or ()
             ) + (
             goPortableRow,
         )
 
-        rightcol = albow.Column(options, align='r')
-        leftcol = albow.Column(inputs, align='r')
+        right_col = albow.Column(options, align='r')
+        left_col = albow.Column(inputs, align='r')
 
         optionsColumn = albow.Column((albow.Label("Options"),
-                                albow.Row((leftcol, rightcol), align="t")))
+                                albow.Row((left_col, right_col), align="t")))
 
         settingsRow = albow.Row((optionsColumn,))
 
@@ -830,58 +804,22 @@ class MCEdit(GLViewport):
     def main(self):
         displayContext = GLDisplayContext()
 
-        rootwidget = RootWidget(displayContext.display)
+        root_widget = RootWidget(displayContext.display)
         mcedit = MCEdit(displayContext)
-        rootwidget.displayContext = displayContext
-        rootwidget.confirm_quit = mcedit.confirm_quit
-        rootwidget.mcedit = mcedit
+        root_widget.displayContext = displayContext
+        root_widget.confirm_quit = mcedit.confirm_quit
+        root_widget.mcedit = mcedit
 
-        rootwidget.add(mcedit)
-        rootwidget.focus_switch = mcedit
+        root_widget.add(mcedit)
+        root_widget.focus_switch = mcedit
         if 0 == len(pymclevel.alphaMaterials.yamlDatas):
             albow.alert("Failed to load minecraft.yaml. Check the console window for details.")
 
         if mcedit.droppedLevel:
             mcedit.loadFile(mcedit.droppedLevel)
 
-        # Attempt to auto-update. This entire thing will be redone
-        # with the UI update so that it doesn't block and reports progress.
-        if hasattr(sys, 'frozen'):
-            # We're being run from a bundle, check for updates.
-            import esky
-
-            # We shouldn't be using Github for this.
-            app = esky.Esky(
-                sys.executable,
-                'https://github.com/mcedit/mcedit/downloads'
-            )
-
-            try:
-                update_version = app.find_update()
-            except:
-                # FIXME: Horrible, hacky kludge.
-                update_version = None
-                logging.exception('Error while checking for updates')
-
-            if update_version:
-                answer = albow.ask(
-                    'An updated version is available, would you like to '
-                    'download it?',
-                    [
-                        'Yes',
-                        'No',
-                    ],
-                    default=0,
-                    cancel=1
-                )
-                if answer == 'Yes':
-                    app.auto_update()
-                    raise SystemExit()
-
         if mcedit.closeMinecraftWarning:
-            answer = albow.ask("Warning: You must close Minecraft completely before editing. Save corruption may result. Get Satisfaction to learn more.", ["Get Satisfaction", "Don't remind me again.", "OK"], default=1, cancel=1)
-            if answer == "Get Satisfaction":
-                mcplatform.platform_open("http://getsatisfaction.com/mojang/topics/region_file_cache_interferes_with_map_editors_risking_save_corruption")
+            answer = albow.ask("Warning: You must close Minecraft completely before editing. Save corruption may result. Get Satisfaction to learn more.", ["Don't remind me again.", "OK"], default=1, cancel=1)
             if answer == "Don't remind me again.":
                 mcedit.closeMinecraftWarning = False
 
@@ -889,7 +827,7 @@ class MCEdit(GLViewport):
 
         while True:
             try:
-                rootwidget.run()
+                root_widget.run()
             except SystemExit:
                 if sys.platform == "win32" and Settings.setWindowPlacement.get():
                     (flags, showCmd, ptMin, ptMax, rect) = mcplatform.win32gui.GetWindowPlacement(display.get_wm_info()['window'])
@@ -967,7 +905,7 @@ def main(argv):
     except SystemExit:
         return 0
     except Exception as e:
-        logging.error('An unhandled error occured.', exc_info=True)
+        logging.error('An unhandled error occurred.', exc_info=True)
         display.quit()
         return 1
     return 0
@@ -1003,7 +941,7 @@ class GLDisplayContext(object):
         except:
             logging.warning('PyGame clipboard integration disabled.')
 
-        display.set_caption('MCEdit ~ ' + release.release, 'MCEdit')
+        display.set_caption('MCEdit ~ ' + release.release, release.VERSION_NAME)
         if sys.platform == 'win32' and Settings.setWindowPlacement.get():
             Settings.setWindowPlacement.set(False)
             config.saveConfig()
@@ -1026,9 +964,9 @@ class GLDisplayContext(object):
             config.saveConfig()
 
         try:
-            iconpath = os.path.join(directories.dataDir, 'favicon.png')
-            iconfile = open(iconpath, 'rb')
-            icon = pygame.image.load(iconfile, 'favicon.png')
+            icon_path = os.path.join(directories.dataDir, 'favicon.png')
+            icon_file = open(icon_path, 'rb')
+            icon = pygame.image.load(icon_file, 'favicon.png')
             display.set_icon(icon)
         except Exception as e:
             logging.warning('Unable to set icon: {0!r}'.format(e))
@@ -1053,8 +991,8 @@ class GLDisplayContext(object):
 
         def makeTerrainTexture(mats):
             w, h = 1, 1
-            teximage = numpy.zeros((w, h, 4), dtype='uint8')
-            teximage[:] = 127, 127, 127, 255
+            tex_image = numpy.zeros((w, h, 4), dtype='uint8')
+            tex_image[:] = 127, 127, 127, 255
 
             GL.glTexImage2D(
                 GL.GL_TEXTURE_2D,
@@ -1065,7 +1003,7 @@ class GLDisplayContext(object):
                 0,
                 GL.GL_RGBA,
                 GL.GL_UNSIGNED_BYTE,
-                teximage
+                tex_image
             )
 
         textures = (

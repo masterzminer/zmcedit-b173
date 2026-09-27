@@ -1,5 +1,4 @@
 
-from esky import bdist_esky
 from setuptools import setup
 
 import os
@@ -50,7 +49,7 @@ SETUP_COMMON = {
     'long_description': LONG_DESC,
 
     'author': 'David Vierra',
-    'author_email': 'codewarrior0@gmail.com',
+    'port_author': 'masterzminer',
 
     'url': 'http://www.github.com/mcedit/mcedit',
 

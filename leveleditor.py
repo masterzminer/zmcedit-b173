@@ -76,16 +76,14 @@ Settings.enableMouseLag = Settings("Enable Mouse Lag", False)
 Settings.longDistanceMode = Settings("Long Distance Mode", False)
 Settings.shouldResizeAlert = Settings("Window Size Alert", True)
 Settings.closeMinecraftWarning = Settings("Close Minecraft Warning", True)
-Settings.skin = Settings("MCEdit Skin", "[Current]")
 Settings.fov = Settings("Field of View", 70.0)
 Settings.spaceHeight = Settings("Space Height", 64)
 Settings.blockBuffer = Settings("Block Buffer", 256 * 1048576)
-Settings.reportCrashes = Settings("report crashes", 1)
 
 Settings.doubleBuffer = Settings("Double Buffer", True)
 
-Settings.viewDistance = Settings("View Distance", 8)
-Settings.targetFPS = Settings("Target FPS", 30)
+Settings.viewDistance = Settings("View Distance", 16)
+Settings.targetFPS = Settings("Target FPS", 60)
 
 Settings.windowWidth = Settings("window width", 1024)
 Settings.windowHeight = Settings("window height", 768)
@@ -1476,7 +1474,7 @@ class LevelEditor(GLViewport):
 
             return sum(size(c) for c in chunks.values())
 
-        mbldReadout = SmallValueDisplay(width=60,
+        memoryReadout = SmallValueDisplay(width=60,
             get_value=lambda: "MBd: %0.1f" % (dataSize() / 1000000.),
             tooltipText="Memory used for saved game data.")
 
@@ -1510,16 +1508,17 @@ class LevelEditor(GLViewport):
 
         viewButton = Button("Show...", action=showViewOptions)
 
-        mbReadoutRow = Row((mbReadout, mbldReadout))
+        mbReadoutRow = Row((mbReadout, memoryReadout))
         readoutGrid = Grid(((chunksReadout, fpsReadout), (mbReadoutRow, cpsReadout), ), 0, 0)
 
         self.viewportButton = Button("Camera View", action=self.swapViewports,
             tooltipText="Shortcut: TAB")
 
-        row = (viewDistanceDown, Label("View Distance:"), viewDistanceReadout, viewDistanceUp,
+        viewDistanceLabel = Label("View Distance:")
+
+        row = (viewDistanceDown, viewDistanceLabel, viewDistanceReadout, viewDistanceUp,
                readoutGrid, viewButton, self.viewportButton)
 
-        # row += (Button("CR Info", action=self.showChunkRendererInfo), )
         row = Row(row)
         self.add(row)
         self.statusLabel = ValueDisplay(width=self.width, ref=AttrRef(self, "statusText"))
@@ -2157,7 +2156,7 @@ class LevelEditor(GLViewport):
 
     lastRendererDraw = datetime.now()
 
-    def idleevent(self, e):
+    def idle_event(self, e):
         if any(self.cameraInputs) or any(self.cameraPanKeys):
             self.postMouseMoved()
 
@@ -2743,29 +2742,6 @@ class LevelEditor(GLViewport):
                 seedInputRow = mceutils.IntInputRow("RandomSeed: ", width=250, ref=AttrRef(self.level, "RandomSeed"))
                 items.append(seedInputRow)
 
-            if hasattr(self.level, 'GameType'):
-                t = self.level.GameType
-                types = ["Survival", "Creative"]
-
-                def gametype(t):
-                    if t < len(types):
-                        return types[t]
-                    return "Unknown"
-
-                def action():
-                    if b.gametype < 2:
-                        b.gametype = 1 - b.gametype
-                        b.text = gametype(b.gametype)
-                        self.level.GameType = b.gametype
-                        self.addUnsavedEdit()
-
-                b = Button(gametype(t), action=action)
-                b.gametype = t
-
-                gametypeRow = Row((Label("Game Type: "), b))
-
-                items.append(gametypeRow)
-
             if hasattr(self.level, 'regionFiles') and len(self.level.regionFiles):
                 regionCount = len(self.level.regionFiles)
                 regionCountLabel = Label("Number of regions: {0}".format(regionCount))
@@ -2935,32 +2911,17 @@ class LevelEditor(GLViewport):
         yinput = mceutils.IntInputRow("Y: ", ref=AttrRef(newWorldPanel, "y"))
         zinput = mceutils.IntInputRow("Z: ", ref=AttrRef(newWorldPanel, "z"))
         finput = mceutils.IntInputRow("f: ", ref=AttrRef(newWorldPanel, "f"), min=0, max=3)
-        xyzrow = Row([xinput, yinput, zinput, finput])
-        seedinput = mceutils.IntInputRow("Seed: ", width=250, ref=AttrRef(newWorldPanel, "seed"))
+        xyz_row = Row([xinput, yinput, zinput, finput])
+        seed_input = mceutils.IntInputRow("Seed: ", width=250, ref=AttrRef(newWorldPanel, "seed"))
 
-        winput = mceutils.IntInputRow("East-West Chunks: ", ref=AttrRef(newWorldPanel, "w"), min=0)
-        hinput = mceutils.IntInputRow("North-South Chunks: ", ref=AttrRef(newWorldPanel, "h"), min=0)
+        w_input = mceutils.IntInputRow("East-West Chunks: ", ref=AttrRef(newWorldPanel, "w"), min=0)
+        h_input = mceutils.IntInputRow("North-South Chunks: ", ref=AttrRef(newWorldPanel, "h"), min=0)
         # grassinputrow = Row( (Label("Grass: ")
         # from editortools import BlockButton
         # blockInput = BlockButton(pymclevel.alphaMaterials, pymclevel.alphaMaterials.Grass)
         # blockInputRow = Row( (Label("Surface: "), blockInput) )
 
-        types = ["Survival", "Creative"]
-
-        def gametype(t):
-            if t < len(types):
-                return types[t]
-            return "Unknown"
-
-        def action():
-            if gametypeButton.gametype < 2:
-                gametypeButton.gametype = 1 - gametypeButton.gametype
-                gametypeButton.text = gametype(gametypeButton.gametype)
-
-        gametypeButton = Button(gametype(0), action=action)
-        gametypeButton.gametype = 0
-        gametypeRow = Row((Label("Game Type:"), gametypeButton))
-        newWorldPanel.add(Column((label, Row([winput, hinput]), xyzrow, seedinput, gametypeRow, generatorPanel), align="l"))
+        newWorldPanel.add(Column((label, Row([w_input, h_input]), xyz_row, seed_input, generatorPanel), align="l"))
         newWorldPanel.shrink_wrap()
 
         result = Dialog(client=newWorldPanel, responses=["Create", "Cancel"]).present()
@@ -2981,26 +2942,25 @@ class LevelEditor(GLViewport):
 
         self.freezeStatus("Creating world...")
         try:
-            newlevel = pymclevel.MCBetaLevel(filename=filename, create=True, random_seed=seed)
+            new_level = pymclevel.MCBetaLevel(filename=filename, create=True, random_seed=seed)
             # chunks = list(itertools.product(xrange(w / 2 - w + cx, w / 2 + cx), xrange(h / 2 - h + cz, h / 2 + cz)))
 
             if generatorPanel.generatorChoice.selectedChoice == "Flatland":
                 y = generatorPanel.chunkHeight
 
-            newlevel.setPlayerPosition((x + 0.5, y + 2.8, z + 0.5))
-            newlevel.setPlayerOrientation((f * 90.0, 0.0))
+            new_level.setPlayerPosition((x + 0.5, y + 2.8, z + 0.5))
+            new_level.setPlayerOrientation((f * 90.0, 0.0))
 
-            newlevel.setPlayerSpawnPosition((x, y + 1, z))
-            newlevel.GameType = gametypeButton.gametype
-            newlevel.saveInPlace()
-            worker = generatorPanel.generate(newlevel, pymclevel.BoundingBox((x - w * 8, 0, z - h * 8), (w * 16, newlevel.Height, h * 16)))
+            new_level.setPlayerSpawnPosition((x, y + 1, z))
+            new_level.saveInPlace()
+            worker = generatorPanel.generate(new_level, pymclevel.BoundingBox((x - w * 8, 0, z - h * 8), (w * 16, new_level.Height, h * 16)))
 
             if "Canceled" == mceutils.showProgress("Generating chunks...", worker, cancel=True):
                 raise RuntimeError("Canceled.")
 
             if y < 64:
                 y = 64
-                newlevel.setBlockAt(x, y, z, pymclevel.alphaMaterials.Sponge.ID)
+                new_level.setBlockAt(x, y, z, pymclevel.alphaMaterials.Sponge.ID)
 
             self.loadFile(filename)
         except Exception:
@@ -3009,7 +2969,7 @@ class LevelEditor(GLViewport):
             )
             return
 
-        return newlevel
+        return new_level
 
     def confirmConstruction(self):
         self.currentTool.confirm()
@@ -3373,7 +3333,7 @@ class LevelEditor(GLViewport):
             infoPanel.add(infoLabel)
             infoPanel.shrink_wrap()
             self.invalidate()
-        infoPanel.idleevent = idleHandler
+        infoPanel.idle_event = idleHandler
 
         infoPanel.topleft = self.viewportContainer.topleft
         self.add(infoPanel)

@@ -923,7 +923,11 @@ class ChunkedLevelMixin(object):
 
         xInChunk = x & 0xf
         zInChunk = z & 0xf
-        ch = self.getChunk(xc, zc)
+        try:
+            ch = self.getChunk(xc, zc)
+        except:
+            return 0
+
 
         return ch.BlockLight[xInChunk, zInChunk, y]
 
@@ -1018,7 +1022,10 @@ class ChunkedLevelMixin(object):
         xInChunk = x & 0xf
         zInChunk = z & 0xf
 
-        ch = self.getChunk(xc, zc)
+        try:
+            ch = self.getChunk(xc, zc)
+        except ChunkNotPresent:
+            return 0
 
         return ch.SkyLight[xInChunk, zInChunk, y]
 
@@ -1739,10 +1746,6 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
     
     MapFeatures = TagProperty('MapFeatures', TAG_Byte, lambda self:1)
     
-    GameType = TagProperty('GameType', TAG_Int, lambda self:0) #0 for survival, 1 for creative
-    GAMETYPE_SURVIVAL = 0
-    GAMETYPE_CREATIVE = 1
-    
     _bounds = None
     @property
     def bounds(self):
@@ -2255,12 +2258,10 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
         """ read the chunk from disk, load it, and return it. 
         decompression and unpacking is done lazily."""
 
-
         c = self._getChunkUnloaded(cx, cz)
         c.load()
         if not (cx, cz) in self._loadedChunks:
             raise ChunkMalformed("Chunk {0} malformed".format((cx, cz)))
-            self.world.malformedChunk(*self.chunkPosition)
 
         return c
 
@@ -2304,7 +2305,10 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
         chunk.dirty = True
 
     def tileEntityAt(self, x, y, z):
-        chunk = self.getChunk(x >> 4, z >> 4)
+        try:
+            chunk = self.getChunk(x >> 4, z >> 4)
+        except:
+            return None
         return chunk.tileEntityAt(x, y, z)
 
 
@@ -2517,44 +2521,6 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
         if p == 180.0:  p -= 0.000000001;
         yp = y, p
         return np.array(yp)
-
-    def setPlayerAbilities(self, gametype, player="Player"):
-        playerTag = self.getPlayerTag(player)
-
-        # Check for the Abilities tag.  It will be missing in worlds from before
-        # Beta 1.9 Prerelease 5.
-        if not 'abilities' in playerTag:
-            playerTag['abilities'] = TAG_Compound()
-
-        # Assumes creative (1) is the only mode with these abilities set,
-        # which is true for now.  Future game modes may not hold this to be
-        # true, however.
-        if gametype == 1:
-            playerTag['abilities']['instabuild'] = TAG_Byte(1)
-            playerTag['abilities']['mayfly'] = TAG_Byte(1)
-            playerTag['abilities']['invulnerable'] = TAG_Byte(1)
-        else:
-            playerTag['abilities']['flying'] = TAG_Byte(0)
-            playerTag['abilities']['instabuild'] = TAG_Byte(0)
-            playerTag['abilities']['mayfly'] = TAG_Byte(0)
-            playerTag['abilities']['invulnerable'] = TAG_Byte(0)
-
-    def setPlayerGameType(self, gametype, player="Player"):
-        playerTag = self.getPlayerTag(player)
-        # This annoyingly works differently between single- and multi-player.
-        if player == "Player":
-            self.GameType = gametype
-            self.setPlayerAbilities(gametype, player)
-        else:
-            playerTag['playerGameType'] = TAG_Int(gametype)
-            self.setPlayerAbilities(gametype, player)
-
-    def getPlayerGameType(self, player="Player"):
-        if player == "Player":
-            return self.GameType
-        else:
-            playerTag = self.getPlayerTag(player)
-            return playerTag["playerGameType"].value
 
 class MCAlphaDimension (MCBetaLevel):
     def __init__(self, parentWorld, dimNo, create=False):

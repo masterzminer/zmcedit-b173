@@ -24,7 +24,9 @@ import traceback
 import platform
 from datetime import datetime
 import os
-
+from OpenGL import GL
+from albow import root
+import release
 
 def extract_tb(tb, limit=None):
     """Return list of up to limit pre-processed entries from traceback.
@@ -50,16 +52,16 @@ def extract_tb(tb, limit=None):
         name = co.co_name
         self = f.f_locals.get('self')
         try:
-            selfstr = self and "(self={0})".format(self) or " "
+            self_str = self and "(self={0})".format(self) or " "
         except:
-            selfstr = " "
+            self_str = " "
         traceback.linecache.checkcache(filename)
         line = traceback.linecache.getline(filename, lineno, f.f_globals)
         if line:
             line = line.strip()
         else:
             line = None
-        list.append((filename, lineno, name, line, selfstr))
+        list.append((filename, lineno, name, line, self_str))
         tb = tb.tb_next
         n = n + 1
     return list
@@ -76,8 +78,8 @@ def format_list(extracted_list):
     whose source text line is not None.
     """
     list = []
-    for filename, lineno, name, line, selfstr in extracted_list:
-        item = '  File "%s", line %d, in %s %s\n' % (filename, lineno, name, selfstr[:60])
+    for filename, lineno, name, line, self_str in extracted_list:
+        item = '  File "%s", line %d, in %s %s\n' % (filename, lineno, name, self_str[:60])
         if line:
             item = item + '    %s\n' % line.strip()
         list.append(item)
@@ -92,76 +94,19 @@ def clamp(num, low, high):
 
 
 def releaseInfo():
-    import release
-
     uname = platform.uname()
     uname = list(uname)
     uname[1] = hex(hash(uname[1]))
 
-    info = """Release: MCEdit-{0}\n{1}
-Platform: {2}, Name: {3}, Version{4}, Arch: {5}
-Platform:{6}, Processor: {7},
-uname: {8}
-""".format(release.release, datetime.now(), sys.platform, os.name, platform.version(), platform.architecture(), platform.platform(), platform.processor(), uname)
+    info = """Release: zMCEdit-b173-{0}\n{1}
+        Platform: {2}, Name: {3}, Version{4}, Arch: {5}
+        Platform:{6}, Processor: {7},
+        uname: {8}
+        """.format(release.release, datetime.now(), sys.platform, os.name, platform.version(), platform.architecture(), platform.platform(), platform.processor(), uname)
     try:
-        from OpenGL import GL
         info += "Version: {0}\n".format(GL.glGetString(GL.GL_VERSION))
         info += "Vendor: {0}\nRenderer: {1}\n".format(GL.glGetString(GL.GL_VENDOR), GL.glGetString(GL.GL_RENDERER))
-        from albow import root
         info += "Frames: {0}\n".format(root.get_root().frames)
 
     finally:
         return info
-
-
-def reportCrash(crashlog):
-    try:
-        import mcplatform
-        parentDir = mcplatform.parentDir
-        minecraftDir = mcplatform.minecraftDir
-
-        if hasattr(sys, 'frozen') or sys.platform != "win32":
-            crashlog = crashlog.replace(parentDir, "[MCEdit folder]")
-            crashlog = crashlog.replace(minecraftDir, "[Minecraft folder]")
-    except Exception as e:
-        print(repr(e), "while scrubbing user directories from crash log!")
-
-    releaseString = releaseInfo()
-    crashlog = releaseString + crashlog
-    print(crashlog)
-#    logfilename = "mcedit-{0}-crash.log".format(os.getpid())
-#    if not os.path.exists("logs"):
-#        try:
-#            os.mkdir("logs")
-#            logfilename = os.path.join("logs", logfilename)
-#        except Exception, e:
-#            print "Couldn't make logs dir!", repr(e)
-
-
-    #with open(logfilename, "w") as f:
-    #    f.write(crashlog)
-    #print "This info has also been logged to " + logfilename
-#    try:
-#        import config
-#        if not config.config.getboolean('Settings', 'Report Crashes'): return;
-#    except Exception, e:
-#        print repr(e), "while retrieving Report Crashes setting. Reporting anyway."
-#
-#    print "Crash log length: ", len(crashlog)
-#    conn = httplib.HTTPConnection("company.com")
-#    conn.request("POST", "/bugs.php", crashlog)
-#    resp = conn.getresponse().read()
-#    conn.close()
-#    print "Response length: ", len(resp)
-#    #print resp
-#    print ""
-#    print "The above traceback was automatically reported to the author."
-#    print "To disable crash reporting, "
-#    print "Open MCEdit.ini and set Report Crashes to 0."
-
-def reportException(exc):
-    tb = traceback.format_exc()
-    try:
-        reportCrash(tb)
-    except Exception as e:
-        print("Error while reporting crash: ", repr(e))
