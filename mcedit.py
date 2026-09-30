@@ -148,15 +148,21 @@ class FileOpener(albow.Widget):
         if keyname in ('f1', 'f2', 'f3', 'f4', 'f5'):
             self.mcedit.loadRecentWorldNumber(int(keyname[1]))
         if keyname == "o":
-            self.promptOpenAndLoad()
+            return self.promptOpenAndLoad()
         if keyname == "n":
             self.createNewWorld()
 
     def promptOpenAndLoad(self):
         try:
             filename = mcplatform.askOpenFile()
+
+            # TODO how should this work?
+            # Get rid of the key events that happened while waiting for the file
+            pygame.event.clear()
+
             if filename:
                 self.mcedit.loadFile(filename)
+                return True
         except Exception as e:
             traceback.print_exc()
             logging.error('Error during promptOpenAndLoad: {0!r}'.format(e))
@@ -629,6 +635,8 @@ class MCEdit(GLViewport):
             if config.config.has_option("Recent Worlds", str(i)):
                 try:
                     filename = config.config.get("Recent Worlds", str(i))
+                    if not isinstance(filename, str):
+                        filename = filename.decode("utf-8")
                     worlds.append(self.removeLevelDat(filename))
                 except Exception as e:
                     traceback.print_exc()

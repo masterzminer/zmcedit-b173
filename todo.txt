@@ -28,3 +28,5 @@ add a way to teleport the camera to the block the mouse is selecting
 save previously opened worlds and show them on the main menu
 
 move all os specific operations to one file per os
+
+change key handling to use a binding system, allowing shortcuts to be customized and to avoid hacky work arounds

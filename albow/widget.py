@@ -372,6 +372,10 @@ class Widget(object):
             current_cursor = cursor
 
     def dispatch_key(self, name, event):
+        """
+        returns: True if this event should discard all remaining events to process
+        """
+                
         if self.visible:
 
             if event.cmd and event.type == KEYDOWN:
@@ -380,11 +384,11 @@ class Widget(object):
                     return
             widget = self.focus_switch
             if widget:
-                widget.dispatch_key(name, event)
+                return widget.dispatch_key(name, event)
             else:
-                self.call_handler(name, event)
+                return self.call_handler(name, event)
         else:
-            self.call_parent_handler(name, event)
+            return self.call_parent_handler(name, event)
 
     def get_focus(self):
         widget = self

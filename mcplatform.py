@@ -101,7 +101,7 @@ def askOpenFile(title='Select a Minecraft level...', schematics=False):
             return request_old_filename(traceback, schematics)
 
     filename = _ask_open()
-      
+    
     if filename:
         if schematics:
             lastSchematicsDir = dirname(filename)

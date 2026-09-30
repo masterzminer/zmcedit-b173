@@ -47,13 +47,10 @@ root_widget = None     # Root of the containment hierarchy
 top_widget = None      # Initial dispatch target
 clicked_widget = None  # Target of mouse_drag and mouse_up events
 
-#---------------------------------------------------------------------------
-
 
 class Cancel(Exception):
     pass
 
-#---------------------------------------------------------------------------
 
 
 def set_modifier(key, value):
@@ -61,7 +58,7 @@ def set_modifier(key, value):
     if attr:
         modifiers[attr] = value
 
-
+# TODO probably remove this, seems like a hack
 def add_modifiers(event):
     d = event.dict
     d.update(modifiers)
@@ -78,8 +75,6 @@ def get_top_widget():
 
 def get_focus():
     return top_widget.get_focus()
-
-#---------------------------------------------------------------------------
 
 
 class RootWidget(Widget):
@@ -163,6 +158,8 @@ class RootWidget(Widget):
                         self.do_draw = False
                         pygame.display.flip()
                         self.frames += 1
+
+                    # Note, for whatever reason, obtaining the events this way is dramatically faster than just directly using events = pygame.event.get() no idea why
                     #events = [pygame.event.wait()]
                     events = [pygame.event.poll()]
                     events.extend(pygame.event.get())
@@ -232,11 +229,13 @@ class RootWidget(Widget):
                             key = event.key
                             set_modifier(key, True)
                             self.do_draw = True
-                            self.send_key(modal_widget, 'key_down', event)
+                            key_result = self.send_key(modal_widget, 'key_down', event)
                             if last_mouse_event_handler:
                                 event.dict['pos'] = last_mouse_event.pos
                                 event.dict['local'] = last_mouse_event.local
                                 last_mouse_event_handler.setup_cursor(event)
+                            if key_result is not None and key_result is True:
+                                break
                         elif type == KEYUP:
                             key = event.key
                             set_modifier(key, False)
@@ -298,8 +297,12 @@ class RootWidget(Widget):
         self.idle_handlers.remove(ref(widget))
 
     def send_key(self, widget, name, event):
+        """
+        returns: True if this key event should discard all remaining key events to process
+        """
+                
         add_modifiers(event)
-        widget.dispatch_key(name, event)
+        return widget.dispatch_key(name, event)
 
     def begin_frame(self):
         pass

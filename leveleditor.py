@@ -58,6 +58,7 @@ from albow.controls import Label, SmallValueDisplay, ValueDisplay
 from albow.dialogs import Dialog, QuickDialog, wrapped_label
 from albow.openglwidgets import GLOrtho, GLViewport
 from pygame import display, event, key, KMOD_ALT, KMOD_CTRL, KMOD_LALT, KMOD_META, KMOD_RALT, KMOD_SHIFT, mouse, MOUSEMOTION
+import pygame
 
 from depths import DepthOffset
 from editortools.chunk import GeneratorPanel
@@ -2440,6 +2441,9 @@ class LevelEditor(GLViewport):
         # if keyname in ("left alt", "right alt"):
 
     def key_down(self, evt):
+        """
+        returns: True if this key event should discard all remaining key events to process
+        """
         keyname = evt.dict.get('keyname', None) or key.name(evt.key)
         if keyname == 'enter':
             keyname = 'return'
@@ -2449,10 +2453,6 @@ class LevelEditor(GLViewport):
         im = [0., 0., 0.]
         mods = evt.dict.get('mod', 0)
 
-        if keyname == 'f4' and (mods & (KMOD_ALT | KMOD_LALT | KMOD_RALT)):
-            self.quit()
-            return
-
         if mods & KMOD_ALT:
             if keyname == "z":
                 self.longDistanceMode = not self.longDistanceMode
@@ -2461,11 +2461,7 @@ class LevelEditor(GLViewport):
                 if hasattr(self.currentTool, name):
                     getattr(self.currentTool, name)()
 
-        elif hasattr(evt, 'cmd') and evt.cmd:
-            if keyname == 'q' and mcplatform.cmd_name == "Cmd":
-                self.quit()
-                return
-
+        elif mods & KMOD_CTRL:
             if keyname == 'f':
                 self.swapViewDistance()
             if keyname == 'a':
@@ -2484,6 +2480,7 @@ class LevelEditor(GLViewport):
 
             if keyname == 'o':
                 self.askOpenFile()
+                return True
             if keyname == 'z':
                 self.undo()
             if keyname == 's':
@@ -2812,6 +2809,11 @@ class LevelEditor(GLViewport):
         self.mouseLookOff()
         try:
             filename = mcplatform.askOpenFile()
+
+            # TODO how should this work?
+            # Get rid of the key events that happened while waiting for the file
+            pygame.event.clear()
+            
             if filename:
                 self.parent.loadFile(filename)
         except Exception:
