@@ -1736,7 +1736,7 @@ class RailBlockRenderer(BlockRenderer):
         tex = texMap(railBlocks, bdata, pymclevel.faces.FaceYIncreasing)[:, np.newaxis, :]
 
         # disable 'powered' or 'pressed' bit for powered and detector rails
-        bdata[railBlocks != pymclevel.materials.alphaMaterials.Rail.ID] &= ~0x8
+        bdata[railBlocks != pymclevel.materials.alphaMaterials.Rail.ID] &= 0xF7
 
         vertexArray = self.makeTemplate(direction, blockIndices)
         if not len(vertexArray):
