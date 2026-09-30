@@ -16,6 +16,5 @@ pip install pygame
 pip install numpy
 pip install pyyaml
 pip install Pillow
-pip install setuptools
 pip install crossfiledialog
 TODO determine which dependencies are strictly needed
