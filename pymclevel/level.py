@@ -132,7 +132,7 @@ class MCLevel(object):
     ###common to Creative, Survival. these routines assume
     ###self has Width, Height, Length, and Blocks
 
-    materials = classicMaterials
+    materials = alphaMaterials
     isInfinite = False
 
     compressedTag = None

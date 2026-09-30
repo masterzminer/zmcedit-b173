@@ -13,9 +13,6 @@ import mclevel
 # Alpha levels - world folder structure containing level.dat and chunk folders.  Single or Multiplayer.
 #   Can accept a path to the world folder or a path to the level.dat.  Returns an MCLevel
 
-# Load a Classic level.
-level = mclevel.fromFile("server_level.dat"); 
-
 # Sand to glass.
 blocks[blocks == level.materials.Sand.ID] = level.materials.Glass.ID
 

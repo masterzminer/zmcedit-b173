@@ -339,56 +339,6 @@ class PistonHead(PistonBody):
     blocktypes = [alphaMaterials.PistonHead.ID]
 rotationClasses.append(PistonHead)
 
-class Vines:
-    blocktypes = [alphaMaterials.Vines.ID]
-    
-    WestBit = 1
-    NorthBit = 2
-    EastBit = 4
-    SouthBit = 8
-    
-    rotateLeft = arange(16, dtype='uint8')
-    flipEastWest = arange(16, dtype='uint8')
-    flipNorthSouth = arange(16, dtype='uint8')
-    
-"""
-Value     Description     Textures
-0     Fleshy piece     Pores on all sides
-1     Corner piece     Cap texture on top, directions 1 (cloud direction) and 2 (sunrise)
-2     Side piece     Cap texture on top and direction 2 (sunrise)
-3     Corner piece     Cap texture on top, directions 2 (sunrise) and 3 (cloud origin)
-4     Side piece     Cap texture on top and direction 1 (cloud direction)
-5     Top piece     Cap texture on top
-6     Side piece     Cap texture on top and direction 3 (cloud origin)
-7     Corner piece     Cap texture on top, directions 0 (sunset) and 1 (cloud direction)
-8     Side piece     Cap texture on top and direction 0 (sunset)
-9     Corner piece     Cap texture on top, directions 3 (cloud origin) and 0 (sunset)
-10     Stem piece     Stem texture on all four sides, pores on top and bottom
-"""
-class HugeMushroom:
-    blocktypes = [alphaMaterials.HugeRedMushroom.ID, alphaMaterials.HugeBrownMushroom.ID]
-    Northeast = 1
-    East = 2
-    Southeast = 3
-    South = 6
-    Southwest = 9 
-    West = 8
-    Northwest = 7
-    North = 4
-    
-
-generic8wayRotation(HugeMushroom)
-        
-#Hmm... Since each bit is a direction, we can rotate by shifting!
-Vines.rotateLeft = 0xf & ((Vines.rotateLeft >> 1) | (Vines.rotateLeft << 3))
-# Wherever each bit is set, clear it and set the opposite bit
-EastWestBits = (Vines.EastBit | Vines.WestBit)
-Vines.flipEastWest[(Vines.flipEastWest & EastWestBits) > 0] ^= EastWestBits
-
-NorthSouthBits = (Vines.NorthBit | Vines.SouthBit)
-Vines.flipNorthSouth[(Vines.flipNorthSouth & NorthSouthBits) > 0] ^= NorthSouthBits
-
-rotationClasses.append(Vines)
 
 def masterRotationTable(attrname):
     # compute a 256x16 table mapping each possible blocktype/data combination to 

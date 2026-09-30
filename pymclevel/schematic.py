@@ -24,7 +24,7 @@ class MCSchematic (EntityLevel):
         root_tag as a TAG_Compound for an existing schematic file.  if
         none, tries to read the tag from filename.  if none, results
         are undefined. materials can be a MCMaterials instance, or one of 
-        "Classic", "Alpha", to indicate allowable blocks. The default
+        "Alpha", to indicate allowable blocks. The default
         is Alpha.
 
         block coordinate order in the file is y,z,x to use the same code as classic levels.  

@@ -470,10 +470,7 @@ class ChunkCalculator (object):
         # Defining materials that should be considered transparent
         transparentMaterials = [
             pymclevel.materials.alphaMaterials.Glass,
-            pymclevel.materials.alphaMaterials.GlassPane,
-            pymclevel.materials.alphaMaterials.IronBars,
             pymclevel.materials.alphaMaterials.MonsterSpawner,
-            pymclevel.materials.alphaMaterials.Vines,
             pymclevel.materials.alphaMaterials.Fire,
         ]
         # For each transparent material, give each one its own material renderer id

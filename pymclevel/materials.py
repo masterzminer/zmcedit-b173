@@ -335,10 +335,6 @@ def defineShroomFaces(Shroom, id, name):
 defineShroomFaces(Brown, 99, "Brown")
 defineShroomFaces(Red, 100, "Red")
 
-classicMaterials = MCMaterials(defaultName = "Not present in Classic")
-classicMaterials.name = "Classic"
-classicMaterials.addYamlBlocksFromFile("classic.yaml")
-
 # --- Static block defs ---
 
 alphaMaterials.Stone = alphaMaterials[1, 0]
@@ -477,83 +473,6 @@ alphaMaterials.RedstoneRepeaterOn = alphaMaterials[94, 0]
 alphaMaterials.AprilFoolsChest = alphaMaterials[95, 0]
 alphaMaterials.Trapdoor = alphaMaterials[96, 0]
 
-alphaMaterials.HiddenSilverfishStone = alphaMaterials[97, 0]
-alphaMaterials.HiddenSilverfishCobblestone = alphaMaterials[97, 1]
-alphaMaterials.HiddenSilverfishStoneBrick = alphaMaterials[97, 2]
-alphaMaterials.StoneBricks = alphaMaterials[98, 0]
-alphaMaterials.MossyStoneBricks = alphaMaterials[98, 1]
-alphaMaterials.CrackedStoneBricks = alphaMaterials[98, 2]
-alphaMaterials.HugeBrownMushroom = alphaMaterials[99, 0]
-alphaMaterials.HugeRedMushroom = alphaMaterials[100, 0]
-alphaMaterials.IronBars = alphaMaterials[101, 0]
-alphaMaterials.GlassPane = alphaMaterials[102, 0]
-alphaMaterials.Watermelon = alphaMaterials[103, 0]
-alphaMaterials.PumpkinStem = alphaMaterials[104, 0]
-alphaMaterials.MelonStem = alphaMaterials[105, 0]
-alphaMaterials.Vines = alphaMaterials[106, 0]
-alphaMaterials.FenceGate = alphaMaterials[107, 0]
-alphaMaterials.BrickStairs = alphaMaterials[108, 0]
-alphaMaterials.StoneBrickStairs = alphaMaterials[109, 0]
-alphaMaterials.Mycelium = alphaMaterials[110, 0]
-alphaMaterials.Lilypad = alphaMaterials[111, 0]
-alphaMaterials.NetherBrick = alphaMaterials[112, 0]
-alphaMaterials.NetherBrickFence = alphaMaterials[113, 0]
-alphaMaterials.NetherBrickStairs = alphaMaterials[114, 0]
-alphaMaterials.NetherWart = alphaMaterials[115, 0]
-
-# --- Classic static block defs ---
-classicMaterials.Stone = classicMaterials[1]
-classicMaterials.Grass = classicMaterials[2]
-classicMaterials.Dirt = classicMaterials[3]
-classicMaterials.Cobblestone = classicMaterials[4]
-classicMaterials.WoodPlanks = classicMaterials[5]
-classicMaterials.Sapling = classicMaterials[6]
-classicMaterials.Bedrock = classicMaterials[7]
-classicMaterials.WaterActive = classicMaterials[8]
-classicMaterials.Water = classicMaterials[9]
-classicMaterials.LavaActive = classicMaterials[10]
-classicMaterials.Lava = classicMaterials[11]
-classicMaterials.Sand = classicMaterials[12]
-classicMaterials.Gravel = classicMaterials[13]
-classicMaterials.GoldOre = classicMaterials[14]
-classicMaterials.IronOre = classicMaterials[15]
-classicMaterials.CoalOre = classicMaterials[16]
-classicMaterials.Wood = classicMaterials[17]
-classicMaterials.Leaves = classicMaterials[18]
-classicMaterials.Sponge = classicMaterials[19]
-classicMaterials.Glass = classicMaterials[20]
-
-classicMaterials.RedWool = classicMaterials[21] 
-classicMaterials.OrangeWool = classicMaterials[22] 
-classicMaterials.YellowWool = classicMaterials[23] 
-classicMaterials.LimeWool = classicMaterials[24] 
-classicMaterials.GreenWool = classicMaterials[25] 
-classicMaterials.AquaWool = classicMaterials[26] 
-classicMaterials.CyanWool = classicMaterials[27] 
-classicMaterials.BlueWool = classicMaterials[28] 
-classicMaterials.PurpleWool = classicMaterials[29] 
-classicMaterials.IndigoWool = classicMaterials[30]
-classicMaterials.VioletWool = classicMaterials[31] 
-classicMaterials.MagentaWool = classicMaterials[32] 
-classicMaterials.PinkWool = classicMaterials[33] 
-classicMaterials.BlackWool = classicMaterials[34] 
-classicMaterials.GrayWool = classicMaterials[35] 
-classicMaterials.WhiteWool = classicMaterials[36] 
-
-classicMaterials.Flower = classicMaterials[37]
-classicMaterials.Rose = classicMaterials[38]
-classicMaterials.BrownMushroom = classicMaterials[39]
-classicMaterials.RedMushroom = classicMaterials[40]
-classicMaterials.BlockofGold = classicMaterials[41]
-classicMaterials.BlockofIron = classicMaterials[42]
-classicMaterials.DoubleStoneSlab = classicMaterials[43]
-classicMaterials.StoneSlab = classicMaterials[44]
-classicMaterials.Brick = classicMaterials[45]
-classicMaterials.TNT = classicMaterials[46]
-classicMaterials.Bookshelf = classicMaterials[47]
-classicMaterials.MossStone = classicMaterials[48]
-classicMaterials.Obsidian = classicMaterials[49]
-
 
 _indices = np.rollaxis(np.indices( (256, 16) ), 0, 3)
 
@@ -629,7 +548,7 @@ def guessFilterTable(matsFrom, matsTo):
             
     return filters , unavailable
 
-allMaterials = (alphaMaterials, classicMaterials)
+allMaterials = (alphaMaterials)
 
 _conversionFuncs = {}
 def conversionFunc(destMats, sourceMats):
@@ -658,4 +577,4 @@ def convertBlocks(destMats, sourceMats, blocks, blockData):
     
 namedMaterials = dict((i.name, i) for i in allMaterials)
 
-__all__ = "alphaMaterials, classicMaterials, namedMaterials, MCMaterials".split(", ")
+__all__ = "alphaMaterials, namedMaterials, MCMaterials".split(", ")
