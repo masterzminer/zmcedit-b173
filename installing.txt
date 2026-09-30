@@ -1,6 +1,9 @@
 Creating a virtual environment
 python3 -m venv .venv
 
+Allow system packages to be used, this is for native gui support via gtk
+python3 -m venv --system-site-packages ".venv"
+
 Activate it
 source .venv/bin/activate
 
@@ -14,4 +17,5 @@ pip install numpy
 pip install pyyaml
 pip install Pillow
 pip install setuptools
+pip install crossfiledialog
 TODO determine which dependencies are strictly needed

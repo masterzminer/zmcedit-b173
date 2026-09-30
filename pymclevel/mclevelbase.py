@@ -101,11 +101,6 @@ if sys.platform == "win32":
 
     minecraftDir = os.path.join(appDataDir, u".minecraft")
 
-elif sys.platform == "darwin":
-    appDataDir = os.path.expanduser(u"~/Library/Application Support")
-    
-    minecraftDir = os.path.join(appDataDir, u"minecraft")
-    minecraftDir.decode(sys.getfilesystemencoding())
 else:
     appDataDir = os.path.expanduser(u"~")
     minecraftDir = os.path.expanduser(u"~/.minecraft")

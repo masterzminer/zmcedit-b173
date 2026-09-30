@@ -457,7 +457,6 @@ class Widget(object):
 
     def key_down(self, event):
         k = event.key
-        #print "Widget.key_down:", k ###
         if k == K_RETURN or k == K_KP_ENTER:
             if self.enter_response is not None:
                 self.dismiss(self.enter_response)
@@ -487,7 +486,6 @@ class Widget(object):
         return self.get_root().hover_widget is self
 
     def present(self, centered=True):
-        #print "Widget: presenting with rect", self.rect
         root = self.get_root()
         if centered:
             self.center = root.center
@@ -497,7 +495,6 @@ class Widget(object):
             self.dispatch_attention_loss()
         finally:
             root.remove(self)
-        #print "Widget.present: returning", self.modal_result
         return self.modal_result
 
     def dismiss(self, value=True):

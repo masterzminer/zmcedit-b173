@@ -23,9 +23,7 @@ command to install Cython:
     easy_install cython
 """)
     import sys
-    if sys.platform == "darwin":
-        print("""You must also install the Xcode development tools, available from the Apple Developer Connection at connect.apple.com""")
-    elif sys.platform == "win32":
+    if sys.platform == "win32":
         print("""You must also install either Visual Studio 2010 or the Windows Platform SDK 7.0 from MSDN somewhere on microsoft.com""")
     else:
         print("""You must also install your system's development tools. On Debian and Ubuntu, this command should work:

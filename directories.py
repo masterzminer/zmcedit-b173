@@ -73,10 +73,6 @@ def findDirectories():
             runningInEditor = True
         else:
             dataDir = os.path.split(sys.executable.decode(sys.getfilesystemencoding()))[0]
-            runningInEditor = False
-    elif sys.platform == "darwin":
-        dataDir = os.getcwd()
-        runningInEditor = False
     else:
         if arg_zero.endswith("mcedit.pyo"):
             dataDir = os.path.split(arg_zero)[0]

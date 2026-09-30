@@ -463,11 +463,6 @@ class OptionsPanel(Dialog):
             ref=Settings.flyMode.propertyRef(),
             tooltipText="Moving forward and backward will not change your altitude in Fly Mode.")
 
-        self.goPortableButton = goPortableButton = albow.Button("Change", action=self.togglePortable)
-
-        goPortableButton.tooltipText = self.portableButtonTooltip()
-        goPortableRow = albow.Row((albow.ValueDisplay(ref=albow.AttrRef(self, 'portableLabelText'), width=250, align='r'), goPortableButton))
-
         inputs = (
             spaceHeightRow,
             cameraAccelRow,
@@ -490,8 +485,6 @@ class OptionsPanel(Dialog):
             ) + (
             ) + (
             (sys.platform == "win32") and (setWindowPlacementRow,) or ()
-            ) + (
-            goPortableRow,
         )
 
         right_col = albow.Column(options, align='r')
@@ -514,32 +507,6 @@ class OptionsPanel(Dialog):
     @blockBuffer.setter
     def blockBuffer(self, val):
         Settings.blockBuffer.set(int(val * 1048576))
-
-    def portableButtonTooltip(self):
-        return ("Click to make your MCEdit install self-contained by moving the settings and schematics into the program folder",
-                "Click to make your MCEdit install persistent by moving the settings and schematics into your Documents folder")[mcplatform.portable]
-
-    @property
-    def portableLabelText(self):
-        return ("Install Mode: Portable", "Install Mode: Fixed")[1 - mcplatform.portable]
-
-    def togglePortable(self):
-        textChoices = [
-             "This will make your MCEdit \"portable\" by moving your settings and schematics into the same folder as {0}. Continue?".format((sys.platform == "darwin" and "the MCEdit application" or "MCEditData")),
-             "This will move your settings and schematics to your Documents folder. Continue?",
-        ]
-        if sys.platform == "darwin":
-            textChoices[1] = "This will move your schematics to your Documents folder and your settings to your Preferences folder. Continue?"
-
-        alertText = textChoices[mcplatform.portable]
-        if albow.ask(alertText) == "OK":
-            try:
-                [mcplatform.goPortable, mcplatform.goFixed][mcplatform.portable]()
-            except Exception as e:
-                traceback.print_exc()
-                albow.alert(u"Error while moving files: {0}".format(repr(e)))
-
-        self.goPortableButton.tooltipText = self.portableButtonTooltip()
 
 
 class MCEdit(GLViewport):

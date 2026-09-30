@@ -21,13 +21,6 @@ class MenuItem(object):
     alt = False
     enabled = False
 
-    if sys.platform.startswith('darwin') or sys.platform.startswith('mac'):
-        cmd_name = "Cmd "
-        option_name = "Opt "
-    else:
-        cmd_name = "Ctrl "
-        option_name = "Alt "
-
     def __init__(self, text="", command=None):
         self.command = command
         if "/" in text:
