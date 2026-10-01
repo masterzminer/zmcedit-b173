@@ -2617,6 +2617,8 @@ class LevelEditor(GLViewport):
 
             if keyname in "123456789":
                 self.toolbar.selectTool(int(keyname) - 1)
+                # Hack to ensure tools don't repeatedly get over selected
+                pygame.event.clear()
 
             if keyname in ('f1', 'f2', 'f3', 'f4', 'f5'):
                 self.mcedit.loadRecentWorldNumber(int(keyname[1]))
