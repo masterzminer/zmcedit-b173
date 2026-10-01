@@ -8,6 +8,12 @@ mcedit.py
 Startup, main menu, keyboard configuration, automatic updating.
 """
 
+# Hide the default pygame message
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+from pygame import display, key, rect
+
+
 import OpenGL
 import sys
 if "-debug" not in sys.argv:
@@ -32,10 +38,8 @@ import numpy
 
 
 from OpenGL import GL
-import os
 import os.path
 import pygame
-from pygame import display, key, rect
 import pymclevel
 import release
 import shutil
