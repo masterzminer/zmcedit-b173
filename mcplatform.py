@@ -95,10 +95,13 @@ def askCreateWorld(initialDir: str):
 
 
 def askSaveFolder(initialDir, title):
-    return crossfiledialog.choose_folder(
+    selected = crossfiledialog.choose_folder(
         start_dir=initialDir,
         title=title
     )
+    if selected is None or selected == "":
+        return None
+    return selected
 
 def askSaveFile(initialDir: str, title: str, defaultName, filetype: str=None):
     # TODO make an option to force using the built in gui file selector
@@ -116,6 +119,10 @@ def askSaveFile(initialDir: str, title: str, defaultName, filetype: str=None):
             start_dir=(initialDir if defaultName is None else os.path.join(initialDir, defaultName)),
             title=title,
         )
+
+        if selected_path is None or selected_path == "":
+            return None
+
         if filetype is not None:
             selected_path += "." + filetype
         return selected_path
