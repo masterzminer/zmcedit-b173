@@ -24,9 +24,10 @@ change key handling to use a binding system, allowing shortcuts to be customized
 
 Avoid having to constantly parse adding level.dat, probably make save files represented by an object
 
+standardize logging, print statements, and traceback error logging calls
+
 
 next:
-    move all os specific operations to one file per os
-        consolidate all file io to a central py file
     create build scripts to create a stand alone executable
     document the exact versions of each module to install
+    go over todos and resolve essential issues

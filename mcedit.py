@@ -955,13 +955,7 @@ class GLDisplayContext(object):
             mats.terrainTexture = self.terrainTextures[mats.name]
 
 
-# TODO move this to an explicit file for os specific handling
-def weird_fix():
-    try:
-        from OpenGL.platform import win32
-        win32
-    except Exception:
-        pass
+mcplatform.os_ops.handle_init()
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))

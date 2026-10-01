@@ -130,18 +130,8 @@ def askSaveFile(initialDir: str, title: str, defaultName, filetype: str=None):
 
 def platform_open(path):
     path = os.path.abspath(path)
+    return os_ops.open_file(path)
 
-    system = platform.system()
-
-    # TODO move this to an explicit file for handling os specific operations
-    if system == "Windows":
-        os.startfile(path)
-    elif system == "Linux":
-        subprocess.Popen(["xdg-open", path])
-    else:
-        raise OSError("Unsupported operating system: " + system)
-
-win32_window_size = True
 
 docsFolder = directories.USER
 iniFile = directories.INI_FILE
@@ -159,3 +149,73 @@ if filtersDir not in [s
     sys.path.append(filtersDir)
 
 items.items = items.Items(join(directories.ROOT, "pymclevel", "items.txt"))
+
+
+class OS():
+    def __init__(self, system_name):
+        self.system_name = system_name
+        """
+        Name of the operating system
+        """
+
+    """
+    Base class for handling operating system specific processes
+    """
+
+    def handle_init(self):
+        """
+        Called when MC Edit starts, do any needed additional initializing. Can do nothing if nothing extra is needed
+        """
+        pass
+
+
+    def open_file(self, path: str):
+        """
+        Open the given file using the os native application
+
+        path: The absolute path to the file to open
+        """
+        print("Opening files is no")
+
+class LinuxHandler(OS):
+    def open_file(self, path):
+        subprocess.Popen(["xdg-open", path])
+
+
+class MacHandler(OS):
+    def open_file(self, path):
+        subprocess.Popen(["open", path])
+
+class WindowsHandler(OS):
+    def handle_init(self):
+        # Inherited from the original fork, "weird fix"
+        try:
+            from OpenGL.platform import win32
+            win32
+        except Exception:
+            pass
+        pass
+
+    def open_file(self, path):
+        os.startfile(path)
+
+class UnknownHandler(OS):
+    def handle_init(self):
+        print("Failed to identify operating system or operating system not supported, some actions may not work")
+
+
+def find_os_handler():
+    system = platform.system()
+
+    if system == "Linux":
+        return LinuxHandler(system)
+    if system == "Darwin":
+        return MacHandler(system)
+    elif system == "Windows":
+        return WindowsHandler(system)
+    else:
+        print(f"Unknown operating system: {system}")
+        return UnknownHandler(system)
+
+
+os_ops = find_os_handler()
