@@ -9,13 +9,6 @@ Save a TAG_* object to a file or StringIO object.
 
 Read the test functions at the end of the file to get started.
 
-This library requires Numpy.    Get it here:
-http://new.scipy.org/download.html
-
-Official NBT documentation is here:
-http://www.minecraft.net/docs/NBT.txt
-
-
 Copyright 2010 David Rio Vierra
 """
 

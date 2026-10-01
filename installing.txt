@@ -17,4 +17,5 @@ pip install numpy
 pip install pyyaml
 pip install Pillow
 pip install crossfiledialog
+pip install Cython
 TODO determine which dependencies are strictly needed

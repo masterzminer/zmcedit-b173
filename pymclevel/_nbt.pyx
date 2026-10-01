@@ -11,13 +11,6 @@ Save a TAG_* object to a file or StringIO object.
 
 Read the test functions at the end of the file to get started.
 
-This library requires Numpy.    Get it here:
-http://new.scipy.org/download.html
-
-Official NBT documentation is here:
-http://www.minecraft.net/docs/NBT.txt
-
-
 Copyright 2010 David Rio Vierra
 """
 
@@ -25,29 +18,21 @@ import collections
 import itertools
 import struct
 import gzip
-from cStringIO import StringIO
+
 from cpython cimport PyTypeObject, PyObject_TypeCheck, PyUnicode_DecodeUTF8, PyList_Append
 
-cdef extern from "cStringIO.h":
-    struct PycStringIO_CAPI:
-        int cwrite (object o, char *buf, Py_ssize_t len)
-        PyTypeObject * OutputType
-cdef extern from "cobject.h":
-    void * PyCObject_Import(char *module_name, char *cobject_name)
+from io import BytesIO
+from cpython.bytes cimport PyBytes_FromStringAndSize
 
-cdef PycStringIO_CAPI *PycStringIO = <PycStringIO_CAPI *>PyCObject_Import("cStringIO", "cStringIO_CAPI")
-cdef PyTypeObject * StringO = PycStringIO.OutputType
-
-cdef cwrite(obj, char * buf, size_t len):
-    #print "cwrite %s %s %d" % (map(ord, buf[:min(4, len)]), buf[:min(4, len)].decode('ascii', 'replace'), len)
-    return PycStringIO.cwrite(obj, buf, len)
+cdef cwrite(obj, char *buf, size_t len):
+    return obj.write(PyBytes_FromStringAndSize(buf, len))
     
 import sys
 import os
 from os.path import exists
 from contextlib import closing
 
-from numpy import array, zeros, uint8, fromstring, ndarray, frombuffer
+from numpy import array, zeros, uint8, frombuffer, ndarray
 cimport numpy as np
 
 cdef char TAG_END = 0
@@ -80,7 +65,8 @@ cdef class TAG_Value:
         def __get__(self):
             return self._name
         def __set__(self, val):
-            if isinstance(val, str): val = PyUnicode_DecodeUTF8(val, len(val), "strict")
+            if isinstance(val, bytes):
+                val = PyUnicode_DecodeUTF8(val, len(val), "strict")
             self._name = val
     
     def __reduce__(self):
@@ -167,7 +153,7 @@ cdef class TAG_Byte_Array(TAG_Array):
 cdef class TAG_String(TAG_Value):
     cdef unicode _value
     def __init__(self, value = u"", name = u""): 
-        if isinstance(value, str): value = PyUnicode_DecodeUTF8(value, len(value), "strict")
+        if isinstance(value, bytes): value = PyUnicode_DecodeUTF8(value, len(value), "strict")
         self.value = value
         self.name = name
         self.tagID = TAG_STRING
@@ -176,7 +162,7 @@ cdef class TAG_String(TAG_Value):
         def __get__(self):
             return self._value
         def __set__(self, value):
-            if isinstance(value, str): value = PyUnicode_DecodeUTF8(value, len(value), "strict")
+            if isinstance(value, bytes): value = PyUnicode_DecodeUTF8(value, len(value), "strict")
             self._value = value
     
     cdef save_value(self, buf):
@@ -215,7 +201,7 @@ cdef class _TAG_List(TAG_Value):
                 raise NBTFormatError, "Asked to save TAG_List with different types! Found %s and %s" % (subtag.tagID, self.list_type)
             save_tag_value(subtag, buf)
             
-class TAG_List(_TAG_List, collections.MutableSequence):
+class TAG_List(_TAG_List, collections.abc.MutableSequence):
     pass
             
 cdef class _TAG_Compound(TAG_Value):
@@ -246,7 +232,7 @@ cdef class _TAG_Compound(TAG_Value):
         self[tag.name] = tag
         
     cdef save_value(self, buf):
-        i = self.iteritems()
+        i = self.items()
         for name, subtag in i:
             #print "save_tag_name", name, subtag.tagID, "Named", subtag.name,
             save_tag_id(subtag.tagID, buf)
@@ -257,7 +243,7 @@ cdef class _TAG_Compound(TAG_Value):
             #print "value", name
         save_tag_id(TAG_END, buf)
         
-class TAG_Compound(_TAG_Compound, collections.MutableMapping):
+class TAG_Compound(_TAG_Compound, collections.abc.MutableMapping):
     def __init__(self, value = None, name = u""): 
         _TAG_Compound.__init__(self, value, name)
     def save(self, filename = "", buf = None):
@@ -280,7 +266,7 @@ cdef swab(void * vbuf, int nbytes):
     #print "to", 
     #if not needswap: return
     cdef int i
-    for i in range((nbytes+1)/2):
+    for i in range((nbytes+1)//2):
         buf[i], buf[nbytes-i-1] = buf[nbytes-i-1], buf[i]
     #for i in range(nbytes): print buf[i],
 
@@ -303,9 +289,10 @@ def load(buf=None, filename=None):
         pass
         
     if filename and exists(filename):
-        data = file(filename, "rb").read()
-        data = try_gunzip(data)
-        return load_buffer(data)
+        with open(filename, "rb") as f:
+            data = f.read()
+            data = try_gunzip(data)
+            return load_buffer(data)
     
     return load_buffer(try_gunzip(buf))
 
@@ -329,7 +316,7 @@ cdef load_buffer(bytes buf):
     if len(buf) < 1: 
         raise NBTFormatError, "NBT Stream too short!"
     
-    if should_dump: print dump(buf)
+    if should_dump: print(dump(buf))
     assert ctx.buffer[0] == TAG_COMPOUND, "Data is not a TAG_Compound (found %d)" % ctx.buffer[0]
     name = load_string(ctx)
     #print "Root name", name
@@ -417,7 +404,7 @@ cdef load_bytearray(load_ctx ctx):
     #print "Bytearray", length, ctx.size - ctx.offset
     ctx.require(length)
     ctx.offset += length
-    return TAG_Byte_Array(fromstring(arr[:length], dtype='uint8', count=length))
+    return TAG_Byte_Array(frombuffer(arr[:length], dtype='uint8', count=length).copy())
 
 cdef load_intarray(load_ctx ctx):
     ctx.require(4)
@@ -429,7 +416,7 @@ cdef load_intarray(load_ctx ctx):
     #print "Bytearray", length, ctx.size - ctx.offset
     ctx.require(length)
     ctx.offset += length
-    return TAG_Int_Array(fromstring(arr[:length], dtype='>u4', count=length/4))
+    return TAG_Int_Array(frombuffer(arr[:length], dtype='>u4', count=length//4).copy())
 
 
 ### --- load_compound ---
@@ -530,16 +517,16 @@ def dump(src, length=8):
     return result
     
 cdef save_root_tag(tag, filename = "", buf = None):
-    sio = StringIO()
+    sio = BytesIO()
     save_tag(tag, sio)
     data = sio.getvalue()
     if buf is None:
-        f = file(filename, "wb")
-        gzio = StringIO()
-        gz = gzip.GzipFile(fileobj=gzio, mode='wb', compresslevel=2)
-        gz.write(data)
-        gz.close()
-        f.write(gzio.getvalue())
+        with open(filename, "wb") as f:
+            gzio = BytesIO()
+            gz = gzip.GzipFile(fileobj=gzio, mode='wb', compresslevel=2)
+            gz.write(data)
+            gz.close()
+            f.write(gzio.getvalue())
     else:
         buf.write(data)
     
@@ -563,7 +550,7 @@ cdef save_string(bytes value, object buf):
     cwrite(buf, s, len(value))
     
 cdef save_byte_array(object value, object buf):
-    value = value.tostring()
+    value = value.tobytes()
     cdef char * s = value
     cdef unsigned int length = len(value)
     swab(&length, 4)

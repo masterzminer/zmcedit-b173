@@ -10,7 +10,6 @@ Created on Jul 22, 2011
 
 
 from .mclevelbase import *
-import tempfile
 from collections import defaultdict
 from . import materials
 import numpy as np
@@ -18,7 +17,7 @@ import numpy as np
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
 
-def computeChunkHeightMap(materials, blocks, HeightMap = None):
+def computeChunkHeightMap(materials, blocks, heightMap = None):
     """Computes the HeightMap array for a chunk, which stores the lowest 
     y-coordinate of each column where the sunlight is still at full strength.
     The HeightMap array is indexed z,x contrary to the blocks array which is x,z,y.
@@ -30,11 +29,11 @@ def computeChunkHeightMap(materials, blocks, HeightMap = None):
     lightAbsorption = materials.lightAbsorption[blocks]
     heights = extractHeights(lightAbsorption)
     heights = heights.swapaxes(0, 1)
-    if HeightMap is None:
+    if heightMap is None:
         return heights.astype('uint8')
     else:
-        HeightMap[:] = heights
-        return HeightMap
+        heightMap[:] = heights
+        return heightMap
 
 def extractHeights(array):
     """ Given an array of bytes shaped (x, z, y), return the coordinates of the highest
