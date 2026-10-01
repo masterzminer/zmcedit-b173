@@ -138,7 +138,6 @@ class FileDialog(Dialog):
         self.shrink_wrap()
         self._directory = None
         self.directory = os.getcwd()
-        #print "FileDialog: cwd =", repr(self.directory) ###
         if self.saving:
             filename_box.focus()
 

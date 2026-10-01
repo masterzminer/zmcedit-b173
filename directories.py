@@ -1,4 +1,4 @@
-"""Copyright (c) 2010-2012 David Rio Vierra
+"""Copyright (c) 2026 masterzminer
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -13,89 +13,46 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
 
-
-
-import sys
 import os
 
-
-def win32_utf8_argv():
-    """Uses shell32.GetCommandLineArgvW to get sys.argv as a list of UTF-8
-    strings.
-
-    Versions 2.5 and older of Python don't support Unicode in sys.argv on
-    Windows, with the underlying Windows API instead replacing multi-byte
-    characters with '?'.
-
-    Returns None on failure.
-
-    Example usage:
-
-    >>> def main(argv=None):
-    ...    if argv is None:
-    ...        argv = win32_utf8_argv() or sys.argv
-    ...
-    """
-
-    try:
-        from ctypes import POINTER, byref, cdll, c_int, windll
-        from ctypes.wintypes import LPCWSTR, LPWSTR
-
-        GetCommandLineW = cdll.kernel32.GetCommandLineW
-        GetCommandLineW.argtypes = []
-        GetCommandLineW.restype = LPCWSTR
-
-        CommandLineToArgvW = windll.shell32.CommandLineToArgvW
-        CommandLineToArgvW.argtypes = [LPCWSTR, POINTER(c_int)]
-        CommandLineToArgvW.restype = POINTER(LPWSTR)
-
-        cmd = GetCommandLineW()
-        argc = c_int(0)
-        argv = CommandLineToArgvW(cmd, byref(argc))
-        if argc.value > 0:
-#            # Remove Python executable if present
-#            if argc.value - len(sys.argv) == 1:
-#                start = 1
-#            else:
-#                start = 0
-            return [argv[i] for i in
-                    range(0, argc.value)]
-    except Exception:
-        pass
+# Names of directories
+ASSETS_NAME = "assets"
+CONFIG_NAME = ".mcedit_config"
+STOCK_SCHEMATICS_NAME = "stock-schematics"
+USER_SCHEMATICS_NAME = "schematics"
+FILTERS_NAME = "filters"
+LOG_NAME = "mcedit.log"
+INI_NAME = "mcedit.ini"
 
 
 def findDirectories():
-    arg_zero = os.fsdecode(sys.argv[0])
+    cwd = os.getcwd()
+    root = os.path.abspath(cwd)
 
-    if sys.platform == "win32":
-        if sys.executable.endswith("python.exe") or sys.executable.endswith("pythonw.exe"):
-            dataDir = os.path.split(arg_zero)[0]
-            runningInEditor = True
-        else:
-            dataDir = os.path.split(sys.executable.decode(sys.getfilesystemencoding()))[0]
-    else:
-        if arg_zero.endswith("mcedit.pyo"):
-            dataDir = os.path.split(arg_zero)[0]
-            runningInEditor = False
-        else:
-            dataDir = os.getcwd()
-            runningInEditor = True
+    config = os.path.abspath(os.path.join(cwd, CONFIG_NAME))
+    os.makedirs(config, exist_ok=True)
 
-    #print "Parent Dir: ", dataDir
+    assets = os.path.abspath(os.path.join(cwd, ASSETS_NAME))
 
-    if not runningInEditor:
-        if u'MCEditData' in os.listdir(os.getcwd()):
-            dataDir = os.path.join(os.getcwd(), u'MCEditData')
-        #else:
-        #    raise RuntimeError, "Cannot find MCEditData! (did you start from the right directory?)"
+    stock_schematics = os.path.abspath(os.path.join(assets, STOCK_SCHEMATICS_NAME))
 
-    if not len(dataDir):
-        print("DataDir was empty, using cwd.")
-        dataDir = os.getcwd()
+    user_schematics = os.path.join(config, USER_SCHEMATICS_NAME)
+    os.makedirs(config, exist_ok=True)
 
-    #docsFolder = mcplatform.documents_folder()
+    filters = os.path.abspath(os.path.join(root, FILTERS_NAME))
 
-    os.chdir(os.path.abspath(dataDir))
-    return dataDir, runningInEditor
+    return root, config, assets, stock_schematics, user_schematics, filters
 
-dataDir, runningInEditor = findDirectories()
+
+# Absolute paths to files and directories
+ROOT, CONFIG, ASSETS, STOCK_SCHEMATICS, USER_SCHEMATICS, FILTERS = findDirectories()
+
+# TODO allow USER to be configurable, load it from file stored in CONFIG, probably make CONFIG default to a per user configuration
+USER = CONFIG
+
+LOG_FILE = os.path.join(USER, LOG_NAME)
+USER_SCHEMATICS = os.path.join(USER, LOG_NAME)
+INI_FILE = os.path.join(USER, INI_NAME)
+
+def asset(filename):
+    return os.path.join(ASSETS, filename)

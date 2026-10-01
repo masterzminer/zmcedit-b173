@@ -33,6 +33,7 @@ from pygame import display, image, Surface
 import pymclevel
 import traceback
 from PIL import Image
+import directories
 
 
 def alertException(func):
@@ -301,7 +302,7 @@ def loadTerrainTexture():
 
 def loadPNGData(filename):
     # Load image and convert to rgba
-    image = Image.open(filename).convert("RGBA")
+    image = Image.open(directories.asset(filename)).convert("RGBA")
     # Convert the data to a np array
     data = np.array(image)
     # Extract the weight and width from the shape

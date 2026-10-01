@@ -3,14 +3,7 @@
 # http://youtube.com/SethBling
 
 
-from pymclevel import TAG_Compound
-from pymclevel import TAG_Int
 from pymclevel import TAG_Short
-from pymclevel import TAG_Byte
-from pymclevel import TAG_String
-from pymclevel import TAG_Float
-from pymclevel import TAG_Double
-from pymclevel import TAG_List
 from pymclevel import TileEntity
 
 displayName = "Create Spawners"

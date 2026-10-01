@@ -1,5 +1,5 @@
 # Notice
-This readme is the original readme.md included in the MC Edit source that this port was built on. Much of the information here is likely no longer accurate. This document remains in this repo for posterity's sake. 
+This readme is more or less the original readme.md included in the MC Edit source that this port was built on. Much of the information here is likely no longer accurate. This document remains in this repo for posterity's sake. 
 
 
 

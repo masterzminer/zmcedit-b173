@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 
 
 def configFilePath():
-    return mcplatform.configFilePath
+    return mcplatform.iniFile
 
 
 def loadConfig():

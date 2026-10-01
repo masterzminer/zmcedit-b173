@@ -30,16 +30,7 @@ import crossfiledialog
 
 enc = sys.getfilesystemencoding()
 
-
-if sys.platform == "win32":
-    import platform
-    if platform.architecture()[0] == "32bit":
-        plat = "win32"
-    if platform.architecture()[0] == "64bit":
-        plat = "win-amd64"
-    sys.path.append(join(directories.dataDir, "pymclevel", "build", "lib." + plat + "-2.6").encode(enc))
-
-os.environ["YAML_ROOT"] = join(directories.dataDir, "pymclevel")
+os.environ["YAML_ROOT"] = join(directories.ROOT, "pymclevel")
 
 from pygame import display
 
@@ -47,31 +38,6 @@ from albow import request_new_filename, request_old_filename
 from pymclevel import saveFileDir
 from pymclevel import items
 
-import shutil
-
-
-# for k,v in os.environ.iteritems():
-#    try:
-#        os.environ[k] = v.decode(sys.getfilesystemencoding())
-#    except:
-#        continue
-if sys.platform == "win32":
-    try:
-        from win32 import win32gui
-        from win32 import win32api
-
-        from win32.lib import win32con
-    except ImportError:
-        import win32gui
-        import win32api
-
-        import win32con
-
-    try:
-        import win32com.client
-        from win32com.shell import shell, shellcon  # @UnresolvedImport
-    except:
-        pass
 
 AppKit = None
 
@@ -86,7 +52,7 @@ def askOpenFile(title='Select a Minecraft level...', schematics=False):
     global lastSchematicsDir, lastSaveDir
     initialDir = lastSaveDir or saveFileDir
     if schematics:
-        initialDir = lastSchematicsDir or fixedSchematicsDir
+        initialDir = lastSchematicsDir or baseSchematicsDir
 
     def _ask_open():
         try:
@@ -167,32 +133,8 @@ def askSaveFile(initialDir, title, defaultName, filetype, suffix):
     return filename
 
 
-def documents_folder():
-    docsFolder = None
 
-    if sys.platform == "win32":
-        try:
-            objShell = win32com.client.Dispatch("WScript.Shell")
-            docsFolder = objShell.SpecialFolders("MyDocuments")
-
-        except Exception as e:
-            print(e)
-            try:
-                docsFolder = shell.SHGetFolderPath(0, shellcon.CSIDL_PERSONAL, 0, 0)
-            except Exception as e:
-                userprofile = os.environ['USERPROFILE'].decode(sys.getfilesystemencoding())
-                docsFolder = os.path.join(userprofile, "Documents")
-
-    else:
-        docsFolder = os.path.expanduser(u"~/.mcedit")
-    try:
-        os.mkdir(docsFolder)
-    except:
-        pass
-
-    return docsFolder
-
-
+# TODO probably use a library to abstract this out
 def platform_open(path):
     try:
         if sys.platform == "win32":
@@ -206,33 +148,15 @@ def platform_open(path):
 
 win32_window_size = True
 
-ini = u"mcedit.ini"
-parentDir = dirname(directories.dataDir)
-docsFolder = documents_folder()
-fixedConfigFilePath = os.path.join(docsFolder, ini)
-fixedSchematicsDir = os.path.join(docsFolder, u"MCEdit-schematics")
-configFilePath=fixedConfigFilePath
-
-def move_displace(src, dst):
-    dstFolder = os.path.basename(os.path.dirname(dst))
-    if not os.path.exists(dst):
-
-        print("Moving {0} to {1}".format(os.path.basename(src), dstFolder))
-        shutil.move(src, dst)
-    else:
-        old_dst = dst + ".old"
-        i = 0
-        while os.path.exists(old_dst):
-            old_dst = dst + ".old" + str(i)
-            i += 1
-
-        print("{0} already found in {1}! Renamed it to {2}.".format(os.path.basename(src), dstFolder, dst))
-        os.rename(dst, old_dst)
-        shutil.move(src, dst)
+docsFolder = directories.USER
+iniFile = directories.INI_FILE
+baseSchematicsDir = directories.USER_SCHEMATICS
 
 
-
-filtersDir = os.path.join(directories.dataDir, "filters")
+# TODO treat these as "stock" filters
+# TODO allow these filters to be configured as hidden individually per filter
+# TODO make a separate directory where custom filters can be added
+filtersDir = directories.FILTERS
 if filtersDir not in [s
                       if isinstance(s, str)
                       else s
@@ -240,4 +164,4 @@ if filtersDir not in [s
                           
     sys.path.append(filtersDir)
 
-items.items = items.Items(join(directories.dataDir, "pymclevel", "items.txt"))
+items.items = items.Items(join(directories.ROOT, "pymclevel", "items.txt"))

@@ -1,33 +1,12 @@
-# -*- coding: utf-8 -*-
-
-
 import os
 import sys
 import pygame
 from pygame.locals import RLEACCEL
+import directories
 
-#default_font_name = "Vera.ttf"
 optimize_images = True
 run_length_encode = False
 
-
-def find_resource_dir():
-    try:
-        from directories import dataDir
-        return dataDir
-    except:
-        pass
-    dir = sys.path[0]
-    while 1:
-        path = os.path.join(dir, "MCEditData")
-        if os.path.exists(path):
-            return path
-        parent = os.path.dirname(dir)
-        if parent == dir:
-            raise SystemError("albow: Unable to find Resources directory")
-        dir = parent
-
-resource_dir = find_resource_dir()
 
 image_cache = {}
 font_cache = {}
@@ -37,7 +16,7 @@ cursor_cache = {}
 
 
 def _resource_path(default_prefix, names, prefix=""):
-    return os.path.join(resource_dir, prefix or default_prefix, *names)
+    return os.path.join(directories.ASSETS, prefix or default_prefix, *names)
 
 
 def resource_path(*names, **kwds):
@@ -89,63 +68,6 @@ def get_font(size, *names, **kwds):
         font_cache[key] = font
     return font
 
-
-class DummySound(object):
-    def fadeout(self, x):
-        pass
-
-    def get_length(self):
-        return 0.0
-
-    def get_num_channels(self):
-        return 0
-
-    def get_volume(self):
-        return 0.0
-
-    def play(self, *args):
-        pass
-
-    def set_volume(self, x):
-        pass
-
-    def stop(self):
-        pass
-
-dummy_sound = DummySound()
-
-
-def get_sound(*names, **kwds):
-    if sound_cache is None:
-        return dummy_sound
-    path = _resource_path("sounds", names, **kwds)
-    sound = sound_cache.get(path)
-    if not sound:
-        try:
-            from pygame.mixer import Sound
-        except ImportError as e:
-            no_sound(e)
-            return dummy_sound
-        try:
-            sound = Sound(path)
-        except pygame.error as e:
-            missing_sound(e, path)
-            return dummy_sound
-        sound_cache[path] = sound
-    return sound
-
-
-def no_sound(e):
-    global sound_cache
-    print("albow.resource.get_sound: %s" % e)
-    print("albow.resource.get_sound: Sound not available, continuing without it")
-    sound_cache = None
-
-
-def missing_sound(e, name):
-    print("albow.resource.get_sound: %s: %s" % (name, e))
-
-
 def get_text(*names, **kwds):
     path = _resource_path("text", names, **kwds)
     text = text_cache.get(path)
@@ -161,7 +83,7 @@ def load_cursor(path):
     hot = (0, 0)
     data = []
     mask = []
-    rowbytes = (width + 7) // 8
+    row_bytes = (width + 7) // 8
     xr = range(width)
     yr = range(height)
     for y in yr:
@@ -184,7 +106,7 @@ def load_cursor(path):
         if bit != 0x80:
             data.append(db)
             mask.append(mb)
-    return (8 * rowbytes, height), hot, data, mask
+    return (8 * row_bytes, height), hot, data, mask
 
 
 def get_cursor(*names, **kwds):

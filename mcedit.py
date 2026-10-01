@@ -42,7 +42,6 @@ import os.path
 import pygame
 import pymclevel
 import release
-import shutil
 import sys
 import traceback
 import importlib
@@ -175,7 +174,7 @@ class FileOpener(albow.Widget):
         self.parent.createNewWorld()
 
     def createLoadButtonHandler(self, filename):
-        return lambda: self.mcedit.loadFile(filename)
+        return lambda: self.mcedit.loadFile(os.path.join(filename, "level.dat"))
 
 
 class KeyConfigPanel(Dialog):
@@ -679,9 +678,9 @@ class MCEdit(GLViewport):
 
     def makeInfoButtonsColumn(self):
         def showLicense():
-            platform_open(os.path.join(directories.dataDir, "LICENSE.txt"))
+            platform_open(os.path.join(directories.ROOT, "LICENSE.txt"))
 
-        readmePath = os.path.join(directories.dataDir, "README.md")
+        readmePath = os.path.join(directories.ROOT, "README.md")
 
         column = ([
             albow.Button(
@@ -858,7 +857,7 @@ def main(argv):
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
-    fh = logging.FileHandler('mcedit.log')
+    fh = logging.FileHandler(directories.LOG_FILE)
     fh.setLevel(logging.DEBUG)
 
     ch = logging.StreamHandler()
@@ -884,19 +883,6 @@ def main(argv):
             display.init()
 
     pygame.font.init()
-
-    try:
-        if not os.path.exists(mcplatform.schematicsDir):
-            shutil.copytree(
-                os.path.join(directories.dataDir, u'stock-schematics'),
-                mcplatform.schematicsDir
-            )
-    except Exception as e:
-        logging.warning('Error copying bundled schematics: {0!r}'.format(e))
-        try:
-            os.mkdir(mcplatform.schematicsDir)
-        except Exception as e:
-            logging.warning('Error creating schematics folder: {0!r}'.format(e))
 
     try:
         MCEdit.main()
@@ -962,7 +948,7 @@ class GLDisplayContext(object):
             config.saveConfig()
 
         try:
-            icon_path = os.path.join(directories.dataDir, 'favicon.png')
+            icon_path = os.path.join(directories.ASSETS, 'favicon.png')
             icon_file = open(icon_path, 'rb')
             icon = pygame.image.load(icon_file, 'favicon.png')
             display.set_icon(icon)

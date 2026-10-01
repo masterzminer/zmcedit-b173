@@ -2,8 +2,6 @@ add command line arguments
     load a world by supplying a .dat file to load immediately
     specifying a dimension and or position to load into the save with
 
-remove create new world and load a world from the Minecraft install, not going to support generating terrain or an empty world, that's what Minecraft is for
-
 fix the brush sizes not always saving after changing them and closing out of mcedit
 
 filters
@@ -14,6 +12,7 @@ filters
     set biome
         fix it locking up controls after running it
         verify which biomes are valid
+        verify if setting a biome is possible in beta 1.7.3
     topsoil
         figure out overflow error during subtraction
 
@@ -32,9 +31,6 @@ change key handling to use a binding system, allowing shortcuts to be customized
 
 
 next:
-    make all config and state files relative to a configured path
-        that path is always relative to the executable
-        or maybe it's relative to the os native path
     move all os specific operations to one file per os
         consolidate all file io to a central py file
     create build scripts to create a stand alone executable
