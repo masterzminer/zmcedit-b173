@@ -68,6 +68,7 @@ from glutils import gl, Texture
 from mcplatform import askSaveFile
 from pymclevel.infiniteworld import alphanum_key
 from renderer import MCRenderer
+import directories
 
 from pymclevel.box import BoundingBox
 
@@ -412,7 +413,7 @@ class CameraViewport(GLViewport):
 
     def setModelview(self):
         pos = self.cameraPosition
-        look = np.array(self.cameraPosition)
+        look = np.array(self.cameraPosition).astype(np.float64)
         look += self.cameraVector
         up = (0, 1, 0)
         GLU.gluLookAt(pos[0], pos[1], pos[2],
@@ -1787,12 +1788,12 @@ class LevelEditor(GLViewport):
         tableBacking.shrink_wrap()
 
         def saveToFile():
-            filename = askSaveFile(mcplatform.docsFolder,
-                                   title='Save analysis...',
-                                   defaultName=self.level.displayName + "_analysis",
-                                   filetype='Comma Separated Values\0*.txt\0\0',
-                                   suffix="",
-                                   )
+            filename = askSaveFile(
+                initialDir=mcplatform.docsFolder,
+                title='Save analysis...',
+                defaultName=self.level.displayName + "_analysis",
+                filetype="csv"
+            )
 
             if filename:
                 try:
@@ -1808,8 +1809,7 @@ class LevelEditor(GLViewport):
         Dialog(client=col, responses=["OK"]).present()
 
     def exportSchematic(self, schematic):
-        filename = mcplatform.askSaveSchematic(
-            mcplatform.schematicsDir, self.level.displayName, "schematic")
+        filename = mcplatform.askSaveSchematic(mcplatform.lastSchematicsDir or directories.USER_SCHEMATICS, self.level.displayName, "schematic")
 
         if filename:
             schematic.saveToFile(filename)
@@ -2495,6 +2495,9 @@ class LevelEditor(GLViewport):
 
             if keyname == 'e':
                 self.selectionTool.exportSelection()
+                
+                # Hack to ensure import doesn't repeatedly get selected
+                pygame.event.clear()
 
             if keyname == 'f9':
                 if mods & KMOD_ALT:
@@ -2835,19 +2838,15 @@ class LevelEditor(GLViewport):
         label = Label("Creating a new world.")
         generatorPanel = GeneratorPanel()
 
-        xinput = mceutils.IntInputRow("X: ", ref=AttrRef(newWorldPanel, "x"))
-        yinput = mceutils.IntInputRow("Y: ", ref=AttrRef(newWorldPanel, "y"))
-        zinput = mceutils.IntInputRow("Z: ", ref=AttrRef(newWorldPanel, "z"))
-        finput = mceutils.IntInputRow("f: ", ref=AttrRef(newWorldPanel, "f"), min=0, max=3)
-        xyz_row = Row([xinput, yinput, zinput, finput])
+        x_input = mceutils.IntInputRow("X: ", ref=AttrRef(newWorldPanel, "x"))
+        y_input = mceutils.IntInputRow("Y: ", ref=AttrRef(newWorldPanel, "y"))
+        z_input = mceutils.IntInputRow("Z: ", ref=AttrRef(newWorldPanel, "z"))
+        f_input = mceutils.IntInputRow("f: ", ref=AttrRef(newWorldPanel, "f"), min=0, max=3)
+        xyz_row = Row([x_input, y_input, z_input, f_input])
         seed_input = mceutils.IntInputRow("Seed: ", width=250, ref=AttrRef(newWorldPanel, "seed"))
 
         w_input = mceutils.IntInputRow("East-West Chunks: ", ref=AttrRef(newWorldPanel, "w"), min=0)
         h_input = mceutils.IntInputRow("North-South Chunks: ", ref=AttrRef(newWorldPanel, "h"), min=0)
-        # grassinputrow = Row( (Label("Grass: ")
-        # from editortools import BlockButton
-        # blockInput = BlockButton(pymclevel.alphaMaterials, pymclevel.alphaMaterials.Grass)
-        # blockInputRow = Row( (Label("Surface: "), blockInput) )
 
         newWorldPanel.add(Column((label, Row([w_input, h_input]), xyz_row, seed_input, generatorPanel), align="l"))
         newWorldPanel.shrink_wrap()
@@ -2855,8 +2854,8 @@ class LevelEditor(GLViewport):
         result = Dialog(client=newWorldPanel, responses=["Create", "Cancel"]).present()
         if result == "Cancel":
             return
-        # TODO need to ask for a location for the world to be saved
-        filename = mcplatform.askCreateWorld()
+        # TODO probably make this remember the last directory you opened
+        filename = mcplatform.askCreateWorld(directories.USER)
 
         if not filename:
             return
@@ -2867,12 +2866,11 @@ class LevelEditor(GLViewport):
         y = newWorldPanel.y
         z = newWorldPanel.z
         f = newWorldPanel.f
-        seed = newWorldPanel.seed or None
+        seed = newWorldPanel.seed or 0
 
         self.freezeStatus("Creating world...")
         try:
             new_level = pymclevel.MCBetaLevel(filename=filename, create=True, random_seed=seed)
-            # chunks = list(itertools.product(xrange(w / 2 - w + cx, w / 2 + cx), xrange(h / 2 - h + cz, h / 2 + cz)))
 
             if generatorPanel.generatorChoice.selectedChoice == "Flatland":
                 y = generatorPanel.chunkHeight
@@ -2885,17 +2883,11 @@ class LevelEditor(GLViewport):
             worker = generatorPanel.generate(new_level, BoundingBox((x - w * 8, 0, z - h * 8), (w * 16, new_level.Height, h * 16)))
 
             if "Canceled" == mceutils.showProgress("Generating chunks...", worker, cancel=True):
-                raise RuntimeError("Canceled.")
+                raise RuntimeError("Canceled")
 
-            if y < 64:
-                y = 64
-                new_level.setBlockAt(x, y, z, pymclevel.alphaMaterials.Sponge.ID)
-
-            self.loadFile(filename)
+            self.loadFile(os.path.join(filename, "level.dat"))
         except Exception:
-            logging.exception(
-                'Error while creating world. {world => %s}' % filename
-            )
+            logging.exception('Error while creating world. {world => %s}' % filename)
             return
 
         return new_level

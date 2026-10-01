@@ -17,6 +17,7 @@ import itertools
 from pymclevel.box import BoundingBox
 from pymclevel import nbt
 from pymclevel import blockrotation
+from pymclevel.materials import alphaMaterials
 
 import traceback
 log = logging.getLogger(__name__)
@@ -1764,8 +1765,6 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
         self.Time = 1
         self.LevelName = os.path.basename(self.worldDir)
 
-        ### if singleplayer:
-
         self.createPlayer("Player")
 
         if not os.path.exists(self.worldDir):
@@ -2568,7 +2567,7 @@ class ZipSchematic (MCBetaLevel):
             self.Height = 128
             self.Length = 0
         if "Materials" in schematicDat:
-            self.materials = namedMaterials[schematicDat["Materials"].value]
+            self.materials = alphaMaterials
 
     def close(self):
         MCBetaLevel.close(self)

@@ -2,8 +2,6 @@
 #   Albow - Fields
 #
 
-
-
 from pygame import draw
 import pygame
 from pygame.locals import K_LEFT, K_RIGHT, K_TAB, K_c, K_v, SCRAP_TEXT
@@ -18,7 +16,7 @@ class TextEditor(Widget):
     upper = False
     tab_stop = True
 
-    _text = u""
+    _text = ""
 
     def __init__(self, width, upper=None, **kwds):
         Widget.__init__(self, **kwds)
@@ -190,7 +188,7 @@ class Field(Control, TextEditor):
     #  editing   boolean
 
     empty = NotImplemented
-    format = u"%s"
+    format = "%s"
     min = None
     max = None
     enter_passes = False
@@ -294,12 +292,11 @@ class Field(Control, TextEditor):
 #        Control.set_value(self, x)
 #        self.editing = False
 
-#---------------------------------------------------------------------------
 
 
 class TextField(Field):
     type = str
-    _value = u""
+    _value = ""
 
 
 class IntField(Field):
@@ -463,4 +460,3 @@ class FloatField(Field):
         else:
             Field.mouse_down(self, evt)
 
-#---------------------------------------------------------------------------

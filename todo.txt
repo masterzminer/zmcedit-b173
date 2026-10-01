@@ -20,14 +20,9 @@ make some way of viewing the current biome of a block
 
 fix buttons and other non full blocks rendering weirdly
 
-change creating a new world to just copying a baked in empty world with only one chunk of all air as a template
-
-add a way to teleport the camera to the block the mouse is selecting
-
-save previously opened worlds and show them on the main menu
-
 change key handling to use a binding system, allowing shortcuts to be customized and to avoid hacky work arounds
 
+Avoid having to constantly parse adding level.dat, probably make save files represented by an object
 
 
 next:

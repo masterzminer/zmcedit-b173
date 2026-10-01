@@ -11,7 +11,7 @@ import numpy as np
 from io import BytesIO
 from pymclevel import blockrotation
 from pymclevel.box import BoundingBox
-
+from pymclevel.materials import alphaMaterials
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -22,7 +22,7 @@ Materials = 'Materials'
 __all__ = ['MCSchematic', 'INVEditChest']
 class MCSchematic (EntityLevel):
     materials = alphaMaterials
-    def __init__(self, shape=None, root_tag=None, filename=None, mats='Alpha'):
+    def __init__(self, shape=None, root_tag=None, filename=None):
         """ shape is (x,y,z) for a new level's shape.  if none, takes
         root_tag as a TAG_Compound for an existing schematic file.  if
         none, tries to read the tag from filename.  if none, results
@@ -41,10 +41,6 @@ class MCSchematic (EntityLevel):
         I'm not sure what happens when I try to re-save a rotated schematic.
         """
 
-        #if(shape != None):
-        #    self.setShape(shape)
-
-
         if filename:
             self.filename = filename
             if None is root_tag and os.path.exists(filename):
@@ -52,17 +48,11 @@ class MCSchematic (EntityLevel):
         else:
             self.filename = None
 
-        if mats in namedMaterials:
-            self.materials = namedMaterials[mats]
-        else:
-            assert(isinstance(mats, MCMaterials))
-            self.materials = mats
+        self.materials = alphaMaterials
 
         if root_tag:
             self.root_tag = root_tag
-            if Materials in root_tag:
-                self.materials = namedMaterials[self.Materials]
-            else:
+            if Materials not in root_tag:
                 root_tag[Materials] = TAG_String(self.materials.name)
             self.shapeChunkData()
 
@@ -86,7 +76,7 @@ class MCSchematic (EntityLevel):
 
 
     def __str__(self):
-        return u"MCSchematic(shape={0}, materials={2}, filename=\"{1}\")".format(self.size, self.filename or u"", self.Materials)
+        return "MCSchematic(shape={0}, materials={2}, filename=\"{1}\")".format(self.size, self.filename or u"", self.Materials)
 
     def compress(self):
         #if self.root_tag is not None, then our compressed data must be stale and we need to recompress.
@@ -501,7 +491,7 @@ def extractSchematicFromIter(sourceLevel, box, entities=True):
         return
     newbox, destPoint = p
 
-    tempSchematic = MCSchematic(shape=box.size, mats=sourceLevel.materials)
+    tempSchematic = MCSchematic(shape=box.size)
     for i in tempSchematic.copyBlocksFromIter(sourceLevel, newbox, destPoint, entities=entities):
         yield i
 

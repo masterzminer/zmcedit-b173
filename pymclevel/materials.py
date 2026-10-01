@@ -548,12 +548,10 @@ def guessFilterTable(matsFrom, matsTo):
             
     return filters , unavailable
 
-allMaterials = (alphaMaterials)
-
-_conversionFuncs = {}
+_conversionFunctions = {}
 def conversionFunc(destMats, sourceMats):
     if destMats is sourceMats: return nullConversion
-    func = _conversionFuncs.get((destMats, sourceMats))
+    func = _conversionFunctions.get((destMats, sourceMats))
     if func: return func
         
     filters, unavailable = guessFilterTable(sourceMats, destMats)
@@ -567,7 +565,7 @@ def conversionFunc(destMats, sourceMats):
     
     table = _filterTable(filters, unavailable, (35, 0))
     func = filterConversion(table)
-    _conversionFuncs[(destMats, sourceMats)] = func
+    _conversionFunctions[(destMats, sourceMats)] = func
     return func
 
 def convertBlocks(destMats, sourceMats, blocks, blockData):
@@ -575,6 +573,3 @@ def convertBlocks(destMats, sourceMats, blocks, blockData):
     
     return conversionFunc(destMats, sourceMats)(blocks, blockData)
     
-namedMaterials = dict((i.name, i) for i in allMaterials)
-
-__all__ = "alphaMaterials, namedMaterials, MCMaterials".split(", ")

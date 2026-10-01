@@ -209,7 +209,7 @@ def fromFile(filename) -> MCLevel:
     try:
         unzippedData = gunzip(raw_data)
     except Exception as e:
-        info(u"Exception during Gzip operation, assuming {0} uncompressed: {1!r}".format(filename, e))
+        info("Exception during Gzip operation, assuming {0} uncompressed: {1!r}".format(filename, e))
         if unzippedData is None:
             compressed = False
             unzippedData = raw_data
@@ -221,15 +221,15 @@ def fromFile(filename) -> MCLevel:
 
     except Exception as e:
         traceback.print_exc()
-        print(u"Error during NBT load: {0!r}".format(e))
+        print("Error during NBT load: {0!r}".format(e))
 
     else:
         if MCSchematic._isTagLevel(root_tag):
-            info(u"Detected Schematic.")
+            info("Detected Schematic.")
             return MCSchematic(root_tag=root_tag, filename=filename)
 
         if INVEditChest._isTagLevel(root_tag):
-            info(u"Detected INVEdit inventory file")
+            info("Detected INVEdit inventory file")
             return INVEditChest(root_tag=root_tag, filename=filename)
 
     raise IOError("Cannot detect file type.")

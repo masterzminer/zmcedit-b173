@@ -18,8 +18,6 @@ mcplatform.py
 Platform-specific functions, folder paths
 """
 
-
-
 import directories
 import os
 from os.path import dirname, exists, join
@@ -34,8 +32,6 @@ enc = sys.getfilesystemencoding()
 
 os.environ["YAML_ROOT"] = join(directories.ROOT, "pymclevel")
 
-from pygame import display
-
 from albow import request_new_filename, request_old_filename
 from pymclevel import items
 
@@ -48,12 +44,12 @@ cmd_name = "Ctrl"
 option_name = "Alt"
 
 def askOpenFile(title='Select a Minecraft level...', schematics=False):
-    file_types = ["mclevel", "dat", "mine", "mine.gz"]
+    file_types = ["mclevel", "dat", "mine", "mine.gz", "schematic"]
 
     global lastSchematicsDir, lastSaveDir
     initialDir = lastSaveDir
     if schematics:
-        initialDir = lastSchematicsDir or baseSchematicsDir
+        initialDir = lastSchematicsDir or directories.STOCK_SCHEMATICS
 
     def _ask_open():
         try:
@@ -78,38 +74,51 @@ def askOpenFile(title='Select a Minecraft level...', schematics=False):
     return filename
 
 
-def askSaveSchematic(initialDir, displayName, fileFormat):
+def askSaveSchematic(initialDir: str, defaultName: str, filetype: str):
     return askSaveFile(initialDir,
                 title='Save this schematic...',
-                defaultName=displayName + "." + fileFormat,
-                filetype='Minecraft Schematics (*.{0})\0*.{0}\0\0'.format(fileFormat),
-                suffix=fileFormat,
-                )
+                defaultName=defaultName,
+                filetype=filetype
+            )
 
 
-def askCreateWorld(initialDir):
+def askCreateWorld(initialDir: str):
+    # Find a valid name for a folder that doesn't already exist
     defaultName = name = "Untitled World"
     i = 0
     while exists(join(initialDir, name)):
         i += 1
         name = defaultName + " " + str(i)
 
-    return askSaveFile(initialDir,
-                title='Name this new world.',
-                defaultName=name,
-                filetype='Minecraft World\0*.*\0\0',
-                suffix="",
-                )
+    # Select the directory
+    return askSaveFile(initialDir, title='Name this new world', defaultName=defaultName)
 
 
-def askSaveFile(initialDir, title, defaultName, filetype, suffix):
-    # TODO make this use the os agnostic file chooser
-    return request_new_filename(prompt=title,
-                                        suffix=("." + suffix) if suffix else "",
-                                        directory=initialDir,
-                                        filename=defaultName,
-                                        pathname=None)
+def askSaveFolder(initialDir, title):
+    return crossfiledialog.choose_folder(
+        start_dir=initialDir,
+        title=title
+    )
 
+def askSaveFile(initialDir: str, title: str, defaultName, filetype: str=None):
+    # TODO make an option to force using the built in gui file selector
+    useOldFile = False;
+    if useOldFile:
+        return request_new_filename(
+            prompt=title,
+            suffix=("" if filetype is None else ("." + filetype)),
+            directory=initialDir,
+            filename=defaultName,
+            pathname=None
+        )
+    else:
+        selected_path = crossfiledialog.save_file(
+            start_dir=(initialDir if defaultName is None else os.path.join(initialDir, defaultName)),
+            title=title,
+        )
+        if filetype is not None:
+            selected_path += "." + filetype
+        return selected_path
 
 
 def platform_open(path):
@@ -129,7 +138,6 @@ win32_window_size = True
 
 docsFolder = directories.USER
 iniFile = directories.INI_FILE
-baseSchematicsDir = directories.USER_SCHEMATICS
 
 
 # TODO treat these as "stock" filters

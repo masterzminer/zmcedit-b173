@@ -37,7 +37,7 @@ def findDirectories():
     stock_schematics = os.path.abspath(os.path.join(assets, STOCK_SCHEMATICS_NAME))
 
     user_schematics = os.path.join(config, USER_SCHEMATICS_NAME)
-    os.makedirs(config, exist_ok=True)
+    os.makedirs(user_schematics, exist_ok=True)
 
     filters = os.path.abspath(os.path.join(root, FILTERS_NAME))
 
@@ -51,7 +51,6 @@ ROOT, CONFIG, ASSETS, STOCK_SCHEMATICS, USER_SCHEMATICS, FILTERS = findDirectori
 USER = CONFIG
 
 LOG_FILE = os.path.join(USER, LOG_NAME)
-USER_SCHEMATICS = os.path.join(USER, LOG_NAME)
 INI_FILE = os.path.join(USER, INI_NAME)
 
 def asset(filename):

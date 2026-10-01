@@ -610,7 +610,7 @@ class MCEdit(GLViewport):
     def loadRecentWorldNumber(self, i):
         worlds = list(self.recentWorlds())
         if i - 1 < len(worlds):
-            self.loadFile(worlds[i - 1])
+            self.loadFile(os.path.join(worlds[i - 1], "level.dat"))
 
     numRecentWorlds = 5
 

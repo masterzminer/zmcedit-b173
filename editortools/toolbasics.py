@@ -227,7 +227,7 @@ class BlockThumbView(Widget):
             if b is None:
                 return
 
-            sch = MCSchematic(shape=(1, 1, 1), mats=self.materials)
+            sch = MCSchematic(shape=(1, 1, 1))
             if b:
                 sch.Blocks[:] = b.ID
                 sch.Data[:] = b.blockData

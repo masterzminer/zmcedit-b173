@@ -34,6 +34,7 @@ import pymclevel
 import traceback
 from PIL import Image
 import directories
+from albow import FloatField, IntField, TextField
 
 
 def alertException(func):
@@ -43,7 +44,7 @@ def alertException(func):
         except root.Cancel:
             alert("Canceled.")
         except Exception as e:
-            ask("Error during {0}: {1!r}".format(func, e)[:1000], ["Okay"], default=1, cancel=0)
+            ask("Error during {0}: {1!r}".format(func, e)[:1000], ["Okay"], default=0, cancel=0)
             traceback.print_exc()
 
     return _alertException
@@ -492,8 +493,6 @@ def CheckBoxLabel(title, *args, **kw):
     row.checkbox = cb
     return row
 
-from albow import FloatField, IntField
-
 
 def FloatInputRow(title, *args, **kw):
     return Row((Label(title, tooltipText=kw.get('tooltipText')), FloatField(*args, **kw)))
@@ -501,6 +500,9 @@ def FloatInputRow(title, *args, **kw):
 
 def IntInputRow(title, *args, **kw):
     return Row((Label(title, tooltipText=kw.get('tooltipText')), IntField(*args, **kw)))
+
+def TextInputRow(title, *args, **kw):
+    return Row((Label(title, tooltipText=kw.get('tooltipText')), TextField(*args, **kw)))
 
 from albow.dialogs import Dialog
 from datetime import timedelta

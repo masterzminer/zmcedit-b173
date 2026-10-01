@@ -502,7 +502,7 @@ class CloneTool(EditorTool):
 
         new_shape = [int(x * factor) for x in old_shape]
         xyz_shape = new_shape[0], new_shape[2], new_shape[1]
-        new_level = MCSchematic(xyz_shape, mats=self.editor.level.materials)
+        new_level = MCSchematic(xyz_shape)
 
         src_grid = np.mgrid[0:roundedShape[0]:1.0 / factor, 0:roundedShape[1]:1.0 / factor, 0:roundedShape[2]:1.0 / factor].astype('uint')
         dst_grid = np.mgrid[0:new_shape[0], 0:new_shape[1], 0:new_shape[2]].astype('uint')
@@ -990,7 +990,7 @@ class ConstructionTool(CloneTool):
         length = rows * 3 + 1
         height = 3
 
-        schematic = MCSchematic((width, height, length), mats=self.editor.level.materials)
+        schematic = MCSchematic((width, height, length))
         schematic.Blocks[:, :, 0] = 1
 
         for i, block in enumerate(allBlocks):

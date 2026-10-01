@@ -208,12 +208,7 @@ class ChunkTool(EditorTool):
 
     @alertException
     def extractChunks(self):
-        folder = mcplatform.askSaveFile(mcplatform.docsFolder,
-                title='Export chunks to...',
-                defaultName=self.editor.level.displayName + "_chunks",
-                filetype='Folder\0*.*\0\0',
-                suffix="",
-                )
+        folder = mcplatform.askSaveFolder(mcplatform.docsFolder, title='Export chunks to...')
         if not folder:
             return
 
@@ -357,6 +352,7 @@ def GeneratorPanel():
     flatPanel = Column([height_input, grass_input], align="l")
 
     def generatorChoiceChanged():
+        # TODO add logic for selecting other generators
         flatPanel.visible = True
 
     generatorChoice.choose = generatorChoiceChanged
@@ -373,7 +369,7 @@ def GeneratorPanel():
     col = Column(col, align="l")
     col.add(flatPanel)
     flatPanel.topleft = serverPanel.topleft
-    flatPanel.visible = False
+    flatPanel.visible = True
     panel.add(col)
 
     panel.shrink_wrap()
@@ -388,9 +384,9 @@ def GeneratorPanel():
                 chunks = arg
 
             if level.dimNo in (-1, 1):
-                maxskylight = 0
+                max_skylight = 0
             else:
-                maxskylight = 15
+                max_skylight = 15
 
             for i, (cx, cz) in enumerate(chunks):
 
@@ -414,12 +410,12 @@ def GeneratorPanel():
                         ch.Blocks[:, :, :stoneHeight] = alphaMaterials.Stone.ID
 
                         ch.Blocks[:, :, 0] = alphaMaterials.Bedrock.ID
-                        ch.SkyLight[:, :, height:] = maxskylight
-                        if maxskylight:
+                        ch.SkyLight[:, :, height:] = max_skylight
+                        if max_skylight:
                             ch.HeightMap[:] = height
 
                     else:
-                        ch.SkyLight[:] = maxskylight
+                        ch.SkyLight[:] = max_skylight
 
                     ch.needsLighting = False
                     ch.dirty = True
