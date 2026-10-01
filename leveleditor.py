@@ -1948,7 +1948,7 @@ class LevelEditor(GLViewport):
 
         self.freezeStatus("Loading " + filename)
         try:
-            level = pymclevel.fromFile(filename)
+            level = pymclevel.fromFile(filename + "/level.dat")
         except Exception as e:
             logging.exception(
                 'Wasn\'t able to open a file {file => %s}' % filename

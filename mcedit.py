@@ -653,7 +653,7 @@ class MCEdit(GLViewport):
 
     def setRecentWorlds(self, worlds):
         for i, filename in enumerate(worlds):
-            config.config.set("Recent Worlds", str(i), filename.encode('utf-8'))
+            config.config.set("Recent Worlds", str(i), filename)
 
     def makeSideColumn(self):
         hotkeys = ([
