@@ -452,14 +452,6 @@ class OptionsPanel(Dialog):
             ref=Settings.blockBuffer.propertyRef(), min=1,
             tooltipText="Amount of memory used for temporary storage.  When more than this is needed, the disk is used instead.")
 
-        setWindowPlacementRow = mceutils.CheckBoxLabel("Set Window Placement",
-            ref=Settings.setWindowPlacement.propertyRef(),
-            tooltipText="Try to save and restore the window position.")
-
-        windowSizeRow = mceutils.CheckBoxLabel("Window Resize Alert",
-            ref=Settings.shouldResizeAlert.propertyRef(),
-            tooltipText="Reminds you that the cursor won't work correctly after resizing the window.")
-
         visibilityCheckRow = mceutils.CheckBoxLabel("Visibility Check",
             ref=Settings.visibilityCheck.propertyRef(),
             tooltipText="Do a visibility check on chunks while loading. May cause a crash.")
@@ -488,12 +480,7 @@ class OptionsPanel(Dialog):
             autoBrakeRow,
             swapAxesRow,
             invertRow,
-            visibilityCheckRow,
-            ) + (
-            ((sys.platform == "win32" and pygame.version.vernum == (1, 9, 1)) and (windowSizeRow,) or ())
-            ) + (
-            ) + (
-            (sys.platform == "win32") and (setWindowPlacementRow,) or ()
+            visibilityCheckRow
         )
 
         right_col = albow.Column(options, align='r')
@@ -731,17 +718,6 @@ class MCEdit(GLViewport):
             Settings.windowHeight.set(h)
             config.saveConfig()
 
-        if pygame.version.vernum == (1, 9, 1):
-            if sys.platform == "win32":
-                if w - dw > 20 or h - dh > 20:
-                    if not hasattr(self, 'resizeAlert'):
-                        self.resizeAlert = self.shouldResizeAlert
-                    if self.resizeAlert:
-                        albow.alert("Window size increased. You may have problems using the cursor until MCEdit is restarted.")
-                        self.resizeAlert = False
-
-    shouldResizeAlert = Settings.shouldResizeAlert.configProperty()
-
     def loadFile(self, filename):
         self.removeGraphicOptions()
         if os.path.exists(filename):
@@ -826,19 +802,6 @@ class MCEdit(GLViewport):
             try:
                 root_widget.run()
             except SystemExit:
-                if sys.platform == "win32" and Settings.setWindowPlacement.get():
-                    (flags, showCmd, ptMin, ptMax, rect) = mcplatform.win32gui.GetWindowPlacement(display.get_wm_info()['window'])
-                    X, Y, r, b = rect
-                    #w = r-X
-                    #h = b-Y
-                    if (showCmd == mcplatform.win32con.SW_MINIMIZE or
-                       showCmd == mcplatform.win32con.SW_SHOWMINIMIZED):
-                        showCmd = mcplatform.win32con.SW_SHOWNORMAL
-
-                    Settings.windowX.set(X)
-                    Settings.windowY.set(Y)
-                    Settings.windowShowCmd.set(showCmd)
-
                 config.saveConfig()
                 mcedit.editor.renderer.discardAllChunks()
                 mcedit.editor.deleteAllCopiedSchematics()
@@ -926,26 +889,6 @@ class GLDisplayContext(object):
             logging.warning('PyGame clipboard integration disabled.')
 
         display.set_caption('MCEdit ~ ' + release.release, release.VERSION_NAME)
-        if sys.platform == 'win32' and Settings.setWindowPlacement.get():
-            Settings.setWindowPlacement.set(False)
-            config.saveConfig()
-            X, Y = Settings.windowX.get(), Settings.windowY.get()
-
-            if X:
-                w, h = self.getWindowSize()
-                hwndOwner = display.get_wm_info()['window']
-
-                flags, showCmd, ptMin, ptMax, rect = mcplatform.win32gui.GetWindowPlacement(hwndOwner)
-                realW = rect[2] - rect[0]
-                realH = rect[3] - rect[1]
-
-                showCmd = Settings.windowShowCmd.get()
-                rect = (X, Y, X + realW, Y + realH)
-
-                mcplatform.win32gui.SetWindowPlacement(hwndOwner, (0, showCmd, ptMin, ptMax, rect))
-
-            Settings.setWindowPlacement.set(True)
-            config.saveConfig()
 
         try:
             icon_path = os.path.join(directories.ASSETS, 'favicon.png')
@@ -1012,6 +955,7 @@ class GLDisplayContext(object):
             mats.terrainTexture = self.terrainTextures[mats.name]
 
 
+# TODO move this to an explicit file for os specific handling
 def weird_fix():
     try:
         from OpenGL.platform import win32

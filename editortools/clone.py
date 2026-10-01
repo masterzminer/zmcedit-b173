@@ -17,6 +17,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 from .toolbasics import *
 from .select import SelectionOperation
 
+from pymclevel.box import BoundingBox
+
 CloneSettings = config.Settings("Clone")
 CloneSettings.copyAir = CloneSettings("Copy Air", True)
 CloneSettings.copyWater = CloneSettings("Copy Water", True)

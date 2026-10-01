@@ -233,8 +233,3 @@ def fromFile(filename) -> MCLevel:
             return INVEditChest(root_tag=root_tag, filename=filename)
 
     raise IOError("Cannot detect file type.")
-
-
-def loadWorld(name):
-    filename = os.path.join(saveFileDir, name)
-    return fromFile(filename)

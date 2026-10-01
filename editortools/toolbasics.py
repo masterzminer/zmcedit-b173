@@ -41,6 +41,8 @@ from albow.root import Cancel
 import numpy as np
 from OpenGL import GLU
 
+from pymclevel.box import BoundingBox
+
 class NudgeButton(GLBackground):
     """ A button that captures movement keys while pressed and sends them to a listener as nudge events.
     Poorly planned. """

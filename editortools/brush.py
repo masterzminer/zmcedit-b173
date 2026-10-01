@@ -22,6 +22,9 @@ from .toolbasics import *
 from functools import reduce
 import numpy as np
 
+from pymclevel.box import BoundingBox
+
+
 BrushSettings = config.Settings("Brush")
 BrushSettings.brushSizeL = BrushSettings("Brush Shape L", 3)
 BrushSettings.brushSizeH = BrushSettings("Brush Shape H", 3)

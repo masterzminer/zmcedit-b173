@@ -1542,7 +1542,7 @@ class SysprofParser(XmlParser):
         profile = Profile()
 
         profile[SAMPLES] = 0
-        for id, object in objects,items():
+        for id, object in objects.items():
             # Ignore fake objects (process names, modules, "Everything", "kernel", etc.)
             if object['self'] == 0:
                 continue

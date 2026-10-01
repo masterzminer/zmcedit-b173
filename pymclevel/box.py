@@ -1,6 +1,7 @@
 
 import itertools
 from functools import reduce
+import numpy as np
 
 class BoundingBox (object):
     type = int
@@ -174,7 +175,7 @@ class BoundingBox (object):
         return True
 
     def __cmp__(self, b):
-        return cmp((self.origin, self.size), (b.origin, b.size))
+        return np.cmp((self.origin, self.size), (b.origin, b.size))
 
     def __repr__(self):
         return "BoundingBox({0}, {1})".format(self.origin, self.size)

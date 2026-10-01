@@ -16,6 +16,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
 from .toolbasics import *
 
+from pymclevel.box import BoundingBox
+
 FillSettings = config.Settings("Fill")
 FillSettings.chooseBlockImmediately = FillSettings("Choose Block Immediately", True)
 

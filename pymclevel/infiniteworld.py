@@ -10,9 +10,15 @@ import time
 import zlib
 import struct
 import shutil
-import subprocess
 import sys
 import tempfile
+from datetime import datetime
+import itertools
+from pymclevel.box import BoundingBox
+from pymclevel import nbt
+from pymclevel import blockrotation
+
+import traceback
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
 
@@ -56,36 +62,6 @@ def sort_nicely(l):
     """ Sort the given list in the way that humans expect. 
     """
     l.sort(key=alphanum_key)
-
-# Thank you, Stackoverflow
-# http://stackoverflow.com/questions/377017/test-if-executable-exists-in-python
-def which(program):
-    def is_exe(fpath):
-        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
-
-    fpath, _fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        if sys.platform == "win32":
-            if "SYSTEMROOT" in os.environ:
-                root = os.environ["SYSTEMROOT"]
-                exe_file = os.path.join(root, program)
-                if is_exe(exe_file):
-                    return exe_file
-        if "PATH" in os.environ:
-            for path in os.environ["PATH"].split(os.pathsep):
-                exe_file = os.path.join(path, program)
-                if is_exe(exe_file):
-                    return exe_file
-                
-    return None
-
-if sys.platform == "win32": 
-    appSupportDir = os.path.join(appDataDir, u"pymclevel")
-else:
-    appSupportDir = os.path.expanduser(u"~/.pymclevel")
 
 
 def readProperties(filename):

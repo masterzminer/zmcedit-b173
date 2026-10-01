@@ -6,6 +6,7 @@ import functools
 
 from heapq import nsmallest
 from operator import itemgetter
+import itertools
 
 class Counter(dict):
     'Mapping where default values are zero'
@@ -68,7 +69,7 @@ def lru_cache(maxsize=100):
             if len(queue) > maxqueue:
                 refcount.clear()
                 queue_appendleft(sentinel)
-                for key in filterfalse(refcount.__contains__,
+                for key in itertools.filterfalse(refcount.__contains__,
                                         iter(queue_pop, sentinel)):
                     queue_appendleft(key)
                     refcount[key] = 1

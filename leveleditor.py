@@ -69,13 +69,14 @@ from mcplatform import askSaveFile
 from pymclevel.infiniteworld import alphanum_key
 from renderer import MCRenderer
 
+from pymclevel.box import BoundingBox
+
 # Label = GLLabel
 
 Settings = config.Settings("Settings")
 Settings.flyMode = Settings("Fly Mode", False)
 Settings.enableMouseLag = Settings("Enable Mouse Lag", False)
 Settings.longDistanceMode = Settings("Long Distance Mode", False)
-Settings.shouldResizeAlert = Settings("Window Size Alert", True)
 Settings.closeMinecraftWarning = Settings("Close Minecraft Warning", True)
 Settings.fov = Settings("Field of View", 70.0)
 Settings.spaceHeight = Settings("Space Height", 64)
@@ -936,7 +937,7 @@ class CameraViewport(GLViewport):
 
             def undo(self):
                 level.addTileEntity(backupEntityTag)
-                return pymclevel.BoundingBox(pymclevel.TileEntity.pos(tileEntityTag), (1, 1, 1))
+                return BoundingBox(pymclevel.TileEntity.pos(tileEntityTag), (1, 1, 1))
 
         if chestWidget.dirty:
             op = ChestEditOperation()
@@ -2011,7 +2012,7 @@ class LevelEditor(GLViewport):
             resp = ask("It looks like this level is completely empty!  You'll have to create some chunks before you can get started.", responses=["Create Chunks", "Cancel"])
             if resp == "Create Chunks":
                 x, y, z = self.mainViewport.cameraPosition
-                box = pymclevel.BoundingBox((x - 128, 0, z - 128), (256, self.level.Height, 256))
+                box = BoundingBox((x - 128, 0, z - 128), (256, self.level.Height, 256))
                 self.selectionTool.setSelection(box)
                 self.toolbar.selectTool(8)
                 self.toolbar.tools[8].createChunks()
@@ -2854,7 +2855,8 @@ class LevelEditor(GLViewport):
         result = Dialog(client=newWorldPanel, responses=["Create", "Cancel"]).present()
         if result == "Cancel":
             return
-        filename = mcplatform.askCreateWorld(pymclevel.saveFileDir)
+        # TODO need to ask for a location for the world to be saved
+        filename = mcplatform.askCreateWorld()
 
         if not filename:
             return
@@ -2880,7 +2882,7 @@ class LevelEditor(GLViewport):
 
             new_level.setPlayerSpawnPosition((x, y + 1, z))
             new_level.saveInPlace()
-            worker = generatorPanel.generate(new_level, pymclevel.BoundingBox((x - w * 8, 0, z - h * 8), (w * 16, new_level.Height, h * 16)))
+            worker = generatorPanel.generate(new_level, BoundingBox((x - w * 8, 0, z - h * 8), (w * 16, new_level.Height, h * 16)))
 
             if "Canceled" == mceutils.showProgress("Generating chunks...", worker, cancel=True):
                 raise RuntimeError("Canceled.")
@@ -3166,7 +3168,7 @@ class LevelEditor(GLViewport):
         blockPosition, faceDirection = self.blockFaceUnderCursor
         blockPosition = position or blockPosition
 
-        mceutils.drawTerrainCuttingWire(pymclevel.BoundingBox(blockPosition, (1, 1, 1)), c1=color)
+        mceutils.drawTerrainCuttingWire(BoundingBox(blockPosition, (1, 1, 1)), c1=color)
 
         GL.glDisable(GL.GL_POLYGON_OFFSET_FILL)
 

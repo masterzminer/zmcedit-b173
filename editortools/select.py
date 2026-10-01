@@ -19,6 +19,8 @@ from .fill import FillTool, BlockFillOperation
 import tempfile
 from .toolbasics import *
 
+from pymclevel.box import BoundingBox, FloatBox
+
 SelectSettings = config.Settings("Selection")
 SelectSettings.showPreviousSelection = SelectSettings("Show Previous Selection", True)
 SelectSettings.color = SelectSettings("Color", "teal")
@@ -96,7 +98,7 @@ class SelectionToolOptions(ToolOptions):
         okButton = Button("OK", action=self.dismiss)
         showPreviousRow = CheckBoxLabel("Show Previous Selection", ref=AttrRef(tool, 'showPreviousSelection'))
 
-        def set_colorvalue(ch):
+        def set_color_value(ch):
             i = "RGB".index(ch)
 
             def _set(val):
@@ -109,15 +111,15 @@ class SelectionToolOptions(ToolOptions):
 
             return _set
 
-        def get_colorvalue(ch):
+        def get_color_value(ch):
             i = "RGB".index(ch)
 
             def _get():
                 return int(GetSelectionColor()[i] * 255)
             return _get
 
-        colorValuesInputs = [IntInputRow(ch + ":", get_value=get_colorvalue(ch),
-                                              set_value=set_colorvalue(ch),
+        colorValuesInputs = [IntInputRow(ch + ":", get_value=get_color_value(ch),
+                                              set_value=set_color_value(ch),
                                               min=0, max=255)
                              for ch in "RGB"]
 
@@ -359,10 +361,10 @@ class SelectionTool(EditorTool):
                      alphaMaterials.WallSign.ID):
             t = self.editor.level.tileEntityAt(*pos)
             if t:
-                signtext = u"\n".join(t["Text" + str(x)].value for x in range(1, 5))
+                sign_text = u"\n".join(t["Text" + str(x)].value for x in range(1, 5))
             else:
-                signtext = "Undefined"
-            return "Sign text: \n" + signtext + "\n\n" + "Double-click to edit sign."
+                sign_text = "Undefined"
+            return "Sign text: \n" + sign_text + "\n\n" + "Double-click to edit sign."
 
         absentTexture = (self.editor.level.materials.blockTextures[block, 0, 0] == materials.NOTEX).all()
         if absentTexture:
@@ -670,28 +672,12 @@ class SelectionTool(EditorTool):
 
     def selectionPointsFromDragResize(self):
         point = self.dragResizePoint()
-#        glColor(1.0, 1.0, 0.0, 1.0)
-#        glPointSize(9.0)
-#        glBegin(GL_POINTS)
-#        glVertex3f(*point)
-#        glEnd()
-#
-
-#        facebox = BoundingBox(box.origin, box.size)
-#        facebox.origin[dim] = self.dragResizePosition
-#        facebox.size[dim] = 0
-#        glEnable(GL_BLEND)
-#
-#        drawFace(facebox, dim * 2)
-#
-#        glDisable(GL_BLEND)
-#
         side = self.dragResizeFace & 1
-        dragdim = self.dragResizeFace >> 1
+        drag_dim = self.dragResizeFace >> 1
         box = self.selectionBox()
 
         o, m = box.origin, box.maximum
-        (m, o)[side][dragdim] = int(np.floor(point[dragdim] + 0.5))
+        (m, o)[side][drag_dim] = int(np.floor(point[drag_dim] + 0.5))
         m = [a - 1 for a in m]
         return o, m
 
@@ -720,7 +706,7 @@ class SelectionTool(EditorTool):
 
         selectionBox = self.selectionBox()
         if(selectionBox):
-            widg = self.editor.find_widget(mouse.get_pos())
+            widget = self.editor.find_widget(mouse.get_pos())
 
             # these corners stay even while using the chunk tool.
             glPolygonOffset(DepthOffset.SelectionCorners, DepthOffset.SelectionCorners)
@@ -751,10 +737,10 @@ class SelectionTool(EditorTool):
                     lineWidth += 1
 
                     # draw highlighted block faces when nudging
-                    if (widg.parent == n or widg == n):
+                    if (widget.parent == n or widget == n):
                         glEnable(GL_BLEND)
                         # drawCube(BoundingBox((sx, sy, sz), (1,1,1)))
-                        nudgefaces = array([
+                        nudge_faces = array([
                                selectionBox.minx, selectionBox.miny, selectionBox.minz,
                                selectionBox.minx, selectionBox.maxy, selectionBox.minz,
                                selectionBox.minx, selectionBox.maxy, selectionBox.maxz,
@@ -770,14 +756,14 @@ class SelectionTool(EditorTool):
                                ], dtype=np.float32)
 
                         if sx != selectionBox.minx:
-                            nudgefaces[0:12:3] = selectionBox.maxx
+                            nudge_faces[0:12:3] = selectionBox.maxx
                         if sy != selectionBox.miny:
-                            nudgefaces[13:24:3] = selectionBox.maxy
+                            nudge_faces[13:24:3] = selectionBox.maxy
                         if sz != selectionBox.minz:
-                            nudgefaces[26:36:3] = selectionBox.maxz
+                            nudge_faces[26:36:3] = selectionBox.maxz
 
                         glColor(r, g, b, 0.3)
-                        glVertexPointer(3, GL_FLOAT, 0, nudgefaces)
+                        glVertexPointer(3, GL_FLOAT, 0, nudge_faces)
                         glEnable(GL_DEPTH_TEST)
                         glDrawArrays(GL_QUADS, 0, 12)
                         glDisable(GL_DEPTH_TEST)
@@ -796,7 +782,7 @@ class SelectionTool(EditorTool):
                 else:
                     box = selectionBox
 
-                if self.panel and (widg is self.panel.nudgeBlocksButton or widg.parent is self.panel.nudgeBlocksButton):
+                if self.panel and (widget is self.panel.nudgeBlocksButton or widget.parent is self.panel.nudgeBlocksButton):
                     color = (0.3, 1.0, 0.3, self.alpha)
                 self.editor.drawConstructionCube(box, color)
 
@@ -826,9 +812,9 @@ class SelectionTool(EditorTool):
                                 else:
                                     size[i] += offs[i]
 
-                            smallbox = FloatBox(origin, size)
+                            small_box = FloatBox(origin, size)
 
-                            drawFace(smallbox, face)
+                            drawFace(small_box, face)
 
                             glColor(0.9, 0.6, 0.2, 0.8)
                             glLineWidth(2.0)

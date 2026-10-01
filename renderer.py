@@ -58,6 +58,8 @@ from pymclevel.level import FakeChunk
 from pymclevel.materials import MCMaterials
 import pymclevel.faces as Faces
 
+from pymclevel.box import BoundingBox
+
 def chunkMarkers(chunkSet):
     """ Returns a mapping { size: [position, ...] } for different powers of 2
     as size.
@@ -2481,7 +2483,7 @@ class MCRenderer(object):
             self.invalidChunkQueue.append((cx, cz))  # xxx encapsulate
 
     def invalidateChunksInBox(self, box, layers=None):
-        box = pymclevel.BoundingBox(box)
+        box = BoundingBox(box)
         if box.minx & 0xf == 0:
             box.minx -= 1
         if box.miny & 0xf == 0:

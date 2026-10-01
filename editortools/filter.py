@@ -18,6 +18,8 @@ from albow.dialogs import wrapped_label
 from albow import *
 import importlib
 
+from pymclevel.box import BoundingBox
+
 def alertFilterException(func):
     def _func(*args, **kw):
         try:

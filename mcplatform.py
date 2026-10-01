@@ -25,6 +25,8 @@ import os
 from os.path import dirname, exists, join
 import sys
 import traceback
+import platform
+import subprocess
 
 import crossfiledialog
 
@@ -35,7 +37,6 @@ os.environ["YAML_ROOT"] = join(directories.ROOT, "pymclevel")
 from pygame import display
 
 from albow import request_new_filename, request_old_filename
-from pymclevel import saveFileDir
 from pymclevel import items
 
 
@@ -50,7 +51,7 @@ def askOpenFile(title='Select a Minecraft level...', schematics=False):
     file_types = ["mclevel", "dat", "mine", "mine.gz"]
 
     global lastSchematicsDir, lastSaveDir
-    initialDir = lastSaveDir or saveFileDir
+    initialDir = lastSaveDir
     if schematics:
         initialDir = lastSchematicsDir or baseSchematicsDir
 
@@ -102,49 +103,27 @@ def askCreateWorld(initialDir):
 
 
 def askSaveFile(initialDir, title, defaultName, filetype, suffix):
-    if sys.platform == "win32":
-        try:
-            (filename, customfilter, flags) = win32gui.GetSaveFileNameW(
-                hwndOwner=display.get_wm_info()['window'],
-                InitialDir=initialDir,
-                Flags=win32con.OFN_EXPLORER | win32con.OFN_NOCHANGEDIR | win32con.OFN_OVERWRITEPROMPT,
-                File=defaultName,
-                DefExt=suffix,
-                Title=title,
-                Filter=filetype,
-                )
-        except Exception as e:
-            print("Error getting file name: ", e)
-            return
-
-        try:
-            filename = filename[:filename.index('\0')]
-            filename = filename.decode(sys.getfilesystemencoding())
-        except:
-            pass
-
-    else:
-        filename = request_new_filename(prompt=title,
+    # TODO make this use the os agnostic file chooser
+    return request_new_filename(prompt=title,
                                         suffix=("." + suffix) if suffix else "",
                                         directory=initialDir,
                                         filename=defaultName,
                                         pathname=None)
 
-    return filename
 
 
-
-# TODO probably use a library to abstract this out
 def platform_open(path):
-    try:
-        if sys.platform == "win32":
-            os.startfile(path)
-            # os.system('start ' + path + '\'')
-        else:
-            os.system('xdg-open "' + path + '"')
+    path = os.path.abspath(path)
 
-    except Exception as e:
-        print("platform_open failed on {0}: {1}".format(sys.platform, e))
+    system = platform.system()
+
+    # TODO move this to an explicit file for handling os specific operations
+    if system == "Windows":
+        os.startfile(path)
+    elif system == "Linux":
+        subprocess.Popen(["xdg-open", path])
+    else:
+        raise OSError("Unsupported operating system: " + system)
 
 win32_window_size = True
 

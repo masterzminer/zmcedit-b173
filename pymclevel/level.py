@@ -13,6 +13,10 @@ from .mclevelbase import *
 from collections import defaultdict
 from . import materials
 import numpy as np
+from pymclevel.box import BoundingBox
+
+from pymclevel import blockrotation
+import itertools
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug

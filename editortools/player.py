@@ -18,6 +18,8 @@ from .toolbasics import *
 from pymclevel.box import FloatBox
 import numpy as np
 
+from pymclevel.box import BoundingBox
+
 
 class PlayerMoveOperation(Operation):
     undoPos = None

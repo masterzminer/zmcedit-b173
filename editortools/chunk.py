@@ -18,6 +18,8 @@ from .toolbasics import *
 from albow.dialogs import Dialog
 import numpy as np
 
+from pymclevel.box import BoundingBox
+
 
 class ChunkToolPanel(Panel):
 

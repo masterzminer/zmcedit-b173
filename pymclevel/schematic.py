@@ -9,6 +9,9 @@ import shutil
 from .level import MCLevel, EntityLevel
 import numpy as np
 from io import BytesIO
+from pymclevel import blockrotation
+from pymclevel.box import BoundingBox
+
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -484,7 +487,7 @@ def adjustExtractionParameters(self, box):
 
         if l <= 0: return
 
-    box = BoundingBox ((x, y, z), (w, h, l))
+    box = BoundingBox((x, y, z), (w, h, l))
 
     return box, (destX, destY, destZ)
 

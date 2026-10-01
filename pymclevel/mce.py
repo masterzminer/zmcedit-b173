@@ -1331,15 +1331,8 @@ class mce(object):
         raise SystemExit
 
     def loadWorld(self, world):
-
         worldpath = os.path.expanduser(world)
-        if os.path.exists(worldpath):
-            self.level = mclevel.fromFile(worldpath)
-        else:
-            self.level = mclevel.loadWorld(world)
-
-
-
+        self.level = mclevel.fromFile(worldpath)
 
 
 
