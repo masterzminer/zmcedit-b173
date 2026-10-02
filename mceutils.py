@@ -303,7 +303,7 @@ def loadTerrainTexture():
 
 def loadPNGData(filename):
     # Load image and convert to rgba
-    image = Image.open(directories.asset(filename)).convert("RGBA")
+    image = Image.open(directories.ASSETS / filename).convert("RGBA")
     # Convert the data to a np array
     data = np.array(image)
     # Extract the weight and width from the shape

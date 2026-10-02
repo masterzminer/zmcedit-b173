@@ -17,6 +17,9 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 from .toolbasics import *
 from pymclevel.box import FloatBox
 import numpy as np
+from pymclevel.mclevelbase import PlayerNotFound
+from pymclevel.infiniteworld import MCBetaLevel
+from pymclevel.materials import alphaMaterials
 
 from pymclevel.box import BoundingBox
 
@@ -37,7 +40,7 @@ class PlayerMoveOperation(Operation):
                 self.undoDim = level.getPlayerDimension(self.player)
                 self.undoYP = level.getPlayerOrientation(self.player)
             except Exception as e:
-                info("Couldn't get player position! ({0!r})".format(e))
+                print("Couldn't get player position! ({0!r})".format(e))
 
             yaw, pitch = self.yp
             if yaw is not None and pitch is not None:
@@ -103,22 +106,22 @@ class PlayerPositionPanel(Panel):
         else:
             players = ["Player"]
         self.players = players
-        tableview = TableView(columns=[
+        table_view = TableView(columns=[
             TableColumn("Player Name", 200),
         ])
-        tableview.index = 0
-        tableview.num_rows = lambda: len(players)
-        tableview.row_data = lambda i: (players[i],)
-        tableview.row_is_selected = lambda x: x == tableview.index
-        tableview.zebra_color = (0, 0, 0, 48)
+        table_view.index = 0
+        table_view.num_rows = lambda: len(players)
+        table_view.row_data = lambda i: (players[i],)
+        table_view.row_is_selected = lambda x: x == table_view.index
+        table_view.zebra_color = (0, 0, 0, 48)
 
         def selectTableRow(i, evt):
-            tableview.index = i
+            table_view.index = i
 
-        tableview.click_row = selectTableRow
-        self.table = tableview
+        table_view.click_row = selectTableRow
+        self.table = table_view
         l = Label("Player: ")
-        col = [l, tableview]
+        col = [l, table_view]
 
         gotoButton = Button("Goto Player", action=self.tool.gotoPlayer)
         gotoCameraButton = Button("Goto Player's View", action=self.tool.gotoPlayerCamera)
@@ -199,7 +202,7 @@ class PlayerPositionTool(EditorTool):
         EditorTool.__init__(self, *args)
         self.reloadTextures()
 
-        textureVertices = numpy.array(
+        textureVertices = np.array(
             [
                 [24, 16],
                 [24, 8],

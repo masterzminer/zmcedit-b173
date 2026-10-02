@@ -45,8 +45,10 @@ import release
 import sys
 import traceback
 import importlib
+from pymclevel.infiniteworld import MCBetaLevel
+from pymclevel.materials import alphaMaterials
 
-pymclevel.MCBetaLevel.loadedChunkLimit = 0
+MCBetaLevel.loadedChunkLimit = 0
 
 ESCAPE = '\033'
 
@@ -665,9 +667,9 @@ class MCEdit(GLViewport):
 
     def makeInfoButtonsColumn(self):
         def showLicense():
-            platform_open(os.path.join(directories.ROOT, "LICENSE.txt"))
+            platform_open(directories.READ_ROOT / "LICENSE.txt")
 
-        readmePath = os.path.join(directories.ROOT, "README.md")
+        readmePath = directories.READ_ROOT / "README.md"
 
         column = ([
             albow.Button(
@@ -785,7 +787,7 @@ class MCEdit(GLViewport):
 
         root_widget.add(mcedit)
         root_widget.focus_switch = mcedit
-        if 0 == len(pymclevel.alphaMaterials.yamlDatas):
+        if 0 == len(alphaMaterials.yamlDatas):
             albow.alert("Failed to load minecraft.yaml. Check the console window for details.")
 
         if mcedit.droppedLevel:
@@ -891,7 +893,7 @@ class GLDisplayContext(object):
         display.set_caption('MCEdit ~ ' + release.release, release.VERSION_NAME)
 
         try:
-            icon_path = os.path.join(directories.ASSETS, 'favicon.png')
+            icon_path = directories.ASSETS / 'favicon.png'
             icon_file = open(icon_path, 'rb')
             icon = pygame.image.load(icon_file, 'favicon.png')
             display.set_icon(icon)
@@ -933,8 +935,9 @@ class GLDisplayContext(object):
                 tex_image
             )
 
+        # TODO probably simplify this
         textures = (
-            (pymclevel.alphaMaterials, 'terrain.png'),
+            (pymclevel.materials.alphaMaterials, 'terrain.png'),
         )
 
         for mats, matFile in textures:

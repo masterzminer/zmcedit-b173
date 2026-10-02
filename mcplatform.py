@@ -25,12 +25,11 @@ import sys
 import traceback
 import platform
 import subprocess
+from pathlib import Path
 
 import crossfiledialog
 
 enc = sys.getfilesystemencoding()
-
-os.environ["YAML_ROOT"] = join(directories.ROOT, "pymclevel")
 
 from albow import request_new_filename, request_old_filename
 from pymclevel import items
@@ -67,14 +66,14 @@ def askOpenFile(title='Select a Minecraft level...', schematics=False):
     
     if filename:
         if schematics:
-            lastSchematicsDir = dirname(filename)
+            lastSchematicsDir = Path(dirname(filename))
         else:
-            lastSaveDir = dirname(filename)
+            lastSaveDir = Path(dirname(filename))
 
     return filename
 
 
-def askSaveSchematic(initialDir: str, defaultName: str, filetype: str):
+def askSaveSchematic(initialDir: Path, defaultName: str, filetype: str):
     return askSaveFile(initialDir,
                 title='Save this schematic...',
                 defaultName=defaultName,
@@ -82,11 +81,11 @@ def askSaveSchematic(initialDir: str, defaultName: str, filetype: str):
             )
 
 
-def askCreateWorld(initialDir: str):
+def askCreateWorld(initialDir: Path):
     # Find a valid name for a folder that doesn't already exist
     defaultName = name = "Untitled World"
     i = 0
-    while exists(join(initialDir, name)):
+    while exists(initialDir / name):
         i += 1
         name = defaultName + " " + str(i)
 
@@ -94,16 +93,16 @@ def askCreateWorld(initialDir: str):
     return askSaveFile(initialDir, title='Name this new world', defaultName=defaultName)
 
 
-def askSaveFolder(initialDir, title):
+def askSaveFolder(initialDir: Path, title):
     selected = crossfiledialog.choose_folder(
-        start_dir=initialDir,
+        start_dir=str(initialDir),
         title=title
     )
     if selected is None or selected == "":
         return None
     return selected
 
-def askSaveFile(initialDir: str, title: str, defaultName, filetype: str=None):
+def askSaveFile(initialDir: Path, title: str, defaultName, filetype: str=None):
     # TODO make an option to force using the built in gui file selector
     useOldFile = False;
     if useOldFile:
@@ -116,7 +115,7 @@ def askSaveFile(initialDir: str, title: str, defaultName, filetype: str=None):
         )
     else:
         selected_path = crossfiledialog.save_file(
-            start_dir=(initialDir if defaultName is None else os.path.join(initialDir, defaultName)),
+            start_dir=str((initialDir if defaultName is None else initialDir / defaultName)),
             title=title,
         )
 
@@ -128,8 +127,7 @@ def askSaveFile(initialDir: str, title: str, defaultName, filetype: str=None):
         return selected_path
 
 
-def platform_open(path):
-    path = os.path.abspath(path)
+def platform_open(path: Path):
     return os_ops.open_file(path)
 
 
@@ -146,9 +144,9 @@ if filtersDir not in [s
                       else s
                       for s in sys.path]:
                           
-    sys.path.append(filtersDir)
+    sys.path.append(str(filtersDir))
 
-items.items = items.Items(join(directories.ROOT, "pymclevel", "items.txt"))
+items.items = items.Items(directories.ASSETS / "items.txt")
 
 
 class OS():
@@ -169,7 +167,7 @@ class OS():
         pass
 
 
-    def open_file(self, path: str):
+    def open_file(self, path: Path):
         """
         Open the given file using the os native application
 
@@ -178,12 +176,12 @@ class OS():
         print("Opening files is no")
 
 class LinuxHandler(OS):
-    def open_file(self, path):
+    def open_file(self, path: Path):
         subprocess.Popen(["xdg-open", path])
 
 
 class MacHandler(OS):
-    def open_file(self, path):
+    def open_file(self, path: Path):
         subprocess.Popen(["open", path])
 
 class WindowsHandler(OS):
@@ -196,7 +194,7 @@ class WindowsHandler(OS):
             pass
         pass
 
-    def open_file(self, path):
+    def open_file(self, path: Path):
         os.startfile(path)
 
 class UnknownHandler(OS):

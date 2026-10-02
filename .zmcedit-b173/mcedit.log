@@ -1,0 +1,601 @@
+[DEBUG][191][PngImagePlugin]:STREAM b'IHDR' 16 13
+[DEBUG][191][PngImagePlugin]:STREAM b'cHRM' 41 32
+[DEBUG][191][PngImagePlugin]:STREAM b'bKGD' 85 6
+[DEBUG][728][PngImagePlugin]:b'bKGD' 85 6 (unknown)
+[DEBUG][191][PngImagePlugin]:STREAM b'pHYs' 103 9
+[DEBUG][191][PngImagePlugin]:STREAM b'tIME' 124 7
+[DEBUG][728][PngImagePlugin]:b'tIME' 124 7 (unknown)
+[DEBUG][191][PngImagePlugin]:STREAM b'IDAT' 143 32768
+[DEBUG][300][config]:Setting {section => Settings}
+[DEBUG][300][config]:Setting {flyMode => Setting(Settings, Fly Mode, <class 'bool'>, False}
+[DEBUG][300][config]:Setting {enableMouseLag => Setting(Settings, Enable Mouse Lag, <class 'bool'>, False}
+[DEBUG][300][config]:Setting {longDistanceMode => Setting(Settings, Long Distance Mode, <class 'bool'>, False}
+[DEBUG][300][config]:Setting {closeMinecraftWarning => Setting(Settings, Close Minecraft Warning, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {fov => Setting(Settings, Field of View, <class 'float'>, 70.0}
+[DEBUG][300][config]:Setting {spaceHeight => Setting(Settings, Space Height, <class 'int'>, 64}
+[DEBUG][300][config]:Setting {blockBuffer => Setting(Settings, Block Buffer, <class 'int'>, 268435456}
+[DEBUG][300][config]:Setting {doubleBuffer => Setting(Settings, Double Buffer, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {viewDistance => Setting(Settings, View Distance, <class 'int'>, 16}
+[DEBUG][300][config]:Setting {targetFPS => Setting(Settings, Target FPS, <class 'int'>, 60}
+[DEBUG][300][config]:Setting {windowWidth => Setting(Settings, window width, <class 'int'>, 1024}
+[DEBUG][300][config]:Setting {windowHeight => Setting(Settings, window height, <class 'int'>, 768}
+[DEBUG][300][config]:Setting {windowX => Setting(Settings, window x, <class 'int'>, 0}
+[DEBUG][300][config]:Setting {windowY => Setting(Settings, window y, <class 'int'>, 0}
+[DEBUG][300][config]:Setting {windowShowCmd => Setting(Settings, window showcmd, <class 'int'>, 1}
+[DEBUG][300][config]:Setting {setWindowPlacement => Setting(Settings, SetWindowPlacement, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {showHiddenOres => Setting(Settings, show hidden ores, <class 'bool'>, False}
+[DEBUG][300][config]:Setting {fastLeaves => Setting(Settings, fast leaves, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {roughGraphics => Setting(Settings, rough graphics, <class 'bool'>, False}
+[DEBUG][300][config]:Setting {showChunkRedraw => Setting(Settings, show chunk redraw, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {drawSky => Setting(Settings, draw sky, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {drawFog => Setting(Settings, draw fog, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {showCeiling => Setting(Settings, show ceiling, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {drawEntities => Setting(Settings, draw entities, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {drawMonsters => Setting(Settings, draw monsters, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {drawItems => Setting(Settings, draw items, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {drawTileEntities => Setting(Settings, draw tile entities, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {drawTileTicks => Setting(Settings, draw tile ticks, <class 'bool'>, False}
+[DEBUG][300][config]:Setting {drawUnpopulatedChunks => Setting(Settings, draw unpopulated chunks, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {vertexBufferLimit => Setting(Settings, vertex buffer limit, <class 'int'>, 384}
+[DEBUG][300][config]:Setting {vsync => Setting(Settings, vertical sync, <class 'int'>, 0}
+[DEBUG][300][config]:Setting {visibilityCheck => Setting(Settings, visibility check, <class 'bool'>, False}
+[DEBUG][300][config]:Setting {viewMode => Setting(Settings, View Mode, <class 'str'>, Camera}
+[DEBUG][300][config]:Setting {section => Controls}
+[DEBUG][300][config]:Setting {mouseSpeed => Setting(Controls, mouse speed, <class 'float'>, 5.0}
+[DEBUG][300][config]:Setting {cameraAccel => Setting(Controls, camera acceleration, <class 'float'>, 125.0}
+[DEBUG][300][config]:Setting {cameraDrag => Setting(Controls, camera drag, <class 'float'>, 100.0}
+[DEBUG][300][config]:Setting {cameraMaxSpeed => Setting(Controls, camera maximum speed, <class 'float'>, 60.0}
+[DEBUG][300][config]:Setting {cameraBrakingSpeed => Setting(Controls, camera braking speed, <class 'float'>, 8.0}
+[DEBUG][300][config]:Setting {invertMousePitch => Setting(Controls, invert mouse pitch, <class 'bool'>, False}
+[DEBUG][300][config]:Setting {autobrake => Setting(Controls, autobrake, <class 'bool'>, True}
+[DEBUG][300][config]:Setting {swapAxes => Setting(Controls, swap axes looking down, <class 'bool'>, False}
+[DEBUG][222][config]:Subscribing <renderer.MCRenderer object at 0x7204a2e67350>.fastLeaves
+[DEBUG][222][config]:Subscribing <renderer.MCRenderer object at 0x7204a2e67350>.roughGraphics
+[DEBUG][222][config]:Subscribing <renderer.MCRenderer object at 0x7204a2e67350>.showHiddenOres
+[DEBUG][222][config]:Subscribing <renderer.MCRenderer object at 0x7204a2e67350>.vertexBufferLimit
+[DEBUG][222][config]:Subscribing <renderer.MCRenderer object at 0x7204a2e67350>.drawEntities
+[DEBUG][222][config]:Subscribing <renderer.MCRenderer object at 0x7204a2e67350>.drawTileEntities
+[DEBUG][222][config]:Subscribing <renderer.MCRenderer object at 0x7204a2e67350>.drawTileTicks
+[DEBUG][222][config]:Subscribing <renderer.MCRenderer object at 0x7204a2e67350>.drawTerrainPopulated
+[DEBUG][222][config]:Subscribing <renderer.MCRenderer object at 0x7204a2e67350>.drawMonsters
+[DEBUG][222][config]:Subscribing <renderer.MCRenderer object at 0x7204a2e67350>.drawItems
+[DEBUG][222][config]:Subscribing <renderer.MCRenderer object at 0x7204a2e67350>.showRedraw
+[DEBUG][222][config]:Subscribing <renderer.MCRenderer object at 0x7204a2e67350>.spaceHeight
+[DEBUG][222][config]:Subscribing <renderer.MCRenderer object at 0x7204a2e67350>.targetFPS
+[DEBUG][222][config]:Subscribing <leveleditor.CameraViewport object at 0x7204a2e67bf0>.drawSky
+[DEBUG][222][config]:Subscribing <leveleditor.CameraViewport object at 0x7204a2e67bf0>.drawFog
+[DEBUG][222][config]:Subscribing <leveleditor.CameraViewport object at 0x7204a2e67bf0>.showCeiling
+[DEBUG][222][config]:Subscribing <leveleditor.CameraViewport object at 0x7204a2e67bf0>.accelFactor
+[DEBUG][222][config]:Subscribing <leveleditor.CameraViewport object at 0x7204a2e67bf0>.maxSpeed
+[DEBUG][222][config]:Subscribing <leveleditor.CameraViewport object at 0x7204a2e67bf0>.brakeMaxSpeed
+[DEBUG][222][config]:Subscribing <leveleditor.CameraViewport object at 0x7204a2e67bf0>.invertMousePitch
+[DEBUG][222][config]:Subscribing <leveleditor.CameraViewport object at 0x7204a2e67bf0>.autobrake
+[DEBUG][222][config]:Subscribing <leveleditor.CameraViewport object at 0x7204a2e67bf0>.swapAxesLookingDown
+[DEBUG][222][config]:Subscribing <leveleditor.CameraViewport object at 0x7204a2e67bf0>.visibilityCheck
+[DEBUG][222][config]:Subscribing <leveleditor.CameraViewport object at 0x7204a2e67bf0>.fovSetting
+[DEBUG][222][config]:Subscribing <leveleditor.ChunkViewport object at 0x7204a2e4d130>.drawSky
+[DEBUG][222][config]:Subscribing <leveleditor.ChunkViewport object at 0x7204a2e4d130>.drawFog
+[DEBUG][222][config]:Subscribing <leveleditor.ChunkViewport object at 0x7204a2e4d130>.showCeiling
+[DEBUG][222][config]:Subscribing <leveleditor.ChunkViewport object at 0x7204a2e4d130>.accelFactor
+[DEBUG][222][config]:Subscribing <leveleditor.ChunkViewport object at 0x7204a2e4d130>.maxSpeed
+[DEBUG][222][config]:Subscribing <leveleditor.ChunkViewport object at 0x7204a2e4d130>.brakeMaxSpeed
+[DEBUG][222][config]:Subscribing <leveleditor.ChunkViewport object at 0x7204a2e4d130>.invertMousePitch
+[DEBUG][222][config]:Subscribing <leveleditor.ChunkViewport object at 0x7204a2e4d130>.autobrake
+[DEBUG][222][config]:Subscribing <leveleditor.ChunkViewport object at 0x7204a2e4d130>.swapAxesLookingDown
+[DEBUG][222][config]:Subscribing <leveleditor.ChunkViewport object at 0x7204a2e4d130>.visibilityCheck
+[DEBUG][222][config]:Subscribing <leveleditor.ChunkViewport object at 0x7204a2e4d130>.fovSetting
+[DEBUG][222][config]:Subscribing <leveleditor.LevelEditor object at 0x7204a2f7be00>.viewMode
+[DEBUG][222][config]:Subscribing <editortools.brush.BrushTool object at 0x7204a2e4e090>.updateBrushOffset
+[DEBUG][222][config]:Subscribing <editortools.brush.BrushTool object at 0x7204a2e4e090>.brushSizeW
+[DEBUG][222][config]:Subscribing <editortools.brush.BrushTool object at 0x7204a2e4e090>.brushSizeH
+[DEBUG][222][config]:Subscribing <editortools.brush.BrushTool object at 0x7204a2e4e090>.brushSizeL
+[DEBUG][191][PngImagePlugin]:STREAM b'IHDR' 16 13
+[DEBUG][191][PngImagePlugin]:STREAM b'iCCP' 41 382
+[DEBUG][394][PngImagePlugin]:iCCP profile name b'icc'
+[DEBUG][395][PngImagePlugin]:Compression method 0
+[DEBUG][191][PngImagePlugin]:STREAM b'cHRM' 435 32
+[DEBUG][191][PngImagePlugin]:STREAM b'PLTE' 479 297
+[DEBUG][191][PngImagePlugin]:STREAM b'tRNS' 788 1
+[DEBUG][191][PngImagePlugin]:STREAM b'bKGD' 801 1
+[DEBUG][728][PngImagePlugin]:b'bKGD' 801 1 (unknown)
+[DEBUG][191][PngImagePlugin]:STREAM b'pHYs' 814 9
+[DEBUG][191][PngImagePlugin]:STREAM b'tIME' 835 7
+[DEBUG][728][PngImagePlugin]:b'tIME' 835 7 (unknown)
+[DEBUG][191][PngImagePlugin]:STREAM b'zTXt' 854 1111
+[DEBUG][191][PngImagePlugin]:STREAM b'IDAT' 1977 665
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2654 26
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2692 17
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2721 33
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2766 19
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2797 19
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2828 18
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2858 26
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2896 27
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2935 34
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2981 21
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 3014 14
+[DEBUG][191][PngImagePlugin]:STREAM b'IHDR' 16 13
+[DEBUG][191][PngImagePlugin]:STREAM b'iCCP' 41 382
+[DEBUG][394][PngImagePlugin]:iCCP profile name b'icc'
+[DEBUG][395][PngImagePlugin]:Compression method 0
+[DEBUG][191][PngImagePlugin]:STREAM b'cHRM' 435 32
+[DEBUG][191][PngImagePlugin]:STREAM b'PLTE' 479 297
+[DEBUG][191][PngImagePlugin]:STREAM b'tRNS' 788 1
+[DEBUG][191][PngImagePlugin]:STREAM b'bKGD' 801 1
+[DEBUG][728][PngImagePlugin]:b'bKGD' 801 1 (unknown)
+[DEBUG][191][PngImagePlugin]:STREAM b'pHYs' 814 9
+[DEBUG][191][PngImagePlugin]:STREAM b'tIME' 835 7
+[DEBUG][728][PngImagePlugin]:b'tIME' 835 7 (unknown)
+[DEBUG][191][PngImagePlugin]:STREAM b'zTXt' 854 1111
+[DEBUG][191][PngImagePlugin]:STREAM b'IDAT' 1977 665
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2654 26
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2692 17
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2721 33
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2766 19
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2797 19
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2828 18
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2858 26
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2896 27
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2935 34
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2981 21
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 3014 14
+[DEBUG][191][PngImagePlugin]:STREAM b'IHDR' 16 13
+[DEBUG][191][PngImagePlugin]:STREAM b'cHRM' 41 32
+[DEBUG][191][PngImagePlugin]:STREAM b'bKGD' 85 6
+[DEBUG][728][PngImagePlugin]:b'bKGD' 85 6 (unknown)
+[DEBUG][191][PngImagePlugin]:STREAM b'IDAT' 103 16708
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 16823 24
+[DEBUG][191][PngImagePlugin]:STREAM b'IHDR' 16 13
+[DEBUG][191][PngImagePlugin]:STREAM b'iCCP' 41 382
+[DEBUG][394][PngImagePlugin]:iCCP profile name b'icc'
+[DEBUG][395][PngImagePlugin]:Compression method 0
+[DEBUG][191][PngImagePlugin]:STREAM b'cHRM' 435 32
+[DEBUG][191][PngImagePlugin]:STREAM b'PLTE' 479 297
+[DEBUG][191][PngImagePlugin]:STREAM b'tRNS' 788 1
+[DEBUG][191][PngImagePlugin]:STREAM b'bKGD' 801 1
+[DEBUG][728][PngImagePlugin]:b'bKGD' 801 1 (unknown)
+[DEBUG][191][PngImagePlugin]:STREAM b'pHYs' 814 9
+[DEBUG][191][PngImagePlugin]:STREAM b'tIME' 835 7
+[DEBUG][728][PngImagePlugin]:b'tIME' 835 7 (unknown)
+[DEBUG][191][PngImagePlugin]:STREAM b'zTXt' 854 1111
+[DEBUG][191][PngImagePlugin]:STREAM b'IDAT' 1977 665
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2654 26
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2692 17
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2721 33
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2766 19
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2797 19
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2828 18
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2858 26
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2896 27
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2935 34
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2981 21
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 3014 14
+[DEBUG][191][PngImagePlugin]:STREAM b'IHDR' 16 13
+[DEBUG][191][PngImagePlugin]:STREAM b'iCCP' 41 382
+[DEBUG][394][PngImagePlugin]:iCCP profile name b'icc'
+[DEBUG][395][PngImagePlugin]:Compression method 0
+[DEBUG][191][PngImagePlugin]:STREAM b'cHRM' 435 32
+[DEBUG][191][PngImagePlugin]:STREAM b'PLTE' 479 297
+[DEBUG][191][PngImagePlugin]:STREAM b'tRNS' 788 1
+[DEBUG][191][PngImagePlugin]:STREAM b'bKGD' 801 1
+[DEBUG][728][PngImagePlugin]:b'bKGD' 801 1 (unknown)
+[DEBUG][191][PngImagePlugin]:STREAM b'pHYs' 814 9
+[DEBUG][191][PngImagePlugin]:STREAM b'tIME' 835 7
+[DEBUG][728][PngImagePlugin]:b'tIME' 835 7 (unknown)
+[DEBUG][191][PngImagePlugin]:STREAM b'zTXt' 854 1111
+[DEBUG][191][PngImagePlugin]:STREAM b'IDAT' 1977 665
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2654 26
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2692 17
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2721 33
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2766 19
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2797 19
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2828 18
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2858 26
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2896 27
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2935 34
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 2981 21
+[DEBUG][191][PngImagePlugin]:STREAM b'tEXt' 3014 14
+[DEBUG][168][root]:<Event(32774-WindowShown {'window': None})>
+[DEBUG][168][root]:<Event(32777-WindowMoved {'x': 768, 'y': 368, 'window': None})>
+[DEBUG][168][root]:<Event(32770-VideoExpose {})>
+[DEBUG][168][root]:<Event(32776-WindowExposed {'window': None})>
+[DEBUG][168][root]:<Event(32768-ActiveEvent {'gain': 1, 'state': 2})>
+[DEBUG][168][root]:<Event(32785-WindowFocusGained {'window': None})>
+[DEBUG][168][root]:<Event(32788-WindowTakeFocus {'window': None})>
+[DEBUG][168][root]:<Event(32768-ActiveEvent {'gain': 1, 'state': 1})>
+[DEBUG][168][root]:<Event(32783-WindowEnter {'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (584, 767), 'rel': (0, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (579, 767), 'rel': (-5, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (575, 765), 'rel': (-4, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (569, 764), 'rel': (-6, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (564, 764), 'rel': (-5, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (560, 762), 'rel': (-4, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (555, 761), 'rel': (-5, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (549, 759), 'rel': (-6, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (545, 758), 'rel': (-4, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (540, 758), 'rel': (-5, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (536, 756), 'rel': (-4, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (531, 755), 'rel': (-5, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (527, 753), 'rel': (-4, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (522, 752), 'rel': (-5, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (519, 750), 'rel': (-3, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (514, 750), 'rel': (-5, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (510, 749), 'rel': (-4, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (505, 749), 'rel': (-5, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (501, 747), 'rel': (-4, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (498, 746), 'rel': (-3, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (495, 744), 'rel': (-3, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (490, 744), 'rel': (-5, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (486, 743), 'rel': (-4, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (483, 741), 'rel': (-3, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (480, 739), 'rel': (-3, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (475, 739), 'rel': (-5, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (472, 738), 'rel': (-3, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (469, 736), 'rel': (-3, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (466, 735), 'rel': (-3, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (463, 735), 'rel': (-3, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (460, 733), 'rel': (-3, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (457, 732), 'rel': (-3, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (456, 730), 'rel': (-1, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (453, 730), 'rel': (-3, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (450, 729), 'rel': (-3, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (447, 727), 'rel': (-3, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (445, 727), 'rel': (-2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (444, 726), 'rel': (-1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (440, 724), 'rel': (-4, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (439, 723), 'rel': (-1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (437, 723), 'rel': (-2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (434, 721), 'rel': (-3, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (433, 720), 'rel': (-1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (431, 720), 'rel': (-2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (430, 718), 'rel': (-1, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (428, 718), 'rel': (-2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (427, 717), 'rel': (-1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (425, 715), 'rel': (-2, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (424, 714), 'rel': (-1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (422, 714), 'rel': (-2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (422, 712), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (421, 711), 'rel': (-1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (419, 711), 'rel': (-2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (418, 709), 'rel': (-1, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (418, 708), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (416, 708), 'rel': (-2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (415, 706), 'rel': (-1, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (415, 705), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (413, 705), 'rel': (-2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (413, 703), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (413, 702), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (412, 702), 'rel': (-1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (410, 700), 'rel': (-2, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (410, 699), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (410, 697), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (409, 696), 'rel': (-1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (409, 694), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (407, 693), 'rel': (-2, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (406, 691), 'rel': (-1, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (406, 690), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (406, 688), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (404, 688), 'rel': (-2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (404, 687), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (404, 685), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (403, 684), 'rel': (-1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (403, 682), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (401, 681), 'rel': (-2, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (401, 679), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (400, 678), 'rel': (-1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (400, 676), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (400, 675), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (400, 673), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (398, 673), 'rel': (-2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (398, 672), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (398, 670), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (397, 669), 'rel': (-1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (397, 667), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (397, 666), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (395, 664), 'rel': (-2, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (395, 663), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (395, 661), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (395, 659), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (395, 656), 'rel': (0, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (394, 655), 'rel': (-1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (394, 653), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (394, 652), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (394, 650), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (394, 649), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (394, 647), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 646), 'rel': (-2, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 644), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 643), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 641), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 640), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 638), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 637), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 635), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 634), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 631), 'rel': (0, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 628), 'rel': (0, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 626), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 625), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 622), 'rel': (0, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 619), 'rel': (0, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 617), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (392, 616), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (394, 613), 'rel': (2, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (394, 610), 'rel': (0, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (394, 608), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (394, 607), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (394, 604), 'rel': (0, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (394, 602), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (395, 601), 'rel': (1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (395, 599), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (395, 598), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (397, 595), 'rel': (2, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (397, 592), 'rel': (0, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (398, 590), 'rel': (1, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (398, 589), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (398, 587), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (400, 586), 'rel': (2, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (400, 584), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (400, 581), 'rel': (0, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (401, 580), 'rel': (1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (401, 578), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (401, 576), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (403, 575), 'rel': (2, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (403, 573), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (404, 572), 'rel': (1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (404, 570), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (406, 569), 'rel': (2, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (407, 566), 'rel': (1, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (407, 563), 'rel': (0, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (409, 561), 'rel': (2, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (409, 560), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (410, 558), 'rel': (1, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (412, 557), 'rel': (2, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (412, 555), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (413, 554), 'rel': (1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (415, 552), 'rel': (2, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (416, 549), 'rel': (1, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (418, 546), 'rel': (2, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (419, 545), 'rel': (1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (419, 543), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (422, 542), 'rel': (3, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (422, 540), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (424, 537), 'rel': (2, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (425, 537), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (427, 534), 'rel': (2, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (428, 533), 'rel': (1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (430, 531), 'rel': (2, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (431, 530), 'rel': (1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (433, 527), 'rel': (2, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (434, 527), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (436, 525), 'rel': (2, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (437, 522), 'rel': (1, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (437, 521), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (440, 519), 'rel': (3, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (440, 518), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (442, 516), 'rel': (2, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (444, 516), 'rel': (2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (445, 513), 'rel': (1, -3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (445, 512), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (447, 512), 'rel': (2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (448, 510), 'rel': (1, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (450, 509), 'rel': (2, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (450, 507), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (451, 507), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (453, 506), 'rel': (2, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (454, 504), 'rel': (1, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (454, 503), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (456, 503), 'rel': (2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (456, 501), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (457, 500), 'rel': (1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (457, 498), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (459, 498), 'rel': (2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (459, 496), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (459, 495), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (460, 493), 'rel': (1, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (460, 492), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (462, 490), 'rel': (2, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (462, 489), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (462, 487), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (463, 487), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (463, 486), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (463, 484), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (463, 483), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (465, 481), 'rel': (2, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (465, 480), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (465, 478), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (466, 478), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (466, 477), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (466, 475), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (466, 474), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (468, 474), 'rel': (2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (468, 472), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (468, 471), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (468, 469), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (469, 469), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (469, 468), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (469, 466), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (469, 465), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (469, 463), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (469, 462), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (471, 462), 'rel': (2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (471, 460), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (471, 459), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (471, 457), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (471, 456), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (471, 454), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (472, 453), 'rel': (1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (472, 451), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (472, 450), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (472, 448), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (474, 447), 'rel': (2, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (474, 445), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (474, 444), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (474, 442), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (475, 441), 'rel': (1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (475, 439), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (475, 438), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (475, 436), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (475, 435), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (477, 433), 'rel': (2, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (477, 432), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (477, 430), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (477, 429), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (477, 427), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (478, 427), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (478, 426), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (478, 424), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (478, 423), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (478, 421), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (480, 420), 'rel': (2, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (480, 418), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (480, 416), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (480, 415), 'rel': (0, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (480, 413), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (481, 412), 'rel': (1, -1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (481, 410), 'rel': (0, -2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1025-MouseButtonDown {'pos': (481, 410), 'button': 1, 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1026-MouseButtonUp {'pos': (481, 410), 'button': 1, 'touch': False, 'window': None})>
+[DEBUG][187][config]:Property Change:        Settings        Close Minecraft Warning = False
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (481, 412), 'rel': (0, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (481, 413), 'rel': (0, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (481, 415), 'rel': (0, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (481, 416), 'rel': (0, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (481, 418), 'rel': (0, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (481, 420), 'rel': (0, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (481, 421), 'rel': (0, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (481, 423), 'rel': (0, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (481, 424), 'rel': (0, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (483, 424), 'rel': (2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (483, 426), 'rel': (0, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (484, 427), 'rel': (1, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (486, 429), 'rel': (2, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (486, 430), 'rel': (0, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (487, 430), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (489, 432), 'rel': (2, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (489, 433), 'rel': (0, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (490, 435), 'rel': (1, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (492, 435), 'rel': (2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (493, 438), 'rel': (1, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (495, 439), 'rel': (2, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (496, 439), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (498, 441), 'rel': (2, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (499, 444), 'rel': (1, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (501, 445), 'rel': (2, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (504, 447), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (505, 448), 'rel': (1, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (507, 450), 'rel': (2, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (510, 451), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (511, 454), 'rel': (1, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (514, 456), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (516, 459), 'rel': (2, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (519, 460), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (522, 462), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (525, 465), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (527, 466), 'rel': (2, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (530, 468), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (533, 471), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (536, 474), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (537, 475), 'rel': (1, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (540, 477), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (543, 480), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (546, 483), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (548, 486), 'rel': (2, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (551, 487), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (554, 490), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (557, 492), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (560, 495), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (563, 496), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (564, 500), 'rel': (1, 4), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (567, 501), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (570, 504), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (573, 507), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (576, 509), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (579, 512), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (581, 515), 'rel': (2, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (584, 516), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (587, 519), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (588, 522), 'rel': (1, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (591, 525), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (594, 527), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (597, 530), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (599, 533), 'rel': (2, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (602, 534), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (605, 537), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (608, 539), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (610, 542), 'rel': (2, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (613, 545), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (616, 546), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (619, 549), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (620, 552), 'rel': (1, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (623, 554), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (626, 557), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (629, 560), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (632, 563), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (634, 564), 'rel': (2, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (637, 567), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (641, 569), 'rel': (4, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (643, 572), 'rel': (2, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (646, 573), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (649, 576), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (652, 580), 'rel': (3, 4), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (655, 581), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (659, 583), 'rel': (4, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (661, 586), 'rel': (2, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (664, 587), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (667, 590), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (670, 592), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (673, 595), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (676, 598), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (679, 599), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (682, 602), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (685, 604), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (688, 605), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (691, 608), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (694, 610), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (697, 611), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (700, 614), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (703, 616), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (706, 617), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (709, 620), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (712, 622), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (715, 623), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (718, 626), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (721, 628), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (723, 629), 'rel': (2, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (726, 631), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (729, 632), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (732, 635), 'rel': (3, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (733, 635), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (736, 637), 'rel': (3, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (738, 640), 'rel': (2, 3), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (741, 641), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (742, 643), 'rel': (1, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (745, 644), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (747, 644), 'rel': (2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (748, 646), 'rel': (1, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (751, 647), 'rel': (3, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (753, 649), 'rel': (2, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (754, 650), 'rel': (1, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (756, 652), 'rel': (2, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (757, 652), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (759, 653), 'rel': (2, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (760, 653), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (762, 655), 'rel': (2, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (763, 656), 'rel': (1, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (765, 658), 'rel': (2, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (767, 658), 'rel': (2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (768, 659), 'rel': (1, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (770, 659), 'rel': (2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (770, 661), 'rel': (0, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (771, 661), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (773, 661), 'rel': (2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (773, 663), 'rel': (0, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (774, 663), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (776, 664), 'rel': (2, 1), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (776, 666), 'rel': (0, 2), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (777, 666), 'rel': (1, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(1024-MouseMotion {'pos': (779, 666), 'rel': (2, 0), 'buttons': (0, 0, 0), 'touch': False, 'window': None})>
+[DEBUG][168][root]:<Event(768-KeyDown {'unicode': '', 'key': 1073742050, 'mod': 256, 'scancode': 226, 'window': None})>
+[DEBUG][168][root]:<Event(32787-WindowClose {'window': None})>
+[DEBUG][168][root]:<Event(256-Quit {})>

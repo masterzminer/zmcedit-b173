@@ -21,6 +21,7 @@ import tempfile
 from .toolbasics import *
 from functools import reduce
 import numpy as np
+from pymclevel.materials import alphaMaterials
 
 from pymclevel.box import BoundingBox
 

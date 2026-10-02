@@ -228,7 +228,7 @@ class FilterToolPanel(Panel):
 
         tool = self.tool
 
-        if len(tool.filterModules) is 0:
+        if len(tool.filterModules) == 0:
             self.add(Label("No filter modules found!"))
             self.shrink_wrap()
             return

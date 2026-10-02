@@ -19,14 +19,6 @@ def _resource_path(default_prefix, names, prefix=""):
     return os.path.join(directories.ASSETS, prefix or default_prefix, *names)
 
 
-def resource_path(*names, **kwds):
-    return _resource_path("", names, **kwds)
-
-
-def resource_exists(*names, **kwds):
-    return os.path.exists(_resource_path("", names, **kwds))
-
-
 def _get_image(names, border=0, optimize=optimize_images, noalpha=False,
         rle=run_length_encode, prefix="images"):
     path = _resource_path(prefix, names)

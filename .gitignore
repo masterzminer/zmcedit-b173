@@ -12,3 +12,9 @@ __pycache__
 
 # Directory for user mcedit configuration
 .mcedit_config
+
+# Directories for building the stand alone executable
+/build
+/dist
+/pymclevel/_nbt.c
+/pymclevel/*.so

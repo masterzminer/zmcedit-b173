@@ -10,6 +10,7 @@ import sys, os
 NOTEX = (0xB0, 0xE0)
 
 import yaml
+import directories
 
 import logging
 log = logging.getLogger(__file__)
@@ -148,21 +149,10 @@ class MCMaterials(object):
     
     
     def addYamlBlocksFromFile(self, filename):
-        try:
-            from importlib import resources
-
-            f = resources.files(__name__).joinpath(filename).open("rb")
-        except (ImportError, IOError):
-            root = os.environ.get("PYMCLEVEL_YAML_ROOT", "pymclevel") #fall back to cwd as last resort
-            f = open(join(root, filename))
-        try:
+        with open(filename) as f:
             info(u"Loading block info from %s", f)
             blockyaml = yaml.safe_load(f)
             self.addYamlBlocks(blockyaml)
- 
-        except Exception as e:
-            print("Exception while loading block info from {f}: {e}")
-            traceback.print_exc()
             
     def addYamlBlocks(self, blockyaml):
         self.yamlDatas.append(blockyaml)
@@ -280,7 +270,7 @@ class MCMaterials(object):
     
 alphaMaterials = MCMaterials(defaultName="Future Block!")
 alphaMaterials.name = "Alpha"
-alphaMaterials.addYamlBlocksFromFile("minecraft.yaml")
+alphaMaterials.addYamlBlocksFromFile(directories.ASSETS / "minecraft.yaml")
 
 
 

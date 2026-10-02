@@ -71,6 +71,11 @@ from renderer import MCRenderer
 import directories
 
 from pymclevel.box import BoundingBox
+from pymclevel.entity import Entity
+from pymclevel.level import MCLevel
+from pymclevel.infiniteworld import MCBetaLevel
+from pymclevel.materials import alphaMaterials
+import pymclevel.mclevel as mclevel
 
 # Label = GLLabel
 
@@ -537,7 +542,7 @@ class CameraViewport(GLViewport):
         except pymclevel.ChunkNotPresent:
             return intProjectedPoint, d
 
-        if block == pymclevel.alphaMaterials.SnowLayer.ID:
+        if block == alphaMaterials.SnowLayer.ID:
             potentialOffsets.append((0, 1, 0))
         else:
             # discard any faces that aren't likely to be exposed
@@ -609,7 +614,7 @@ class CameraViewport(GLViewport):
         else:
             self.mouseLookOff()
 
-    mobs = pymclevel.Entity.monsters + ["[Custom]"]
+    mobs = Entity.monsters + ["[Custom]"]
 
     @mceutils.alertException
     def editMonsterSpawner(self, point):
@@ -1459,7 +1464,7 @@ class LevelEditor(GLViewport):
             tooltipText="Memory used for vertexes")
 
         def dataSize():
-            if not isinstance(self.level, pymclevel.MCBetaLevel):
+            if not isinstance(self.level, MCBetaLevel):
                 try:
                     return len(self.level.root_tag)
                 except:
@@ -1949,7 +1954,7 @@ class LevelEditor(GLViewport):
 
         self.freezeStatus("Loading " + filename)
         try:
-            level = pymclevel.fromFile(filename)
+            level = mclevel.fromFile(filename)
         except Exception as e:
             logging.exception(
                 'Wasn\'t able to open a file {file => %s}' % filename
@@ -1990,7 +1995,7 @@ class LevelEditor(GLViewport):
         self.renderer.position = self.currentViewport.cameraPosition
         self.renderer.loadNearbyChunks()
 
-    def loadLevel(self, level: pymclevel.MCLevel):
+    def loadLevel(self, level: MCLevel):
         self.level = level
 
         self.toolbar.selectTool(-1)

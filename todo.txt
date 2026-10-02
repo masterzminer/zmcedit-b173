@@ -1,6 +1,7 @@
 add command line arguments
     load a world by supplying a .dat file to load immediately
     specifying a dimension and or position to load into the save with
+    load the main config file from an absolute path, or relative to the executable, a minimal version of the old "portable" mode
 
 fix the brush sizes not always saving after changing them and closing out of mcedit
 
@@ -28,6 +29,8 @@ standardize logging, print statements, and traceback error logging calls
 
 
 next:
-    create build scripts to create a stand alone executable
-    document the exact versions of each module to install
+    Verify the nbt module loading in the stand alone executable
+    Verify the wrong version of numpy being loaded
+
+    document the exact versions of each module to install, probably need a requirements.txt file
     go over todos and resolve essential issues
