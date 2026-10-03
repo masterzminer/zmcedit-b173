@@ -7,11 +7,11 @@ echo Creating virtual environment
 # Start the virtual environment
 source .venv/bin/activate
 
-echo Building nbt module
-python pymclevel/build_nbt.py build_ext --inplace
-
 echo Installing pip dependencies
 ./installing/dependencies.sh
+
+echo Building nbt module
+python pymclevel/build_nbt.py build_ext --inplace
 
 echo Building executable
 ./installing/build.sh
