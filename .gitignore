@@ -18,3 +18,4 @@ __pycache__
 /dist
 /pymclevel/_nbt.c
 /pymclevel/*.so
+*.spec
