@@ -11,7 +11,7 @@ __pycache__
 .vscode
 
 # Directory for user mcedit configuration
-.mcedit_config
+/.zmcedit-b173
 
 # Directories for building the stand alone executable
 /build
