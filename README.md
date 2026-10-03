@@ -41,7 +41,7 @@ To build from source
 5. Then builds an executable via pyinstaller
 6. The dist directory should contain the stand alone executable
 
-If you already have the virtual environment setup, the pip dependencies installed, and the Cython for the nbt module is already build, just run `./installing/build.sh`
+If you already have the virtual environment setup, the pip dependencies installed, and the Cython for the nbt module is already built, just run `./installing/build.sh`
 
 
 # TODO
