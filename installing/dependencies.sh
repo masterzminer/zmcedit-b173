@@ -1,3 +1,5 @@
+#!/bin/bash
+
 pip install PyOpenGL
 pip install pygame
 pip install numpy

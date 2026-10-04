@@ -36,7 +36,6 @@ fix the mouse issue when using mouse look and the sidebar of the os panel still 
 
 
 next:
-    add version.txt to the executable
     fix the os native file opener not being used sometimes
 
     document the exact versions of each module to install, probably need a requirements.txt file
