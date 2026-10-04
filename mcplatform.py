@@ -20,7 +20,7 @@ Platform-specific functions, folder paths
 
 import directories
 import os
-from os.path import dirname, exists, join
+from os.path import dirname, exists
 import sys
 import traceback
 import platform
@@ -54,13 +54,16 @@ def askOpenFile(title='Select a Minecraft level...', schematics=False):
         try:
             return crossfiledialog.open_file(
                 title=title,
-                start_dir=initialDir,
+                start_dir=str(initialDir),
                 filter=["*." + f for f in file_types]
             )
         except:
+            print("Failed to load os file dialog, falling back to built in gui")
+            traceback.print_exc()
+
             # TODO make a setting to allow using the os native path or not, to force disable it
             # On an exception, fall back to the built in gui selector
-            return request_old_filename(traceback, schematics)
+            return request_old_filename(None, str(initialDir))
 
     filename = _ask_open()
     

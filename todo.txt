@@ -27,11 +27,20 @@ Avoid having to constantly parse adding level.dat, probably make save files repr
 
 standardize logging, print statements, and traceback error logging calls
 
+make a max spacing feature for the brush tool so it can't skip long distances
+
+maybe put the starts back in the main menu, or make it a toggle option
+
+fix the mouse issue when using mouse look and the sidebar of the os panel still being activated
+
+
 
 next:
-    Verify the nbt module loading in the stand alone executable
-    Verify the wrong version of numpy being loaded
+    add version.txt to the executable
+    fix the os native file opener not being used sometimes
 
     document the exact versions of each module to install, probably need a requirements.txt file
     go over todos and resolve essential issues
     Make proper directories for custom filters, and where to load filters from, i.e. not the config directory, probably check multiple places
+
+    fix typing in the search box for brushes selecting a block
