@@ -54,7 +54,7 @@ def findDirectories():
     user_schematics = config / USER_SCHEMATICS_NAME
     os.makedirs(user_schematics, exist_ok=True)
 
-    filters = config / FILTERS_NAME
+    filters = read_root / FILTERS_NAME
     os.makedirs(filters, exist_ok=True)
 
     return read_root, config, assets, stock_schematics, user_schematics, filters
