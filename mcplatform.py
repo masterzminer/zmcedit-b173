@@ -153,15 +153,15 @@ items.items = items.Items(directories.ASSETS / "items.txt")
 
 
 class OS():
+    """
+    Base class for handling operating system specific processes
+    """
+
     def __init__(self, system_name):
         self.system_name = system_name
         """
         Name of the operating system
         """
-
-    """
-    Base class for handling operating system specific processes
-    """
 
     def handle_init(self):
         """
@@ -176,7 +176,7 @@ class OS():
 
         path: The absolute path to the file to open
         """
-        print("Opening files is no")
+        print(f"Opening files is not implemented for this os, cannot open path {path}")
 
 class LinuxHandler(OS):
     def open_file(self, path: Path):
