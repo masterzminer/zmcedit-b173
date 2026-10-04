@@ -1,20 +1,14 @@
 
-try:
+# Was importing some old package "Numeric" and silently failing before, just removing it
 
-    from Numeric import add, subtract, maximum
+import operator
 
-except ImportError:
-
-    import operator
-
-    def add(x, y):
-        return list(map(operator.add, x, y))
-
-    def subtract(x, y):
-        return list(map(operator.sub, x, y))
-
-    def maximum(*args):
-        result = args[0]
-        for x in args[1:]:
-            result = list(map(max, result, x))
-        return result
+def add(x, y):
+    return list(map(operator.add, x, y))
+def subtract(x, y):
+    return list(map(operator.sub, x, y))
+def maximum(*args):
+    result = args[0]
+    for x in args[1:]:
+        result = list(map(max, result, x))
+    return result

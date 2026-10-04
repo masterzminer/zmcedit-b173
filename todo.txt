@@ -36,7 +36,6 @@ fix the mouse issue when using mouse look and the sidebar of the os panel still 
 
 
 next:
-    document the exact versions of each module to install, probably need a requirements.txt file
     go over todos and resolve essential issues
     Make proper directories for custom filters, and where to load filters from, i.e. not the config directory, probably check multiple places
 
