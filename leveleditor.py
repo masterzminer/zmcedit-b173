@@ -142,7 +142,7 @@ def remapMouseButton(button):
 class ControlPanel(Panel):
     @classmethod
     def getHeader(cls):
-        header = Label("MCEdit {0} ({1})".format(release.release, arch), font=get_font(18, "VeraBd.ttf"))
+        header = Label(f"{release.NAME} {release.VERSION} ({arch})", font=get_font(18, "VeraBd.ttf"))
         return header
 
     def __init__(self, editor):
@@ -2066,7 +2066,7 @@ class LevelEditor(GLViewport):
     def initWindowCaption(self):
         filename = self.level.filename
         s = os.path.split(filename)
-        title = os.path.split(s[0])[1] + os.sep + s[1] + u" - MCEdit " + release.release
+        title = os.path.split(s[0])[1] + os.sep + s[1] + u" - MCEdit " + release.VERSION
         # title = title.encode('ascii', 'replace')
         display.set_caption(title)
 

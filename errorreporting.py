@@ -102,7 +102,7 @@ def releaseInfo():
         Platform: {2}, Name: {3}, Version{4}, Arch: {5}
         Platform:{6}, Processor: {7},
         uname: {8}
-        """.format(release.release, datetime.now(), sys.platform, os.name, platform.version(), platform.architecture(), platform.platform(), platform.processor(), uname)
+        """.format(release.VERSION, datetime.now(), sys.platform, os.name, platform.version(), platform.architecture(), platform.platform(), platform.processor(), uname)
     try:
         info += "Version: {0}\n".format(GL.glGetString(GL.GL_VERSION))
         info += "Vendor: {0}\nRenderer: {1}\n".format(GL.glGetString(GL.GL_VENDOR), GL.glGetString(GL.GL_RENDERER))

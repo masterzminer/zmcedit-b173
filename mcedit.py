@@ -890,7 +890,7 @@ class GLDisplayContext(object):
         except:
             logging.warning('PyGame clipboard integration disabled.')
 
-        display.set_caption('MCEdit ~ ' + release.release, release.VERSION_NAME)
+        display.set_caption(release.NAME + ' ~ ' + release.VERSION, release.NAME)
 
         try:
             icon_path = directories.ASSETS / 'favicon.png'

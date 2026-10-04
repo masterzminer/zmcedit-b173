@@ -1,10 +1,11 @@
 
 import os.path
+import directories
 
 
-VERSION_NAME = 'zMCEdit-b173'
+NAME = 'zMCEdit-b173'
 
-VERSION_PATH = 'zmcedit-b173-version.txt'
+VERSION_PATH = directories.ASSETS / 'zmcedit-b173-version.txt'
 
 
 def get_version():
@@ -20,4 +21,4 @@ def get_version():
 
     return v
 
-release = get_version()
+VERSION = get_version()
