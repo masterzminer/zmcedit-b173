@@ -37,13 +37,20 @@ def findDirectories():
     else:
         print("Running from source")
 
-
-    if FROZEN:
-        # This is running from pyinstaller, go from the temp directory
-        read_root = Path(sys._MEIPASS)
+    
+    # If a command line path is not provided for where to read install data from, use the defaults
+    if arguments.INSTALLED_OVERRIDE is None:
+        if FROZEN:
+            # This is running from pyinstaller, go from the temp directory
+            read_root = Path(sys._MEIPASS)
+        else:
+            # This is running from source, use the root of the project
+            read_root = Path(__file__).resolve().parent
+    
+    # Otherwise, use the given dir
     else:
-        # This is running from source, use the root of the project
-        read_root = Path(__file__).resolve().parent
+        print("Install directory overriden to:", arguments.INSTALLED_OVERRIDE)
+        read_root = Path(arguments.INSTALLED_OVERRIDE)
 
 
     # If a command line config path is not provided, use defaults
@@ -51,7 +58,7 @@ def findDirectories():
         # This is running from pyinstaller, go from the root path
         if FROZEN: config_root = Path.home()
         # This is running from source, use the root of the project
-        else: config_root = read_root
+        else: config_root = Path(__file__).resolve().parent
 
         config = config_root / CONFIG_NAME
 
