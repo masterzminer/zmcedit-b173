@@ -44,6 +44,7 @@ import mcplatform
 import pymclevel
 import renderer
 import traceback
+from pathlib import Path
 
 from math import isnan
 from os.path import dirname, isdir
@@ -68,7 +69,6 @@ from glutils import gl, Texture
 from mcplatform import askSaveFile
 from pymclevel.infiniteworld import alphanum_key
 from renderer import MCRenderer
-import directories
 
 from pymclevel.box import BoundingBox
 from pymclevel.entity import Entity
@@ -1794,7 +1794,7 @@ class LevelEditor(GLViewport):
 
         def saveToFile():
             filename = askSaveFile(
-                initialDir=mcplatform.docsFolder,
+                initialDir=config.getLastDataDir(),
                 title='Save analysis...',
                 defaultName=self.level.displayName + "_analysis",
                 filetype="csv"
@@ -1809,12 +1809,14 @@ class LevelEditor(GLViewport):
                 else:
                     csvfile.writerows(rows)
 
+            config.updateLastDataDir(Path(filename).parent)
+
         saveButton = Button("Save to file...", action=saveToFile)
         col = Column((Label("Volume: {0} blocks.".format(box.volume)), tableBacking, saveButton))
         Dialog(client=col, responses=["OK"]).present()
 
     def exportSchematic(self, schematic):
-        filename = mcplatform.askSaveSchematic(mcplatform.lastSchematicsDir or directories.USER_SCHEMATICS, self.level.displayName, "schematic")
+        filename = mcplatform.askSaveSchematic(config.getLastSchematicDir(), self.level.displayName, "schematic")
 
         if filename:
             schematic.saveToFile(filename)
@@ -2858,8 +2860,7 @@ class LevelEditor(GLViewport):
         result = Dialog(client=newWorldPanel, responses=["Create", "Cancel"]).present()
         if result == "Cancel":
             return
-        # TODO probably make this remember the last directory you opened
-        filename = mcplatform.askCreateWorld(directories.USER)
+        filename = mcplatform.askCreateWorld(config.getLastDataDir())
 
         if not filename:
             return
@@ -2894,6 +2895,7 @@ class LevelEditor(GLViewport):
             logging.exception('Error while creating world. {world => %s}' % filename)
             return
 
+        config.updateLastDataDir(Path(filename).parent)
         return new_level
 
     def confirmConstruction(self):

@@ -35,6 +35,7 @@ import mceutils
 import mcplatform
 from mcplatform import platform_open
 import numpy
+from pathlib import Path
 
 
 from OpenGL import GL
@@ -521,6 +522,12 @@ class MCEdit(GLViewport):
             config.config.add_section("Recent Worlds")
             self.setRecentWorlds([""] * 5)
 
+        if not config.config.has_section("Directories"):
+            config.config.add_section("Directories")
+            home = Path.home()
+            config.updateLastDataDir(home)
+            config.updateLastSchematicDir(home)
+
         self.optionsPanel = OptionsPanel(self)
         self.graphicOptionsPanel = GraphicsPanel(self)
 
@@ -630,7 +637,7 @@ class MCEdit(GLViewport):
     def setRecentWorlds(self, worlds):
         for i, filename in enumerate(worlds):
             config.config.set("Recent Worlds", str(i), filename)
-
+            
     def makeSideColumn(self):
         hotkeys = ([
             ("",

@@ -17,22 +17,17 @@ config.py
 Configuration settings and storage.
 """
 
-import os
 import logging
 import collections
-from io import BytesIO
 import configparser
 import sys
-
-import mcplatform
+from pathlib import Path
 
 from albow import alert
+import directories
 
 log = logging.getLogger(__name__)
 
-
-def configFilePath():
-    return mcplatform.iniFile
 
 
 def loadConfig():
@@ -82,10 +77,10 @@ def loadConfig():
     config = configparser.RawConfigParser([], keyDict)
     config.read_string(configDefaults)
     try:
-        config.read(configFilePath())
+        config.read(directories.INI_FILE)
 
     except Exception as e:
-        log.warn(u"Error while reading configuration file mcedit.ini: {0}".format(e))
+        log.warn("Error while reading configuration file mcedit.ini: {0}".format(e))
 
     return config
 
@@ -96,12 +91,12 @@ def updateConfig():
 
 def saveConfig():
     try:
-        cf = open(configFilePath(), 'w')
+        cf = open(directories.INI_FILE, 'w')
         config.write(cf)
         cf.close()
     except Exception as e:
         try:
-            alert(u"Error saving configuration settings to mcedit.ini: {0}".format(e))
+            alert("Error saving configuration settings to mcedit.ini: {0}".format(e))
         except:
             pass
 
@@ -145,6 +140,17 @@ log.info("Loading config...")
 config = loadConfig()
 config.observers = {}
 
+def getLastDataDir():
+    return Path(config.get("Directories", "data"))
+
+def updateLastDataDir(last_dir):
+    config.set("Directories", "data", last_dir)
+
+def getLastSchematicDir():
+    return Path(config.get("Directories", "schematic"))
+
+def updateLastSchematicDir(last_dir):
+    config.set("Directories", "schematic", last_dir)
 
 def _propertyRef(section, name, dtype=str, default=None):
     class PropRef(object):

@@ -26,6 +26,7 @@ import traceback
 import platform
 import subprocess
 from pathlib import Path
+import config
 
 import crossfiledialog
 
@@ -37,18 +38,18 @@ from pymclevel import items
 
 AppKit = None
 
-lastSchematicsDir = None
-lastSaveDir = None
 cmd_name = "Ctrl"
 option_name = "Alt"
 
+# TODO fix this not always using the schematics directory
+# TODO maybe make a separate recent directory for everything, use a mapping
 def askOpenFile(title='Select a Minecraft level...', schematics=False):
     file_types = ["mclevel", "dat", "mine", "mine.gz", "schematic"]
 
-    global lastSchematicsDir, lastSaveDir
-    initialDir = lastSaveDir
     if schematics:
-        initialDir = lastSchematicsDir or directories.STOCK_SCHEMATICS
+        initialDir = config.getLastSchematicDir()
+    else:
+        initialDir = config.getLastDataDir()
 
     def _ask_open():
         try:
@@ -69,9 +70,9 @@ def askOpenFile(title='Select a Minecraft level...', schematics=False):
     
     if filename:
         if schematics:
-            lastSchematicsDir = Path(dirname(filename))
+            config.updateLastSchematicDir(Path(filename).parent)
         else:
-            lastSaveDir = Path(dirname(filename))
+            config.updateLastDataDir(Path(filename).parent)
 
     return filename
 
@@ -134,7 +135,6 @@ def platform_open(path: Path):
     return os_ops.open_file(path)
 
 
-docsFolder = directories.USER
 iniFile = directories.INI_FILE
 
 

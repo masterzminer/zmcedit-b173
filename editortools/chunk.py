@@ -208,13 +208,15 @@ class ChunkTool(EditorTool):
 
     @alertException
     def extractChunks(self):
-        folder = mcplatform.askSaveFolder(mcplatform.docsFolder, title='Export chunks to...')
+        folder = mcplatform.askSaveFolder(config.getLastDataDir(), title='Export chunks to...')
         if not folder:
             return
 
         for cx, cz in self.selectedChunks():
             if self.editor.level.containsChunk(cx, cz):
                 self.editor.level.extractChunk(cx, cz, folder)
+
+        config.updateLastDataDir(folder)
 
     @alertException
     def destroyChunks(self, chunks=None):

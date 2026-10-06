@@ -25,7 +25,6 @@ FROZEN = getattr(sys, "frozen", False)
 ASSETS_NAME = "assets"
 CONFIG_NAME = ".zmcedit-b173"
 STOCK_SCHEMATICS_NAME = "stock-schematics"
-USER_SCHEMATICS_NAME = "schematics"
 FILTERS_NAME = "filters"
 LOG_NAME = "mcedit.log"
 INI_NAME = "mcedit.ini"
@@ -77,20 +76,14 @@ def findDirectories():
 
     stock_schematics = assets / STOCK_SCHEMATICS_NAME
 
-    user_schematics = config / USER_SCHEMATICS_NAME
-    os.makedirs(user_schematics, exist_ok=True)
-
     filters = read_root / FILTERS_NAME
     os.makedirs(filters, exist_ok=True)
 
-    return read_root, config, assets, stock_schematics, user_schematics, filters
+    return read_root, config, assets, stock_schematics, filters
 
 
 # Absolute paths to files and directories
-READ_ROOT, CONFIG, ASSETS, STOCK_SCHEMATICS, USER_SCHEMATICS, FILTERS = findDirectories()
+READ_ROOT, CONFIG, ASSETS, STOCK_SCHEMATICS, FILTERS = findDirectories()
 
-# TODO allow USER to be configurable, load it from file stored in CONFIG, probably make CONFIG default to a per user configuration
-USER = CONFIG
-
-LOG_FILE = USER / LOG_NAME
-INI_FILE = USER / INI_NAME
+LOG_FILE = CONFIG / LOG_NAME
+INI_FILE = CONFIG / INI_NAME

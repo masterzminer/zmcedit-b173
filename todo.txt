@@ -36,6 +36,7 @@ make the window say zmcedit when a world is open
 
 make buttons on the main menu to open the config and assets directories
 
+standardize the config strings to constants, maybe replace it with json
 
 
 next:
