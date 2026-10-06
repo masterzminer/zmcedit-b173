@@ -18,10 +18,6 @@ mceutils.py
 Exception catching, some basic box drawing, texture pack loading, oddball UI elements
 """
 
-# TODO figure out these libpng errors
-# libpng warning: iCCP: known incorrect sRGB profile
-# libpng warning: iCCP: cHRM chunk does not match sRGB
-
 
 from albow.controls import ValueDisplay
 from albow import alert, ask, Button, Column, Label, root, Row, ValueButton, Widget

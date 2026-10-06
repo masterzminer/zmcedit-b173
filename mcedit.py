@@ -161,7 +161,6 @@ class FileOpener(albow.Widget):
         try:
             filename = mcplatform.askOpenFile()
 
-            # TODO how should this work?
             # Get rid of the key events that happened while waiting for the file
             pygame.event.clear()
 
@@ -527,22 +526,7 @@ class MCEdit(GLViewport):
 
         self.keyConfigPanel = KeyConfigPanel()
 
-        self.droppedLevel = None
         self.reloadEditor()
-
-        """
-        check command line for files dropped from explorer
-        """
-        if len(sys.argv) > 1:
-            for arg in sys.argv[1:]:
-                f = arg.decode(sys.getfilesystemencoding())
-                if os.path.isdir(os.path.join(pymclevel.saveFileDir, f)):
-                    f = os.path.join(pymclevel.saveFileDir, f)
-                    self.droppedLevel = f
-                    break
-                if os.path.exists(f):
-                    self.droppedLevel = f
-                    break
 
         self.fileOpener = FileOpener(self)
         self.add(self.fileOpener)
@@ -789,9 +773,6 @@ class MCEdit(GLViewport):
         root_widget.focus_switch = mcedit
         if 0 == len(alphaMaterials.yamlDatas):
             albow.alert("Failed to load minecraft.yaml. Check the console window for details.")
-
-        if mcedit.droppedLevel:
-            mcedit.loadFile(mcedit.droppedLevel)
 
         if mcedit.closeMinecraftWarning:
             answer = albow.ask("Warning: You must close Minecraft completely before editing. Save corruption may result", ["Don't remind me again.", "OK"], default=1, cancel=1)

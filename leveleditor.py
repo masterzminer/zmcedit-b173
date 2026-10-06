@@ -2821,7 +2821,6 @@ class LevelEditor(GLViewport):
         try:
             filename = mcplatform.askOpenFile()
 
-            # TODO how should this work?
             # Get rid of the key events that happened while waiting for the file
             pygame.event.clear()
             

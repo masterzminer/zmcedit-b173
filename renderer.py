@@ -1228,8 +1228,7 @@ class LowDetailBlockRenderer(BlockRenderer):
         grid_axes: list[np.ndarray[np.ndarray]] = [grid_axes[0], grid_axes[1], h]
 
         # Setup a 2D array, 16x16 of all zeros
-        depths = np.zeros((chunkWidth, chunkLength), dtype='uint16')
-        # TODO what is this doing? Seems to be taking a subset of the height map
+        depths = np.zeros((chunkWidth, chunkLength), dtype=np.uint16)
         depths[1:-1, 1:-1] = reduce(np.minimum, (h[1:-1, :-2], h[1:-1, 2:], h[:-2, 1:-1]), h[2:, 1:-1])
         yield
 

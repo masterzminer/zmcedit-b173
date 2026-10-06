@@ -212,7 +212,6 @@ class ChunkTool(EditorTool):
         if not folder:
             return
 
-        # TODO: We need a third dimension, Scotty!
         for cx, cz in self.selectedChunks():
             if self.editor.level.containsChunk(cx, cz):
                 self.editor.level.extractChunk(cx, cz, folder)

@@ -147,8 +147,8 @@ class Widget(object):
             anchor += chars[i]
         self.anchor = anchor + value
 
-    def _resized(self, xxx_todo_changeme):
-        (old_width, old_height) = xxx_todo_changeme
+    def _resized(self, dims):
+        (old_width, old_height) = dims
         new_width, new_height = self._rect.size
         dw = new_width - old_width
         dh = new_height - old_height

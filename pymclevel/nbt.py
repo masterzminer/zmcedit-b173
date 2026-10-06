@@ -6,7 +6,6 @@ try:
         from ._nbt import *
         print("Accelerated NBT module loaded.")
     except ImportError:
-        # TODO make the final release not rely on pyximport, it should only be needed for dev
         print("Could not load precompiled _nbt extension. Trying pyximport...")
         import numpy
         from pyximport import install; install(setup_args={'include_dirs':[numpy.get_include()]})

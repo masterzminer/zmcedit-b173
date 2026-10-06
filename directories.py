@@ -16,6 +16,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 import os
 from pathlib import Path
 import sys
+import arguments
+
+        # If there is no "frozen" attribute set to true, then this is running directly as python, i.e. running from source
+FROZEN = getattr(sys, "frozen", False)
 
 # Names of directories
 ASSETS_NAME = "assets"
@@ -28,23 +32,38 @@ INI_NAME = "mcedit.ini"
 
 
 def findDirectories():
-    # TODO add an option here to instead use a path from command line arguments for assets and another for the config
-
-    # If there is no "frozen" attribute set to true, then this is running directly as python, i.e. running from source, use the current directory, assume asset files exist in the current path
-    if getattr(sys, "frozen", False):
+    if FROZEN:
         print("Running from stand alone install")
-        read_root = Path(sys._MEIPASS)
-        config_root = Path.home()
-    # Otherwise, this is running from pyinstaller, go from the temp directory
     else:
         print("Running from source")
+
+
+    if FROZEN:
+        # This is running from pyinstaller, go from the temp directory
+        read_root = Path(sys._MEIPASS)
+    else:
+        # This is running from source, use the root of the project
         read_root = Path(__file__).resolve().parent
-        config_root = read_root
+
+
+    # If a command line config path is not provided, use defaults
+    if arguments.CONFIG_OVERRIDE is None:
+        # This is running from pyinstaller, go from the root path
+        if FROZEN: config_root = Path.home()
+        # This is running from source, use the root of the project
+        else: config_root = read_root
+
+        config = config_root / CONFIG_NAME
+
+    # Otherwise, use the given config
+    else:
+        print("Config directory overriden to:", arguments.CONFIG_OVERRIDE)
+        config = Path(arguments.CONFIG_OVERRIDE)
+
 
     print("Loading read only data from dir:", read_root)
-    print("Loading config data from dir:", config_root)
+    print("Loading config data from dir:", config)
 
-    config = config_root / CONFIG_NAME
     os.makedirs(config, exist_ok=True)
 
     assets = read_root / ASSETS_NAME

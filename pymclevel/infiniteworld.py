@@ -1846,14 +1846,6 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
 
         self.loadLevelDat(create, random_seed, last_played)
 
-        # TODO probably remove this, looks like part of supporting the anvil format
-        # #attempt to support yMod
-        # try:
-        #     self.Height = self.root_tag["Data"]["YLimit"].value
-        # except:
-        #     traceback.print_exc()
-        #     pass
-
         self.playersDir = os.path.join(self.worldDir, "players")
 
         if os.path.isdir(self.playersDir):

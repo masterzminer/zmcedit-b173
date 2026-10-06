@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-
 from . import mclevel
 import sys
 import os
@@ -1444,7 +1441,7 @@ class mce(object):
             self.printUsage(keyword)
 
 
-def main(argv):
+def main():
     profile = os.getenv("MCE_PROFILE", None)
     editor = mce()
     if profile:
@@ -1457,5 +1454,5 @@ def main(argv):
     return 0
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    sys.exit(main())
 

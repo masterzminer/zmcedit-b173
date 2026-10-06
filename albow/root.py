@@ -58,7 +58,6 @@ def set_modifier(key, value):
     if attr:
         modifiers[attr] = value
 
-# TODO probably remove this, seems like a hack
 def add_modifiers(event):
     d = event.dict
     d.update(modifiers)
