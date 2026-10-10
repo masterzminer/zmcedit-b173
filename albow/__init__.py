@@ -17,7 +17,7 @@ from albow.palette_view import PaletteView
 from albow.image_array import get_image_array
 from albow.dialogs import alert, ask, input_text
 from albow.file_dialogs import \
-    request_old_filename, request_new_filename, look_for_file_or_directory
+    request_old_filename, request_new_filename
 from albow.tab_panel import TabPanel
 from albow.table_view import TableView, TableColumn
 from albow.widget import Widget

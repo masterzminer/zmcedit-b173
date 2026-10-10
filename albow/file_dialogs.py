@@ -3,9 +3,6 @@
 #   Albow - File Dialogs
 #
 
-
-import os
-from pygame import draw, Rect
 from pygame.locals import *
 from albow.widget import Widget
 from albow.dialogs import Dialog, ask, alert
@@ -14,6 +11,7 @@ from albow.fields import TextField
 from albow.layout import Row, Column
 from albow.palette_view import PaletteView
 from albow.theme import ThemeProperty
+from pathlib import Path
 
 
 class DirPathView(Widget):
@@ -25,7 +23,7 @@ class DirPathView(Widget):
 
     def draw(self, surf):
         frame = self.get_margin_rect()
-        image = self.font.render(self.client.directory, True, self.fg_color)
+        image = self.font.render(str(self.client.directory), True, self.fg_color)
         tw = image.get_width()
         mw = frame.width
         if tw <= mw:
@@ -37,9 +35,8 @@ class DirPathView(Widget):
 
 class FileListView(PaletteView):
 
-    #scroll_button_color = (255, 255, 0)
-
-    def __init__(self, width, client, **kwds):
+    def __init__(self, width, client, onlyDir=False, **kwds):
+        self.onlyDir = onlyDir
         font = self.predict_font(kwds)
         h = font.get_linesize()
         d = 2 * self.predict(kwds, 'margin')
@@ -51,17 +48,14 @@ class FileListView(PaletteView):
     def update(self):
         client = self.client
         dir = client.directory
-        suffixes = client.suffixes
-
-        def filter(name):
-            path = os.path.join(dir, name)
-            return os.path.isdir(path) or self.client.filter(path)
 
         try:
-            names = os.listdir(dir)
-                #if not name.startswith(".") and filter(name)]
+            if self.onlyDir:
+                names = [p for p in Path(dir).iterdir() if p.is_dir()]
+            else:
+                names = list(Path(dir).iterdir())
         except EnvironmentError as e:
-            alert(u"%s: %s" % (dir, e))
+            alert("%s: %s" % (dir, e))
             names = []
         self.names = sorted(names)
         self.selection = None
@@ -69,13 +63,9 @@ class FileListView(PaletteView):
     def num_items(self):
         return len(self.names)
 
-    #def draw_prehighlight(self, surf, item_no, rect):
-    #    draw.rect(surf, self.sel_color, rect)
-
     def draw_item(self, surf, item_no, rect):
-        font = self.font
         color = self.fg_color
-        buf = self.font.render(self.names[int(item_no)], True, color)
+        buf = self.font.render(str(self.names[int(item_no)].name), True, color)
         surf.blit(buf, rect)
 
     def click_item(self, item_no, e):
@@ -99,16 +89,19 @@ class FileDialog(Dialog):
     default_prompt = None
     up_button_text = ThemeProperty("up_button_text")
 
-    def __init__(self, prompt=None, suffixes=None, **kwds):
+    def __init__(self, prompt=None, suffixes=None, selectDir=False, **kwds):
+        self.directory: Path
+
         Dialog.__init__(self, **kwds)
+        self.selectDir = selectDir
         label = None
         d = self.margin
-        self.suffixes = suffixes or ("",)
+        self.suffixes = suffixes or []
         up_button = Button(self.up_button_text, action=self.go_up)
         dir_box = DirPathView(self.box_width - up_button.width - 10, self)
         self.dir_box = dir_box
         top_row = Row([dir_box, up_button])
-        list_box = FileListView(self.box_width - 16, self)
+        list_box = FileListView(self.box_width - 16, self, onlyDir=selectDir)
         self.list_box = list_box
         ctrls = [top_row, list_box]
         prompt = prompt or self.default_prompt
@@ -132,26 +125,24 @@ class FileDialog(Dialog):
         y = vbox.bottom + d
         ok_button.topleft = (vbox.left, y)
         cancel_button.topright = (vbox.right, y)
+
         self.add(vbox)
         self.add(ok_button)
+        if selectDir:
+            select_button = Button("Select", action=self.select, enable=self.select_enable)
+            select_button.topleft = (ok_button.right + 3, y)
+            self.add(select_button)
+
         self.add(cancel_button)
         self.shrink_wrap()
         self._directory = None
-        self.directory = os.getcwd()
         if self.saving:
             filename_box.focus()
 
-    def get_directory(self):
+    def get_directory(self) -> Path:
         return self._directory
 
-    def set_directory(self, x):
-        x = os.path.abspath(x)
-        while not os.path.exists(x):
-            y = os.path.dirname(x)
-            if y == x:
-                x = os.getcwd()
-                break
-            x = y
+    def set_directory(self, x: Path) -> Path:
         if self._directory != x:
             self._directory = x
             self.list_box.update()
@@ -159,28 +150,27 @@ class FileDialog(Dialog):
 
     directory = property(get_directory, set_directory)
 
-    def filter(self, path):
+    def filter(self, path: Path):
         suffixes = self.suffixes
-        if not suffixes or os.path.isdir(path):
-            #return os.path.isfile(path)
+        if not suffixes or path.is_dir():
             return True
         for suffix in suffixes:
-            if path.endswith(suffix.lower()):
+            if (path.suffix or "").endswith(suffix.lower()):
                 return True
 
     def update(self):
         pass
 
     def go_up(self):
-        self.directory = os.path.dirname(self.directory)
+        self.directory = self.directory.parent
         self.list_box.scroll_to_item(0)
 
     def dir_box_click(self, double):
         if double:
             name = self.list_box.get_selected_name()
-            path = os.path.join(self.directory, name)
-            suffix = os.path.splitext(name)[1]
-            if suffix not in self.suffixes and os.path.isdir(path):
+            path = self.directory / name
+            suffix = path.suffix if path.is_file else ""
+            if self.selectDir or suffix not in self.suffixes and path.is_dir():
                 self.directory = path
             else:
                 self.double_click_file(name)
@@ -204,6 +194,18 @@ class FileDialog(Dialog):
         if k == K_ESCAPE:
             self.cancel()
 
+    def select(self):
+        name = self.list_box.get_selected_name()
+        path = self.directory / name
+        if self.selectDir and path.is_dir():
+            if name == "" or name is None:
+                name = self.directory
+
+            self.double_click_file(name)
+        self.update()
+    
+    def select_enable(self):
+        return True
 
 class FileSaveDialog(FileDialog):
 
@@ -215,29 +217,29 @@ class FileSaveDialog(FileDialog):
         return self.filename_box.value
 
     def set_filename(self, x):
-        dsuf = self.suffixes[0]
-        if x.endswith(dsuf):
-            x = x[:-len(dsuf)]
+        d_suf = self.suffixes[0]
+        if x.endswith(d_suf):
+            x = x[:-len(d_suf)]
         self.filename_box.value = x
 
     filename = property(get_filename, set_filename)
 
     def get_pathname(self):
-        path = os.path.join(self.directory, self.filename_box.value)
+        path: Path = self.directory / self.filename_box.value
         suffixes = self.suffixes
-        if suffixes and not path.endswith(suffixes[0]):
-            path = path + suffixes[0]
+        if suffixes and not path.suffix == suffixes[0]:
+            path = path.with_suffix(suffixes[0])
         return path
 
-    pathname = property(get_pathname)
+    pathname: Path = property(get_pathname)
 
     def double_click_file(self, name):
         self.filename_box.value = name
 
     def ok(self):
         path = self.pathname
-        if os.path.exists(path):
-            answer = ask("Replace existing '%s'?" % os.path.basename(path))
+        if path.exists():
+            answer = ask(f"Replace existing '{path.name}'?")
             if answer != "OK":
                 return
         #FileDialog.ok(self)
@@ -257,79 +259,57 @@ class FileOpenDialog(FileDialog):
 
     def get_pathname(self):
         name = self.list_box.get_selected_name()
+
+        if self.selectDir:
+            sel = self.list_box.selection
+            if sel is None:
+                return self.directory
+            
         if name:
-            return os.path.join(self.directory, name)
+            return self.directory / name
         else:
             return None
 
-    pathname = property(get_pathname)
-
-    #def update(self):
-    #    FileDialog.update(self)
+    pathname: Path = property(get_pathname)
 
     def ok_enable(self):
         path = self.pathname
-        enabled = self.item_is_choosable(path)
+        enabled = self.item_is_chooseable(path)
         return enabled
 
-    def item_is_choosable(self, path):
+    def item_is_chooseable(self, path):
         return bool(path) and self.filter(path)
 
     def double_click_file(self, name):
         self.dismiss(True)
 
 
-class LookForFileDialog(FileOpenDialog):
-
-    target = None
-
-    def __init__(self, target, **kwds):
-        FileOpenDialog.__init__(self, **kwds)
-        self.target = target
-
-    def item_is_choosable(self, path):
-        return path and os.path.basename(path) == self.target
-
-    def filter(self, name):
-        return name and os.path.basename(name) == self.target
-
 
 def request_new_filename(prompt=None, suffix=None, extra_suffixes=None,
-        directory=None, filename=None, pathname=None):
-    if pathname:
-        directory, filename = os.path.split(pathname)
+        directory:Path=None, filename=None):
     if extra_suffixes:
         suffixes = extra_suffixes
     else:
         suffixes = []
     if suffix:
         suffixes = [suffix] + suffixes
-    dlog = FileSaveDialog(prompt=prompt, suffixes=suffixes)
-    if directory:
-        dlog.directory = directory
+    dialog = FileSaveDialog(prompt=prompt, suffixes=suffixes)
+    dialog.directory = directory
+
     if filename:
-        dlog.filename = filename
-    if dlog.present():
-        return dlog.pathname
+        dialog.filename = filename
+    if dialog.present():
+        return dialog.pathname
     else:
         return None
 
 
-def request_old_filename(suffixes=None, directory=None):
-    dlog = FileOpenDialog(suffixes=suffixes)
+def request_old_filename(suffixes=None, directory=None, selectDir=False):
+    dialog = FileOpenDialog(suffixes=suffixes, selectDir=selectDir)
     if directory:
-        dlog.directory = directory
-    if dlog.present():
-        return dlog.pathname
+        dialog.directory = directory
+    if dialog.present():
+        return str(dialog.pathname)
     else:
         return None
 
-
-def look_for_file_or_directory(target, prompt=None, directory=None):
-    dlog = LookForFileDialog(target=target, prompt=prompt)
-    if directory:
-        dlog.directory = directory
-    if dlog.present():
-        return dlog.pathname
-    else:
-        return None

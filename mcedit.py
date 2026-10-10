@@ -8,6 +8,9 @@ mcedit.py
 Startup, main menu, keyboard configuration, automatic updating.
 """
 
+# Explicitly set up arguments before doing much else
+import arguments
+
 # Hide the default pygame message
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'

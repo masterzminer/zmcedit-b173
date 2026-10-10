@@ -1802,12 +1802,12 @@ class LevelEditor(GLViewport):
 
             if filename:
                 try:
-                    csvfile = csv.writer(open(filename, "wb"))
+                    with open(filename, "w", newline="", encoding="utf-8") as f:
+                        writer = csv.writer(f)
+                        writer.writerows(rows)
                 except Exception as e:
                     traceback.print_exc()
                     alert(str(e))
-                else:
-                    csvfile.writerows(rows)
 
             config.updateLastDataDir(Path(filename).parent)
 

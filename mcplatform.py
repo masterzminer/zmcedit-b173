@@ -20,7 +20,7 @@ Platform-specific functions, folder paths
 
 import directories
 import os
-from os.path import dirname, exists
+from os.path import exists
 import sys
 import traceback
 import platform
@@ -29,6 +29,8 @@ from pathlib import Path
 import config
 
 import crossfiledialog
+
+import arguments
 
 enc = sys.getfilesystemencoding()
 
@@ -52,6 +54,9 @@ def askOpenFile(title='Select a Minecraft level...', schematics=False):
         initialDir = config.getLastDataDir()
 
     def _ask_open():
+        if arguments.OLD_FILE_BROWSER:
+            return request_old_filename(file_types, initialDir)
+
         try:
             return crossfiledialog.open_file(
                 title=title,
@@ -62,9 +67,8 @@ def askOpenFile(title='Select a Minecraft level...', schematics=False):
             print("Failed to load os file dialog, falling back to built in gui")
             traceback.print_exc()
 
-            # TODO make a setting to allow using the os native path or not, to force disable it
             # On an exception, fall back to the built in gui selector
-            return request_old_filename(None, str(initialDir))
+            return request_old_filename(file_types, initialDir)
 
     filename = _ask_open()
     
@@ -98,28 +102,30 @@ def askCreateWorld(initialDir: Path):
 
 
 def askSaveFolder(initialDir: Path, title):
-    selected = crossfiledialog.choose_folder(
-        start_dir=str(initialDir),
-        title=title
-    )
+    if arguments.OLD_FILE_BROWSER:
+        selected = request_old_filename(directory=initialDir, selectDir=True)
+    else:
+        selected = crossfiledialog.choose_folder(
+            start_dir=str(initialDir),
+            title=title
+        )
+    
     if selected is None or selected == "":
         return None
     return selected
 
+
 def askSaveFile(initialDir: Path, title: str, defaultName, filetype: str=None):
-    # TODO make an option to force using the built in gui file selector
-    useOldFile = False;
-    if useOldFile:
+    if arguments.OLD_FILE_BROWSER:
         return request_new_filename(
             prompt=title,
             suffix=("" if filetype is None else ("." + filetype)),
             directory=initialDir,
             filename=defaultName,
-            pathname=None
         )
     else:
         selected_path = crossfiledialog.save_file(
-            start_dir=str((initialDir if defaultName is None else initialDir / defaultName)),
+            start_dir=(initialDir if defaultName is None else initialDir / defaultName),
             title=title,
         )
 
@@ -135,8 +141,6 @@ def platform_open(path: Path):
     return os_ops.open_file(path)
 
 
-iniFile = directories.INI_FILE
-
 
 # TODO treat these as "stock" filters
 # TODO allow these filters to be configured as hidden individually per filter
@@ -147,7 +151,7 @@ if filtersDir not in [s
                       else s
                       for s in sys.path]:
                           
-    sys.path.append(str(filtersDir))
+    sys.path.append(filtersDir)
 
 items.items = items.Items(directories.ASSETS / "items.txt")
 

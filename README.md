@@ -64,7 +64,4 @@ Some of the features removed
 Maybe one day I'll port the last release of MC Edit, or make another fork of this port to allow it to modify Anvil worlds. Probably not though, unless I decide I want to make another map in 1.2.5
 
 # Command Line Arguments
-| Command | Description | 
-| - | - |
-| `--config <dir>` | Use the given directory for configuration and other internal zMCEdit files |
-| `--installed <dir>` | Use the given directory to read the instillation files, assets, readme, etc., this directory is treated as read only |
+Run the program with `-h` to print all valid arguments
