@@ -658,9 +658,9 @@ class MCEdit(GLViewport):
 
     def makeInfoButtonsColumn(self):
         def showLicense():
-            platform_open(directories.READ_ROOT / "LICENSE.txt")
+            platform_open(directories.INSTALL_ROOT / "LICENSE.txt")
 
-        readmePath = directories.READ_ROOT / "README.md"
+        readmePath = directories.INSTALL_ROOT / "README.md"
 
         column = ([
             albow.Button(

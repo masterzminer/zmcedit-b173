@@ -18,7 +18,7 @@ from pathlib import Path
 import sys
 import arguments
 
-        # If there is no "frozen" attribute set to true, then this is running directly as python, i.e. running from source
+# If there is no "frozen" attribute set to true, then this is running directly as python, i.e. running from source
 FROZEN = getattr(sys, "frozen", False)
 
 # Names of directories
@@ -41,15 +41,15 @@ def findDirectories():
     if arguments.INSTALLED_OVERRIDE is None:
         if FROZEN:
             # This is running from pyinstaller, go from the temp directory
-            read_root = Path(sys._MEIPASS)
+            install_root = Path(sys._MEIPASS)
         else:
             # This is running from source, use the root of the project
-            read_root = Path(__file__).resolve().parent
+            install_root = Path(__file__).resolve().parent
     
     # Otherwise, use the given dir
     else:
         print("Install directory overriden to:", arguments.INSTALLED_OVERRIDE)
-        read_root = Path(arguments.INSTALLED_OVERRIDE)
+        install_root = arguments.INSTALLED_OVERRIDE
 
 
     # If a command line config path is not provided, use defaults
@@ -64,26 +64,26 @@ def findDirectories():
     # Otherwise, use the given config
     else:
         print("Config directory overriden to:", arguments.CONFIG_OVERRIDE)
-        config = Path(arguments.CONFIG_OVERRIDE)
+        config = arguments.CONFIG_OVERRIDE
 
 
-    print("Loading read only data from dir:", read_root)
+    print("Loading install data from dir:", install_root)
     print("Loading config data from dir:", config)
 
     os.makedirs(config, exist_ok=True)
 
-    assets = read_root / ASSETS_NAME
+    assets = install_root / ASSETS_NAME
 
     stock_schematics = assets / STOCK_SCHEMATICS_NAME
 
-    filters = read_root / FILTERS_NAME
+    filters = install_root / FILTERS_NAME
     os.makedirs(filters, exist_ok=True)
 
-    return read_root, config, assets, stock_schematics, filters
+    return install_root, config, assets, stock_schematics, filters
 
 
 # Absolute paths to files and directories
-READ_ROOT, CONFIG, ASSETS, STOCK_SCHEMATICS, FILTERS = findDirectories()
+INSTALL_ROOT, CONFIG, ASSETS, STOCK_SCHEMATICS, FILTERS = findDirectories()
 
 LOG_FILE = CONFIG / LOG_NAME
 INI_FILE = CONFIG / INI_NAME
