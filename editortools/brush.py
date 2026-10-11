@@ -685,7 +685,7 @@ class BrushTool(CloneTool):
 
     panel = None
 
-    def _setBrushSize(self, _):
+    def _setBrushSize(self, brushSize):
         if self.updateBrushOffset:
             self.reticleOffset = self.offsetMax()
             self.resetToolDistance()

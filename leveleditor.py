@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Copyright (c) 2010-2012 David Rio Vierra
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -22,7 +24,6 @@ chests, signs, and more. Toolbar object which holds instances of EditorTool
 imported from editortools/
 
 """
-
 
 import gc
 import os
@@ -2085,7 +2086,8 @@ class LevelEditor(GLViewport):
     @mceutils.alertException
     def saveFile(self):
         with mceutils.setWindowCaption("SAVING - "):
-            if isinstance(self.level, pymclevel.ChunkedLevelMixin):  # xxx relight indev levels?
+            # Relight chunks
+            if isinstance(self.level, pymclevel.ChunkedLevelMixin):
                 level = self.level
                 if level.parentWorld:
                     level = level.parentWorld
@@ -2103,6 +2105,9 @@ class LevelEditor(GLViewport):
             self.level.saveInPlace()
 
         self.clearUnsavedEdits()
+
+        # Also save the config, already doing file io, may as well keep the config updated in case mc edit doesn't shut down properly
+        config.saveConfig()
 
     def addUnsavedEdit(self):
         if self.unsavedEdits:
@@ -3286,7 +3291,7 @@ class LevelEditor(GLViewport):
         )
 
         Settings.viewDistance.set(self.renderer.viewDistance)
-        self.mcedit.saveConfig()
+        config.saveConfig()
 
 
 class EditorToolbar(GLOrtho):
