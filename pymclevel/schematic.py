@@ -12,6 +12,7 @@ from io import BytesIO
 from pymclevel import blockrotation
 from pymclevel.box import BoundingBox
 from pymclevel.materials import alphaMaterials
+from pymclevel import nbt
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -113,7 +114,6 @@ class MCSchematic (EntityLevel):
 
 
         try:
-            # TODO fix nbt not being existing when selecting cut
             self.root_tag = nbt.load(buf=data)
         except Exception as e:
             error(u"Malformed NBT data in schematic file: {0} ({1})".format(self.filename, e))
