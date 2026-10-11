@@ -32,6 +32,7 @@ import copy
 import time
 import numpy as np
 import config
+from config import LastDir
 import frustum
 import logging
 import glutils
@@ -46,6 +47,7 @@ import pymclevel
 import renderer
 import traceback
 from pathlib import Path
+from pymclevel.schematic import MCSchematic
 
 from math import isnan
 from os.path import dirname, isdir
@@ -1797,7 +1799,7 @@ class LevelEditor(GLViewport):
 
         def saveToFile():
             filename = askSaveFile(
-                initialDir=config.getLastDataDir(),
+                lastDir=LastDir.data,
                 title='Save analysis...',
                 defaultName=self.level.displayName + "_analysis",
                 filetype="csv"
@@ -1812,14 +1814,13 @@ class LevelEditor(GLViewport):
                     traceback.print_exc()
                     alert(str(e))
 
-            config.updateLastDataDir(Path(filename).parent)
 
         saveButton = Button("Save to file...", action=saveToFile)
         col = Column((Label("Volume: {0} blocks.".format(box.volume)), tableBacking, saveButton))
         Dialog(client=col, responses=["OK"]).present()
 
-    def exportSchematic(self, schematic):
-        filename = mcplatform.askSaveSchematic(config.getLastSchematicDir(), self.level.displayName, "schematic")
+    def exportSchematic(self, schematic: MCSchematic):
+        filename = mcplatform.askSaveSchematic(self.level.displayName)
 
         if filename:
             schematic.saveToFile(filename)
@@ -2828,7 +2829,7 @@ class LevelEditor(GLViewport):
     def askOpenFile(self):
         self.mouseLookOff()
         try:
-            filename = mcplatform.askOpenFile()
+            filename = mcplatform.askOpenFile(LastDir.world, "Select a world...")
 
             # Get rid of the key events that happened while waiting for the file
             pygame.event.clear()
@@ -2867,7 +2868,8 @@ class LevelEditor(GLViewport):
         result = Dialog(client=newWorldPanel, responses=["Create", "Cancel"]).present()
         if result == "Cancel":
             return
-        filename = mcplatform.askCreateWorld(config.getLastDataDir())
+        
+        filename = mcplatform.askCreateWorld()
 
         if not filename:
             return
@@ -2902,7 +2904,6 @@ class LevelEditor(GLViewport):
             logging.exception('Error while creating world. {world => %s}' % filename)
             return
 
-        config.updateLastDataDir(Path(filename).parent)
         return new_level
 
     def confirmConstruction(self):

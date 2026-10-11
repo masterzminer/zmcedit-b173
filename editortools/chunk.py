@@ -17,6 +17,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 from .toolbasics import *
 from albow.dialogs import Dialog
 import numpy as np
+import config
+from config import LastDir
 
 from pymclevel.box import BoundingBox
 
@@ -208,7 +210,7 @@ class ChunkTool(EditorTool):
 
     @alertException
     def extractChunks(self):
-        folder = mcplatform.askSaveFolder(config.getLastDataDir(), title='Export chunks to...')
+        folder = mcplatform.askSaveFolder(LastDir.data, title='Export chunks to...')
         if not folder:
             return
 
@@ -216,7 +218,6 @@ class ChunkTool(EditorTool):
             if self.editor.level.containsChunk(cx, cz):
                 self.editor.level.extractChunk(cx, cz, folder)
 
-        config.updateLastDataDir(folder)
 
     @alertException
     def destroyChunks(self, chunks=None):

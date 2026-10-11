@@ -103,7 +103,7 @@ class FileDialog(Dialog):
         top_row = Row([dir_box, up_button])
         list_box = FileListView(self.box_width - 16, self, onlyDir=selectDir)
         self.list_box = list_box
-        ctrls = [top_row, list_box]
+        rows = [top_row, list_box]
         prompt = prompt or self.default_prompt
         if prompt:
             label = Label(prompt)
@@ -113,14 +113,14 @@ class FileDialog(Dialog):
             filename_box._enter_action = filename_box.enter_action
             filename_box.enter_action = self.enter_action
             self.filename_box = filename_box
-            ctrls.append(Column([label, filename_box], align='l', spacing=0))
+            rows.append(Column([label, filename_box], align='l', spacing=0))
         else:
             if label:
-                ctrls.insert(0, label)
+                rows.insert(0, label)
         ok_button = Button(self.ok_label, action=self.ok, enable=self.ok_enable)
         self.ok_button = ok_button
         cancel_button = Button("Cancel", action=self.cancel)
-        vbox = Column(ctrls, align='l', spacing=d)
+        vbox = Column(rows, align='l', spacing=d)
         vbox.topleft = (d, d)
         y = vbox.bottom + d
         ok_button.topleft = (vbox.left, y)
@@ -242,7 +242,6 @@ class FileSaveDialog(FileDialog):
             answer = ask(f"Replace existing '{path.name}'?")
             if answer != "OK":
                 return
-        #FileDialog.ok(self)
         self.dismiss(True)
 
     def update(self):

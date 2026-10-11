@@ -22,6 +22,7 @@ from .toolbasics import *
 from functools import reduce
 import numpy as np
 from pymclevel.materials import alphaMaterials
+from config import LastDir
 
 from pymclevel.box import BoundingBox
 
@@ -782,7 +783,7 @@ class BrushTool(CloneTool):
         self.setupPreview()
 
     def importPaste(self):
-        clipFilename = mcplatform.askOpenFile(title='Choose a schematic or level...', schematics=True)
+        clipFilename = mcplatform.askOpenFile(LastDir.schematic, title='Choose a schematic...')
         # xxx mouthful
         if clipFilename:
             try:

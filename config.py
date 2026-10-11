@@ -22,6 +22,7 @@ import collections
 import configparser
 import sys
 from pathlib import Path
+from enum import Enum
 
 import directories
 
@@ -128,21 +129,35 @@ toggle renderer = m
 
 """
 
-log.info("Loading config...")
+log.info("Loading config")
 config = loadConfig()
 config.observers = {}
 
-def getLastDataDir():
-    return Path(config.get("Directories", "data"))
 
-def updateLastDataDir(last_dir):
-    config.set("Directories", "data", last_dir)
+class LastDir(Enum):
+    world = "world"
+    data = "data"
+    schematic = "schematic"
 
-def getLastSchematicDir():
-    return Path(config.get("Directories", "schematic"))
+LAST_DIR_ALL = list(LastDir)
 
-def updateLastSchematicDir(last_dir):
-    config.set("Directories", "schematic", last_dir)
+
+def get_last_dir(lastDir: LastDir):
+    return Path(config.get("Directories", lastDir.value))
+
+def update_last_dir(lastDir: LastDir, newPath):
+    config.set("Directories", lastDir.value, str(newPath))
+
+def initDefaultLastDirs():
+    # Create the section if it doesn't exist
+    if not config.has_section("Directories"):
+        config.add_section("Directories")
+
+    # Default all dirs to home
+    home = Path.home()
+    for d in LAST_DIR_ALL:
+        if not config.has_option("Directories", d.value):
+            update_last_dir(d, home)
 
 
 def use_classic_mouse():

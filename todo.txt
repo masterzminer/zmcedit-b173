@@ -41,7 +41,6 @@ config
 
 
 next:
-    go over todos and resolve essential issues
     Make proper directories for custom filters, and where to load filters from, i.e. not the config directory, probably check multiple places
 
     fix typing in the search box for brushes selecting a block

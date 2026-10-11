@@ -18,6 +18,7 @@ from .toolbasics import *
 from .select import SelectionOperation
 
 from pymclevel.box import BoundingBox
+from config import LastDir
 
 CloneSettings = config.Settings("Clone")
 CloneSettings.copyAir = CloneSettings("Copy Air", True)
@@ -1011,7 +1012,7 @@ class ConstructionTool(CloneTool):
 
         self.editor.mouseLookOff()
 
-        clipFilename = mcplatform.askOpenFile(title='Import a schematic or level...', schematics=True)
+        clipFilename = mcplatform.askOpenFile(LastDir.schematic, 'Import a schematic...')
         # xxx mouthful
         if clipFilename:
 

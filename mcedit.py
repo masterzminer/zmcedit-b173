@@ -27,6 +27,7 @@ from albow.dialogs import Dialog
 from albow.openglwidgets import GLViewport
 from albow.root import RootWidget
 import config
+from config import LastDir
 import directories
 import functools
 from glbackground import Panel
@@ -38,7 +39,6 @@ import mceutils
 import mcplatform
 from mcplatform import platform_open
 import numpy
-from pathlib import Path
 
 
 from OpenGL import GL
@@ -163,7 +163,7 @@ class FileOpener(albow.Widget):
 
     def promptOpenAndLoad(self):
         try:
-            filename = mcplatform.askOpenFile()
+            filename = mcplatform.askOpenFile(LastDir.world, "Select a world...")
 
             # Get rid of the key events that happened while waiting for the file
             pygame.event.clear()
@@ -540,11 +540,7 @@ class MCEdit(GLViewport):
             config.config.add_section("Recent Worlds")
             self.setRecentWorlds([""] * 5)
 
-        if not config.config.has_section("Directories"):
-            config.config.add_section("Directories")
-            home = Path.home()
-            config.updateLastDataDir(home)
-            config.updateLastSchematicDir(home)
+        config.initDefaultLastDirs()
 
         self.optionsPanel = OptionsPanel(self)
         self.graphicOptionsPanel = GraphicsPanel(self)

@@ -103,9 +103,9 @@ class MCSchematic (EntityLevel):
             else:
                 return
 
-        with closing(gzip.GzipFile(fileobj=BytesIO(self.compressedTag))) as gzipper:
+        with closing(gzip.GzipFile(fileobj=BytesIO(self.compressedTag))) as g_zipper:
             try:
-                data = gzipper.read()
+                data = g_zipper.read()
                 if data == None: return;
             except Exception as e:
                 #error( u"Error reading compressed data, assuming uncompressed: {0}".format(e) )
@@ -113,6 +113,7 @@ class MCSchematic (EntityLevel):
 
 
         try:
+            # TODO fix nbt not being existing when selecting cut
             self.root_tag = nbt.load(buf=data)
         except Exception as e:
             error(u"Malformed NBT data in schematic file: {0} ({1})".format(self.filename, e))
