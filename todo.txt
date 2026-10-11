@@ -38,6 +38,7 @@ main menu
 config
     standardize the config strings to constants, maybe replace it with json
 
+Make materials a singleton instead of every block/level having a reference to it
 
 
 next:
