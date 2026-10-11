@@ -1071,7 +1071,6 @@ class ChunkedLevelMixin(object):
                 sz + point[2] + blocks.shape[1],
             )
 
-            # TODO fix weird issue with pase mode for brush when "resizing" the brush where it will try to draw something without blocks
             sourceBlocks = sourceLevel.Blocks[sx + point[0]:localSourceCorner2[0],
                                               sz + point[2]:localSourceCorner2[2],
                                               sy:localSourceCorner2[1]]
