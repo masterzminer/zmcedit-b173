@@ -154,6 +154,15 @@ def update_classic_mouse(use: bool):
     config.set("Settings", "classic mouse", use)
 
 
+def use_old_file_browser():
+    if not config.has_option("Settings", "old file browser"):
+        return False
+    return config.getboolean("Settings", "old file browser")
+
+def update_old_file_browser(use: bool):
+    config.set("Settings", "old file browser", use)
+
+
 def _propertyRef(section, name, dtype=str, default=None):
     class PropRef(object):
         def get(self):

@@ -119,6 +119,7 @@ Settings.vsync = Settings("vertical sync", 0)
 Settings.visibilityCheck = Settings("visibility check", False)
 Settings.viewMode = Settings("View Mode", "Camera")
 Settings.classicMouse = Settings("classic mouse", False)
+Settings.useOldFileBrowser = Settings("old file browser", False)
 
 ControlSettings = config.Settings("Controls")
 ControlSettings.mouseSpeed = ControlSettings("mouse speed", 5.0)

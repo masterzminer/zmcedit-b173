@@ -38,6 +38,8 @@ standardize the config strings to constants, maybe replace it with json
 
 fix the screen going blank if it fails to load a world
 
+when saving a level, auto save the current config as well
+
 
 
 next:

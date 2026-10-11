@@ -449,10 +449,14 @@ class OptionsPanel(Dialog):
             ref=ControlSettings.invertMousePitch.propertyRef(),
             tooltipText="Reverse the up and down motion of the mouse.")
         
-        invertRow = mceutils.CheckBoxLabel("Classic Mouse",
+        classicMouseRow = mceutils.CheckBoxLabel("Classic Mouse",
             ref=Settings.classicMouse.propertyRef(),
             invert=True,
             tooltipText="Use the mouse pointer from the original version of MC Edit")
+        
+        oldFileBrowserRow = mceutils.CheckBoxLabel("Old File Browser",
+            ref=Settings.useOldFileBrowser.propertyRef(),
+            tooltipText="Use the built in file browser instead of an os native browser")
 
         spaceHeightRow = mceutils.IntInputRow("Low Detail Height",
             ref=Settings.spaceHeight.propertyRef(),
@@ -490,6 +494,8 @@ class OptionsPanel(Dialog):
             autoBrakeRow,
             swapAxesRow,
             invertRow,
+            classicMouseRow,
+            oldFileBrowserRow,
             visibilityCheckRow
         )
 

@@ -48,5 +48,3 @@ CONFIG_OVERRIDE = parsed_args.config
 """Path override for config directory"""
 INSTALLED_OVERRIDE = parsed_args.installed
 """Path override for install directory"""
-OLD_FILE_BROWSER = parsed_args.old_file_browser
-"""true to use the built in gui file browser, false otherwise"""

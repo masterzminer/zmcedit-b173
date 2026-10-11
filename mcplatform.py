@@ -30,8 +30,6 @@ import config
 
 import crossfiledialog
 
-import arguments
-
 enc = sys.getfilesystemencoding()
 
 from albow import request_new_filename, request_old_filename
@@ -54,7 +52,7 @@ def askOpenFile(title='Select a Minecraft level...', schematics=False):
         initialDir = config.getLastDataDir()
 
     def _ask_open():
-        if arguments.OLD_FILE_BROWSER:
+        if config.use_old_file_browser():
             return request_old_filename(file_types, initialDir)
 
         try:
@@ -102,7 +100,7 @@ def askCreateWorld(initialDir: Path):
 
 
 def askSaveFolder(initialDir: Path, title):
-    if arguments.OLD_FILE_BROWSER:
+    if config.use_old_file_browser():
         selected = request_old_filename(directory=initialDir, selectDir=True)
     else:
         selected = crossfiledialog.choose_folder(
@@ -116,7 +114,7 @@ def askSaveFolder(initialDir: Path, title):
 
 
 def askSaveFile(initialDir: Path, title: str, defaultName, filetype: str=None):
-    if arguments.OLD_FILE_BROWSER:
+    if config.use_old_file_browser():
         return request_new_filename(
             prompt=title,
             suffix=("" if filetype is None else ("." + filetype)),
