@@ -32,8 +32,6 @@ maybe put the starts back in the main menu, or make it a toggle option
 
 fix the mouse issue when using mouse look and the sidebar of the os panel still being activated
 
-get rid of the weird separate mouse or make an option to disabled it
-
 make buttons on the main menu to open the config and assets directories
 
 standardize the config strings to constants, maybe replace it with json

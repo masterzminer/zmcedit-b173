@@ -463,10 +463,10 @@ class ChoiceButton(ValueButton):
         self.menu = Menu("", ((name, "pickMenu") for name in self._choices))
 
 
-def CheckBoxLabel(title, *args, **kw):
+def CheckBoxLabel(title, invert=False, *args, **kw):
     tooltipText = kw.pop('tooltipText', None)
 
-    cb = CheckBox(*args, **kw)
+    cb = CheckBox(invert, *args, **kw)
     lab = Label(title, fg_color=cb.fg_color)
     lab.mouse_down = cb.mouse_down
 

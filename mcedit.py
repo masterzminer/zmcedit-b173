@@ -448,18 +448,23 @@ class OptionsPanel(Dialog):
         invertRow = mceutils.CheckBoxLabel("Invert Mouse",
             ref=ControlSettings.invertMousePitch.propertyRef(),
             tooltipText="Reverse the up and down motion of the mouse.")
+        
+        invertRow = mceutils.CheckBoxLabel("Classic Mouse",
+            ref=Settings.classicMouse.propertyRef(),
+            invert=True,
+            tooltipText="Use the mouse pointer from the original version of MC Edit")
 
         spaceHeightRow = mceutils.IntInputRow("Low Detail Height",
             ref=Settings.spaceHeight.propertyRef(),
-            tooltipText="When you are this far above the top of the world, move fast and use low-detail mode.")
+            tooltipText="When you are this far above the top of the world, move fast and use low-detail mode")
 
         blockBufferRow = mceutils.IntInputRow("Block Buffer",
             ref=Settings.blockBuffer.propertyRef(), min=1,
-            tooltipText="Amount of memory used for temporary storage.  When more than this is needed, the disk is used instead.")
+            tooltipText="Amount of memory used for temporary storage. When more than this is needed, the disk is used instead")
 
         visibilityCheckRow = mceutils.CheckBoxLabel("Visibility Check",
             ref=Settings.visibilityCheck.propertyRef(),
-            tooltipText="Do a visibility check on chunks while loading. May cause a crash.")
+            tooltipText="Do a visibility check on chunks while loading. May cause a crash")
 
         longDistanceRow = mceutils.CheckBoxLabel("Long-Distance Mode",
             ref=Settings.longDistanceMode.propertyRef(),
@@ -467,7 +472,7 @@ class OptionsPanel(Dialog):
 
         flyModeRow = mceutils.CheckBoxLabel("Fly Mode",
             ref=Settings.flyMode.propertyRef(),
-            tooltipText="Moving forward and backward will not change your altitude in Fly Mode.")
+            tooltipText="Moving forward and backward will not change your altitude in Fly Mode")
 
         inputs = (
             spaceHeightRow,
@@ -496,10 +501,14 @@ class OptionsPanel(Dialog):
 
         settingsRow = albow.Row((optionsColumn,))
 
-        optionsColumn = albow.Column((settingsRow, albow.Button("OK", action=self.dismiss)))
+        optionsColumn = albow.Column((settingsRow, albow.Button("OK", action=self.closeSettings)))
 
         self.add(optionsColumn)
         self.shrink_wrap()
+
+    def closeSettings(self):
+        saveConfig()
+        self.dismiss()
 
     @property
     def blockBuffer(self):
@@ -712,7 +721,7 @@ class MCEdit(GLViewport):
         if w > 0 and h > 0:
             Settings.windowWidth.set(w)
             Settings.windowHeight.set(h)
-            config.saveConfig()
+            saveConfig()
 
     def loadFile(self, filename):
         self.removeGraphicOptions()
@@ -789,13 +798,13 @@ class MCEdit(GLViewport):
             if answer == "Don't remind me again.":
                 mcedit.closeMinecraftWarning = False
 
-        config.saveConfig()
+        saveConfig()
 
         while True:
             try:
                 root_widget.run()
             except SystemExit:
-                config.saveConfig()
+                saveConfig()
                 mcedit.editor.renderer.discardAllChunks()
                 mcedit.editor.deleteAllCopiedSchematics()
                 raise
@@ -803,6 +812,14 @@ class MCEdit(GLViewport):
                 traceback.print_exc()
                 mcedit.editor.handleMemoryError()
 
+def saveConfig():
+    try:
+        config.saveConfig()
+    except Exception as e:
+        try:
+            albow.alert("Error saving configuration settings to mcedit.ini: {0}".format(e))
+        except:
+            pass
 
 def main(argv):
     """

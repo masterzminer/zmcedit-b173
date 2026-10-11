@@ -344,11 +344,12 @@ class CheckWidget(Widget):
 
     smooth = ThemeProperty('smooth')
 
-    def __init__(self, **kwds):
+    def __init__(self, invert=False, **kwds):
         Widget.__init__(self, Rect((0, 0), self.default_size), **kwds)
+        self.invert = invert
 
     def draw(self, surf):
-        if self.highlighted:
+        if self.highlighted != self.invert:
             r = self.get_margin_rect()
             fg = self.fg_color
             d = self.check_mark_tweak

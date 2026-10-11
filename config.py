@@ -23,7 +23,6 @@ import configparser
 import sys
 from pathlib import Path
 
-from albow import alert
 import directories
 
 log = logging.getLogger(__name__)
@@ -90,15 +89,8 @@ def updateConfig():
 
 
 def saveConfig():
-    try:
-        cf = open(directories.INI_FILE, 'w')
-        config.write(cf)
-        cf.close()
-    except Exception as e:
-        try:
-            alert("Error saving configuration settings to mcedit.ini: {0}".format(e))
-        except:
-            pass
+    with open(directories.INI_FILE, 'w') as f:
+        config.write(f)
 
 configDefaults = """
 [Keys]
@@ -151,6 +143,16 @@ def getLastSchematicDir():
 
 def updateLastSchematicDir(last_dir):
     config.set("Directories", "schematic", last_dir)
+
+
+def use_classic_mouse():
+    if not config.has_option("Settings", "classic mouse"):
+        return False
+    return config.getboolean("Settings", "classic mouse")
+
+def update_classic_mouse(use: bool):
+    config.set("Settings", "classic mouse", use)
+
 
 def _propertyRef(section, name, dtype=str, default=None):
     class PropRef(object):

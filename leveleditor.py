@@ -118,6 +118,7 @@ Settings.vertexBufferLimit = Settings("vertex buffer limit", 384)
 Settings.vsync = Settings("vertical sync", 0)
 Settings.visibilityCheck = Settings("visibility check", False)
 Settings.viewMode = Settings("View Mode", "Camera")
+Settings.classicMouse = Settings("classic mouse", False)
 
 ControlSettings = config.Settings("Controls")
 ControlSettings.mouseSpeed = ControlSettings("mouse speed", 5.0)
@@ -3284,7 +3285,7 @@ class LevelEditor(GLViewport):
         )
 
         Settings.viewDistance.set(self.renderer.viewDistance)
-        config.saveConfig()
+        self.mcedit.saveConfig()
 
 
 class EditorToolbar(GLOrtho):
