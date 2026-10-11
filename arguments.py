@@ -32,12 +32,6 @@ def init():
         help="Path to custom install directory, used to access assets directory, readme, etc"
     )
 
-    parser.add_argument(
-        "--old-file-browser",
-        action="store_true",
-        help="Use the built in pygame gui based file browser instead of os native. Use if there are issues with the native os selector"
-    )
-
     return parser.parse_args();
 
 parsed_args = init()
