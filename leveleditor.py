@@ -2068,7 +2068,7 @@ class LevelEditor(GLViewport):
     def initWindowCaption(self):
         filename = self.level.filename
         s = os.path.split(filename)
-        title = os.path.split(s[0])[1] + os.sep + s[1] + u" - MCEdit " + release.VERSION
+        title = os.path.split(s[0])[1] + os.sep + s[1] + u" - " + release.NAME + " " + release.VERSION
         # title = title.encode('ascii', 'replace')
         display.set_caption(title)
 

@@ -34,8 +34,6 @@ fix the mouse issue when using mouse look and the sidebar of the os panel still 
 
 get rid of the weird separate mouse or make an option to disabled it
 
-make the window say zmcedit when a world is open
-
 make buttons on the main menu to open the config and assets directories
 
 standardize the config strings to constants, maybe replace it with json
