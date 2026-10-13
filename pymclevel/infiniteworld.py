@@ -1794,7 +1794,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
 
     def __init__(self, filename=None, create=False, random_seed=None, last_played=None):
         """
-        Load an Alpha level from the given filename. It can point to either
+        Load a level from the given filename. It can point to either
         a level.dat or a folder containing one. If create is True, it will
         also create the world using the random_seed and last_played arguments.
         If they are none, a random 64-bit seed will be selected for RandomSeed
@@ -1822,7 +1822,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
             if os.path.basename(filename) in ("level.dat", "level.dat_old"):
                 self.worldDir = os.path.dirname(filename)
             else:
-                raise IOError('File is not a Minecraft Alpha world')
+                raise IOError('File is not a Minecraft world')
 
         self.filename = os.path.join(self.worldDir, "level.dat")
         self.regionDir = os.path.join(self.worldDir, "region")

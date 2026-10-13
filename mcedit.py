@@ -923,10 +923,10 @@ class GLDisplayContext(object):
         self.loadTextures()
 
     def getTerrainTexture(self, level):
-        return self.terrainTextures.get(materials.name, self.terrainTextures["Alpha"])
+        return self.terrainTextures
 
     def loadTextures(self):
-        self.terrainTextures = {}
+        self.terrainTextures = None
 
         def makeTerrainTexture(mats):
             w, h = 1, 1
@@ -952,16 +952,16 @@ class GLDisplayContext(object):
         for mats, matFile in textures:
             try:
                 tex = mceutils.loadTerrainTexture()
-                self.terrainTextures[mats.name] = tex
+                self.terrainTextures = tex
             except Exception as e:
                 logging.warning(
                     'Unable to load terrain from {0}, using flat colors.'
                     'Error was: {1!r}'.format(matFile, e)
                 )
-                self.terrainTextures[mats.name] = glutils.Texture(
+                self.terrainTextures = glutils.Texture(
                     functools.partial(makeTerrainTexture, mats)
                 )
-            mats.terrainTexture = self.terrainTextures[mats.name]
+            mats.terrainTexture = self.terrainTextures
 
 
 mcplatform.os_ops.handle_init()

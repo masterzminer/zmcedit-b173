@@ -335,7 +335,7 @@ class MCLevel(object):
 
 
     def fakeBlocksForChunk(self, cx, cz):
-        #return a 16x16xH block array for rendering.  Alpha levels can
+        #return a 16x16xH block array for rendering. Levels can
         #just return the chunk data.  other levels need to reorder the
         #indices and return a slice of the blocks.
 

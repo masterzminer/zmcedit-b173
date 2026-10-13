@@ -417,25 +417,24 @@ class ChunkCalculator (object):
             WaterBlockRenderer,
             SlabBlockRenderer,
         ]
-        if materials.name in ("Alpha"):
-            self.blockRendererClasses += [
-                RailBlockRenderer,
-                LadderBlockRenderer,
-                SnowBlockRenderer,
-                RedstoneBlockRenderer,
-                IceBlockRenderer,
-                FeatureBlockRenderer,
-                StairBlockRenderer,
-            # button, floor plate, door -> 1-cube features
-            # lever, sign, wall sign, stairs -> 2-cube features
+        self.blockRendererClasses += [
+            RailBlockRenderer,
+            LadderBlockRenderer,
+            SnowBlockRenderer,
+            RedstoneBlockRenderer,
+            IceBlockRenderer,
+            FeatureBlockRenderer,
+            StairBlockRenderer,
+        # button, floor plate, door -> 1-cube features
+        # lever, sign, wall sign, stairs -> 2-cube features
 
-            # repeater
-            # fence
+        # repeater
+        # fence
 
-            # bed
-            # cake
-            # portal
-            ]
+        # bed
+        # cake
+        # portal
+        ]
 
         # Init the materials to all zeros
         self.materialMap = materialMap = np.zeros((256,), np.uint8)
@@ -1362,9 +1361,8 @@ class GenericBlockRenderer(BlockRenderer):
 
             def setColors():
                 vertexArray.view('uint8')[_RGB] *= getBlockLight()[..., np.newaxis, np.newaxis]
-                if materials.name in ("Alpha"):
-                    if direction == pymclevel.faces.FaceYIncreasing:
-                        setGrassColors()
+                if direction == pymclevel.faces.FaceYIncreasing:
+                    setGrassColors()
 
             setColors()
             yield
@@ -1393,32 +1391,27 @@ class LeafBlockRenderer(BlockRenderer):
         materialIndices = self.getMaterialIndices(blockMaterials)
         yield
 
-        if materials.name in ("Alpha"):
-            if not self.chunkCalculator.fastLeaves:
-                blockIndices = materialIndices
-                data = blockData[blockIndices]
-                data &= 0x3  # ignore decay states
-                leaves = (data == 0) | (data == 3)
-                pines = (data == materials.PineLeaves.blockData)
-                birches = (data == materials.BirchLeaves.blockData)
-                texes = texMap(18, data, 0)
-        else:
+        if not self.chunkCalculator.fastLeaves:
             blockIndices = materialIndices
-            texes = texMap(18, [0], 0)
+            data = blockData[blockIndices]
+            data &= 0x3  # ignore decay states
+            leaves = (data == 0) | (data == 3)
+            pines = (data == materials.PineLeaves.blockData)
+            birches = (data == materials.BirchLeaves.blockData)
+            texes = texMap(18, data, 0)
 
         for (direction, exposedFaceIndices) in enumerate(facingBlockIndices):
-            if materials.name in ("Alpha"):
-                if self.chunkCalculator.fastLeaves:
-                    blockIndices = materialIndices & exposedFaceIndices
-                    data = blockData[blockIndices]
-                    data &= 0x3  # ignore decay states
-                    leaves = (data == 0)
-                    pines = (data == materials.PineLeaves.blockData)
-                    birches = (data == materials.BirchLeaves.blockData)
-                    type3 = (data == 3)
-                    leaves |= type3
+            if self.chunkCalculator.fastLeaves:
+                blockIndices = materialIndices & exposedFaceIndices
+                data = blockData[blockIndices]
+                data &= 0x3  # ignore decay states
+                leaves = (data == 0)
+                pines = (data == materials.PineLeaves.blockData)
+                birches = (data == materials.BirchLeaves.blockData)
+                type3 = (data == 3)
+                leaves |= type3
 
-                    texes = texMap(18, data, 0)
+                texes = texMap(18, data, 0)
 
             facingBlockLight = areaBlockLights[self.directionOffsets[direction]]
             vertexArray = self.makeTemplate(direction, blockIndices)
@@ -1431,10 +1424,9 @@ class LeafBlockRenderer(BlockRenderer):
                 vertexArray[_ST] -= (0x10, 0x0)
 
             vertexArray.view('uint8')[_RGB] *= facingBlockLight[blockIndices][..., np.newaxis, np.newaxis]
-            if materials.name in ("Alpha"):
-                vertexArray.view('uint8')[_RGB][leaves] = (vertexArray.view('uint8')[_RGB][leaves] * self.leafColor).astype(np.uint8)
-                vertexArray.view('uint8')[_RGB][pines] = (vertexArray.view('uint8')[_RGB][pines] * self.pineLeafColor).astype(np.uint8)
-                vertexArray.view('uint8')[_RGB][birches] = (vertexArray.view('uint8')[_RGB][birches] * self.birchLeafColor).astype(np.uint8)
+            vertexArray.view('uint8')[_RGB][leaves] = (vertexArray.view('uint8')[_RGB][leaves] * self.leafColor).astype(np.uint8)
+            vertexArray.view('uint8')[_RGB][pines] = (vertexArray.view('uint8')[_RGB][pines] * self.pineLeafColor).astype(np.uint8)
+            vertexArray.view('uint8')[_RGB][birches] = (vertexArray.view('uint8')[_RGB][birches] * self.birchLeafColor).astype(np.uint8)
 
             yield
             arrays.append(vertexArray)
@@ -1452,11 +1444,7 @@ class PlantBlockRenderer(BlockRenderer):
     @classmethod
     def getBlocktypes(cls, mats):
         # Plant block types are any block ids where their type is one of the below types of blocks for how they're rendered
-
-        # blocktypes = [6, 37, 38, 39, 40, 59, 83]
-        # if mats.name != "Classic": blocktypes += [31, 32]  # shrubs, tall grass
-        # if mats.name == "Alpha": blocktypes += [115]  # nether wart
-        blocktypes = [b.ID for b in mats if b.type in ("DECORATION_CROSS", "NETHER_WART", "CROPS", "STEM")]
+        blocktypes = [b.ID for b in mats if b.type in ("DECORATION_CROSS", "CROPS")]
 
         return blocktypes
 
@@ -1476,9 +1464,7 @@ class PlantBlockRenderer(BlockRenderer):
         blockLight = areaBlockLights[1:-1, 1:-1, 1:-1]
         lights = blockLight[blockIndices][..., np.newaxis, np.newaxis]
 
-        colorize = None
-        if materials.name == "Alpha":
-            colorize = (theseBlocks == materials.TallGrass.ID) & (bdata != 0)
+        colorize = (theseBlocks == materials.TallGrass.ID) & (bdata != 0)
 
         for direction in (pymclevel.faces.FaceXIncreasing, pymclevel.faces.FaceXDecreasing, pymclevel.faces.FaceZIncreasing, pymclevel.faces.FaceZDecreasing):
             vertexArray = self.makeTemplate(direction, blockIndices)

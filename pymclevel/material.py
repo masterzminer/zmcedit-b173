@@ -265,7 +265,6 @@ class MCMaterials(object):
                 
     
 materials = MCMaterials(defaultName="Future Block!")
-materials.name = "Alpha"
 materials.addYamlBlocksFromFile(directories.ASSETS / "minecraft.yaml")
 
 

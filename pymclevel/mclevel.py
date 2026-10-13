@@ -10,17 +10,13 @@ import mclevel
 #
 # Schematics - gzipped NBT data in a single file.  Returns an MCSchematic.  
 #   MCSchematics have the special method rotateLeft which will reorient torches, stairs, and other tiles appropriately.
-# Alpha levels - world folder structure containing level.dat and chunk folders.  Single or Multiplayer.
+# levels - world folder structure containing level.dat and chunk folders.  Single or Multiplayer.
 #   Can accept a path to the world folder or a path to the level.dat.  Returns an MCLevel
 
 # Sand to glass.
 blocks[blocks == materials.Sand.ID] = materials.Glass.ID
 
-# Save the file with another name.  This only works for non-Alpha levels.
-level.saveToFile("server_level_glassy.dat");
-
-# Load an Alpha world
-# Loading an Alpha world immediately scans the folder for chunk files.  This takes longer for large worlds.
+# Loading a world immediately scans the folder for chunk files.  This takes longer for large worlds.
 ourworld = mclevel.fromFile("C:\\Minecraft\\OurWorld");
 
 # Find out which chunks are present. Doing this will scan the chunk folders the

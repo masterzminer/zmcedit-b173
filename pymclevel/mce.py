@@ -505,8 +505,8 @@ class mce(object):
     
     Imports a level or schematic into this world, beginning at destPoint.
     Supported formats include 
-    - Alpha single or multiplayer world folder containing level.dat,
-    - Zipfile containing Alpha world folder,
+    - single or multiplayer world folder containing level.dat,
+    - Zipfile containing world folder,
     - Indev .mclevel
     - Schematic from RedstoneSim, MCEdit, mce
     - .inv from INVEdit (appears as a chest)
@@ -953,7 +953,7 @@ class mce(object):
         """
     create [ <filename> ]
     
-    Create and load a new Minecraft Alpha world. This world will have no 
+    Create and load a new Minecraft world. This world will have no 
     chunks and a random terrain seed. If run from the shell, filename is not
     needed because you already specified a filename earlier in the command.
     For example: 
@@ -972,7 +972,7 @@ class mce(object):
             raise IOError("{0} already exists".format(filename))
 
         if mclevel.MCBetaLevel.isLevel(filename):
-            raise IOError("{0} is already a Minecraft Alpha world".format(filename))
+            raise IOError("{0} is already a Minecraft world".format(filename))
 
         level = mclevel.MCBetaLevel(filename, create=True)
 
