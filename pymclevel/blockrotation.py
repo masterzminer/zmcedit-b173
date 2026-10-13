@@ -1,5 +1,5 @@
 
-from .materials import alphaMaterials
+from .material import materials
 from numpy import array, arange, zeros
 
 def genericVerticalFlip(cls):
@@ -42,9 +42,9 @@ def genericFlipRotation(cls):
 
 class Torch:
     blocktypes = [
-        alphaMaterials.Torch.ID,
-        alphaMaterials.RedstoneTorchOn.ID,
-        alphaMaterials.RedstoneTorchOff.ID,
+        materials.Torch.ID,
+        materials.RedstoneTorchOn.ID,
+        materials.RedstoneTorchOff.ID,
     ]
 
     South = 1
@@ -55,7 +55,7 @@ class Torch:
 genericFlipRotation(Torch)
 
 class Ladder:
-    blocktypes = [alphaMaterials.Ladder.ID]
+    blocktypes = [materials.Ladder.ID]
 
     East = 2
     West = 3
@@ -64,7 +64,7 @@ class Ladder:
 genericFlipRotation(Ladder)
 
 class Stair:
-    blocktypes = [b.ID for b in alphaMaterials.AllStairs]
+    blocktypes = [b.ID for b in materials.AllStairs]
 
     South = 0
     North = 1
@@ -73,7 +73,7 @@ class Stair:
 genericFlipRotation(Stair)
 
 class WallSign:
-    blocktypes = [alphaMaterials.WallSign.ID]
+    blocktypes = [materials.WallSign.ID]
 
     East = 2
     West = 3
@@ -83,10 +83,10 @@ genericFlipRotation(WallSign)
 
 class FurnaceDispenserChest:
     blocktypes = [
-        alphaMaterials.Furnace.ID,
-        alphaMaterials.LitFurnace.ID,
-        alphaMaterials.Dispenser.ID,
-        alphaMaterials.Chest.ID,
+        materials.Furnace.ID,
+        materials.LitFurnace.ID,
+        materials.Dispenser.ID,
+        materials.Chest.ID,
     ]
     East = 2
     West = 3
@@ -96,8 +96,8 @@ genericFlipRotation(FurnaceDispenserChest)
 
 class Pumpkin:
     blocktypes = [
-        alphaMaterials.Pumpkin.ID,
-        alphaMaterials.JackOLantern.ID,
+        materials.Pumpkin.ID,
+        materials.JackOLantern.ID,
     ]
 
     East = 0
@@ -107,7 +107,7 @@ class Pumpkin:
 genericFlipRotation(Pumpkin)
 
 class Rail:
-    blocktypes = [alphaMaterials.Rail.ID]
+    blocktypes = [materials.Rail.ID]
 
     EastWest = 0
     NorthSouth = 1
@@ -177,7 +177,7 @@ def applyBits48(array):
 applyThrownBit = applyBit8
 
 class PoweredDetectorRail(Rail):
-    blocktypes = [alphaMaterials.PoweredRail.ID, alphaMaterials.DetectorRail.ID]
+    blocktypes = [materials.PoweredRail.ID, materials.DetectorRail.ID]
 PoweredDetectorRail.rotateLeft = genericRotation(PoweredDetectorRail)
 
 PoweredDetectorRail.rotateLeft[PoweredDetectorRail.NorthSouth] = PoweredDetectorRail.EastWest
@@ -191,7 +191,7 @@ rotationClasses.append(PoweredDetectorRail)
 
 
 class Lever:
-    blocktypes = [alphaMaterials.Lever.ID]
+    blocktypes = [materials.Lever.ID]
     ThrownBit = 0x8
     South = 1
     North = 2
@@ -208,7 +208,7 @@ applyThrownBit(Lever)
 rotationClasses.append(Lever)
 
 class Button:
-    blocktypes = [alphaMaterials.Button.ID]
+    blocktypes = [materials.Button.ID]
     PressedBit = 0x8
     South = 1
     North = 2
@@ -221,7 +221,7 @@ applyThrownBit(Button)
 rotationClasses.append(Button)
 
 class SignPost:
-    blocktypes = [alphaMaterials.Sign.ID]
+    blocktypes = [materials.Sign.ID]
     #west is 0, increasing clockwise
 
     rotateLeft = arange(16, dtype='uint8')
@@ -235,7 +235,7 @@ class SignPost:
 rotationClasses.append(SignPost)
 
 class Bed:
-    blocktypes = [alphaMaterials.Bed.ID]
+    blocktypes = [materials.Bed.ID]
     West = 0
     North = 1
     East = 2
@@ -247,8 +247,8 @@ applyBit4(Bed)
 
 class Door:
     blocktypes = [
-        alphaMaterials.IronDoor.ID,
-        alphaMaterials.WoodenDoor.ID,
+        materials.IronDoor.ID,
+        materials.WoodenDoor.ID,
     ]
     TopHalfBit = 0x8
     SwungCCWBit = 0x4
@@ -292,8 +292,8 @@ rotationClasses.append(Door)
 
 class RedstoneRepeater:
     blocktypes = [
-        alphaMaterials.RedstoneRepeaterOff.ID,
-        alphaMaterials.RedstoneRepeaterOn.ID,
+        materials.RedstoneRepeaterOff.ID,
+        materials.RedstoneRepeaterOn.ID,
 
     ]
 
@@ -309,7 +309,7 @@ applyBits48(RedstoneRepeater)
 
 
 class Trapdoor:
-    blocktypes = [alphaMaterials.Trapdoor.ID]
+    blocktypes = [materials.Trapdoor.ID]
 
     West = 0
     East = 1
@@ -322,7 +322,7 @@ applyOpenedBit(Trapdoor)
 
 
 class PistonBody:
-    blocktypes = [alphaMaterials.StickyPiston.ID, alphaMaterials.Piston.ID]
+    blocktypes = [materials.StickyPiston.ID, materials.Piston.ID]
 
     Down = 0
     Up = 1
@@ -336,7 +336,7 @@ applyPistonBit = applyBit8
 applyPistonBit(PistonBody)
 
 class PistonHead(PistonBody):
-    blocktypes = [alphaMaterials.PistonHead.ID]
+    blocktypes = [materials.PistonHead.ID]
 rotationClasses.append(PistonHead)
 
 

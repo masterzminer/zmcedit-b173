@@ -379,7 +379,7 @@ def GeneratorPanel():
     def generate(level, arg):
         def _createChunks():
             height = panel.chunkHeight
-            grass = panel.grass and alphaMaterials.Grass.ID or alphaMaterials.Dirt.ID
+            grass = panel.grass and materials.Grass.ID or materials.Dirt.ID
             if isinstance(arg, BoundingBox):
                 chunks = list(arg.chunkPositions)
             else:
@@ -408,10 +408,10 @@ def GeneratorPanel():
                         grassHeight = max(0, height - 1)
 
                         ch.Blocks[:, :, grassHeight] = grass
-                        ch.Blocks[:, :, stoneHeight:grassHeight] = alphaMaterials.Dirt.ID
-                        ch.Blocks[:, :, :stoneHeight] = alphaMaterials.Stone.ID
+                        ch.Blocks[:, :, stoneHeight:grassHeight] = materials.Dirt.ID
+                        ch.Blocks[:, :, :stoneHeight] = materials.Stone.ID
 
-                        ch.Blocks[:, :, 0] = alphaMaterials.Bedrock.ID
+                        ch.Blocks[:, :, 0] = materials.Bedrock.ID
                         ch.SkyLight[:, :, height:] = max_skylight
                         if max_skylight:
                             ch.HeightMap[:] = height

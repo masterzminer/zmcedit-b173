@@ -19,7 +19,7 @@ from pymclevel.box import FloatBox
 import numpy as np
 from pymclevel.mclevelbase import PlayerNotFound
 from pymclevel.infiniteworld import MCBetaLevel
-from pymclevel.materials import alphaMaterials
+from pymclevel.material import materials
 
 from pymclevel.box import BoundingBox
 
@@ -460,11 +460,11 @@ class PlayerSpawnPositionTool(PlayerPositionTool):
         glDisable(GL_DEPTH_TEST)
 
     def drawCage(self, x, y, z):
-        cageTexVerts = MCBetaLevel.materials.blockTextures[52, 0]
+        cageTexVerts = materials.blockTextures[52, 0]
         cageTexVerts = array([((tx, ty), (tx + 16, ty), (tx + 16, ty + 16), (tx, ty + 16)) for (tx, ty) in cageTexVerts], dtype='float32')
         glEnable(GL_ALPHA_TEST)
 
-        drawCube(BoundingBox((x, y, z), (1, 1, 1)), texture=alphaMaterials.terrainTexture, textureVertices=cageTexVerts)
+        drawCube(BoundingBox((x, y, z), (1, 1, 1)), texture=materials.terrainTexture, textureVertices=cageTexVerts)
         glDisable(GL_ALPHA_TEST)
 
     @alertException

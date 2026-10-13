@@ -50,7 +50,7 @@ import sys
 import traceback
 import importlib
 from pymclevel.infiniteworld import MCBetaLevel
-from pymclevel.materials import alphaMaterials
+from pymclevel.material import materials
 
 MCBetaLevel.loadedChunkLimit = 0
 
@@ -411,7 +411,7 @@ class GraphicsPanel(Panel):
         self.shrink_wrap()
 
     def _reloadTextures(self, pack):
-        if hasattr(pymclevel.alphaMaterials, "terrainTexture"):
+        if hasattr(pymclevel.materials, "terrainTexture"):
             self.mcedit.displayContext.loadTextures()
 
 class OptionsPanel(Dialog):
@@ -792,7 +792,7 @@ class MCEdit(GLViewport):
 
         root_widget.add(mcedit)
         root_widget.focus_switch = mcedit
-        if 0 == len(alphaMaterials.yamlDatas):
+        if 0 == len(materials.yamlDatas):
             albow.alert("Failed to load minecraft.yaml. Check the console window for details.")
 
         if mcedit.closeMinecraftWarning:
@@ -923,7 +923,7 @@ class GLDisplayContext(object):
         self.loadTextures()
 
     def getTerrainTexture(self, level):
-        return self.terrainTextures.get(level.materials.name, self.terrainTextures["Alpha"])
+        return self.terrainTextures.get(materials.name, self.terrainTextures["Alpha"])
 
     def loadTextures(self):
         self.terrainTextures = {}
@@ -946,7 +946,7 @@ class GLDisplayContext(object):
             )
 
         textures = (
-            (pymclevel.materials.alphaMaterials, 'terrain.png'),
+            (materials, 'terrain.png'),
         )
 
         for mats, matFile in textures:

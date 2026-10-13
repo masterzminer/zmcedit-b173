@@ -11,6 +11,8 @@ import shlex
 import operator
 import codecs
 
+from pymclevel.material import materials
+
 from math import floor
 try:
     import readline
@@ -209,7 +211,7 @@ class mce(object):
     def readBlockInfo(self, command):
         keyword = command.pop(0)
 
-        matches = self.level.materials.blocksMatching(keyword)
+        matches = materials.blocksMatching(keyword)
         blockInfo = None
 
         if len(matches):
@@ -218,7 +220,7 @@ class mce(object):
 
             #eat up more words that possibly specify a block.  stop eating when 0 matching blocks.
             while len(command):
-                newMatches = self.level.materials.blocksMatching(keyword + " " + command[0])
+                newMatches = materials.blocksMatching(keyword + " " + command[0])
 
                 if len(newMatches) == 1:
                     blockInfo = newMatches[0]
@@ -237,7 +239,7 @@ class mce(object):
                     blockID, data = list(map(int, keyword.split(":")))
                 else:
                     blockID = int(keyword)
-                blockInfo = self.level.materials.blockWithID(blockID, data)
+                blockInfo = materials.blockWithID(blockID, data)
 
             except ValueError:
                 blockInfo = None
@@ -247,7 +249,7 @@ class mce(object):
                 if len(matches):
                     print("Matches: ")
                     for m in matches:
-                        if m == self.level.materials.defaultName: continue
+                        if m == materials.defaultName: continue
                         print("{0:3}:{1:<2} : {2}".format(m.ID, m.blockData, m.name))
                 else:
                     print("No blocks matched.")
@@ -456,22 +458,22 @@ class mce(object):
                 logging.info("Chunk {0}...".format(i))
 
         for blockID in range(256):
-            block = self.level.materials.blockWithID(blockID, 0)
+            block = materials.blockWithID(blockID, 0)
             if block.hasVariants:
                 for data in range(16):
                     i = (data << 8) + blockID
                     if blockCounts[i]:
-                        idstring = "({id}:{data})".format(id=blockID, data=data)
+                        id_string = "({id}:{data})".format(id=blockID, data=data)
 
                         print("{idstring:9} {name:30}: {count:<10}".format(
-                            idstring=idstring, name=self.level.materials.blockWithID(blockID, data).name, count=blockCounts[i]))
+                            idstring=id_string, name=materials.blockWithID(blockID, data).name, count=blockCounts[i]))
 
             else:
                 count = int(sum(blockCounts[(d << 8) + blockID] for d in range(16)))
                 if count:
-                    idstring = "({id})".format(id=blockID)
+                    id_string = "({id})".format(id=blockID)
                     print("{idstring:9} {name:30}: {count:<10}".format(
-                          idstring=idstring, name=self.level.materials.blockWithID(blockID, 0).name, count=count))
+                          idstring=id_string, name=materials.blockWithID(blockID, 0).name, count=count))
 
         print("Size on disk: {0:.3}MB".format(sizeOnDisk / 1048576.0))
         self.level.SizeOnDisk = sizeOnDisk
@@ -1001,12 +1003,12 @@ class mce(object):
         print("Removing grief matter and surface lava above height {0}...".format(box.miny))
 
         self.level.fillBlocks(box,
-                              self.level.materials.Air,
-                              blocksToReplace=[self.level.materials.Bedrock,
-                                self.level.materials.Obsidian,
-                                self.level.materials.Fire,
-                                self.level.materials.LavaActive,
-                                self.level.materials.Lava,
+                              materials.Air,
+                              blocksToReplace=[materials.Bedrock,
+                                materials.Obsidian,
+                                materials.Fire,
+                                materials.LavaActive,
+                                materials.Lava,
                                 ]
                               )
         self.needsSave = True
@@ -1299,15 +1301,13 @@ class mce(object):
                 searchNumber = int(searchName)
             except ValueError:
                 searchNumber = None
-                matches = self.level.materials.blocksMatching(searchName)
+                matches = materials.blocksMatching(searchName)
             else:
-                matches = [b for b in self.level.materials.allBlocks if b.ID == searchNumber]
-#                print "{0:3}: {1}".format(searchNumber, self.level.materials.names[searchNumber])
- #               return
+                matches = [b for b in materials.allBlocks if b.ID == searchNumber]
 
             
         else:
-            matches = self.level.materials.allBlocks
+            matches = materials.allBlocks
 
         print("{id:9} : {name} {aka}".format(id="(ID:data)", name="Block name", aka="[Other names]"))
         for b in sorted(matches):

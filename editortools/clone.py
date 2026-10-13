@@ -979,10 +979,10 @@ class ConstructionTool(CloneTool):
 
     def createTestBoard(self, anyBlock=True):
         if anyBlock:
-            allBlocks = [self.editor.level.materials[a, b] for a in range(256) for b in range(16)]
+            allBlocks = [materials[a, b] for a in range(256) for b in range(16)]
             blockWidth = 64
         else:
-            allBlocks = self.editor.level.materials.allBlocks
+            allBlocks = materials.allBlocks
             blockWidth = 16
         blockCount = len(allBlocks)
 

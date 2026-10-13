@@ -77,7 +77,7 @@ from pymclevel.box import BoundingBox
 from pymclevel.entity import Entity
 from pymclevel.level import MCLevel
 from pymclevel.infiniteworld import MCBetaLevel
-from pymclevel.materials import alphaMaterials
+from pymclevel.material import materials
 import pymclevel.mclevel as mclevel
 
 # Label = GLLabel
@@ -547,7 +547,7 @@ class CameraViewport(GLViewport):
         except pymclevel.ChunkNotPresent:
             return intProjectedPoint, d
 
-        if block == alphaMaterials.SnowLayer.ID:
+        if block == materials.SnowLayer.ID:
             potentialOffsets.append((0, 1, 0))
         else:
             # discard any faces that aren't likely to be exposed
@@ -989,9 +989,9 @@ class CameraViewport(GLViewport):
                     block = self.editor.level.blockAt(*point)
                     if distance2(point, self.cameraPosition) > 4:
                         blockEditors = {
-                            pymclevel.alphaMaterials.MonsterSpawner.ID:   self.editMonsterSpawner,
-                            pymclevel.alphaMaterials.Sign.ID:             self.editSign,
-                            pymclevel.alphaMaterials.WallSign.ID:         self.editSign,
+                            pymclevel.materials.MonsterSpawner.ID:   self.editMonsterSpawner,
+                            pymclevel.materials.Sign.ID:             self.editSign,
+                            pymclevel.materials.WallSign.ID:         self.editSign,
                         }
                         edit = blockEditors.get(block)
                         if edit:
@@ -1732,12 +1732,12 @@ class LevelEditor(GLViewport):
         tileEntitySum = np.sum(list(tileEntityCounts.values()))
         presentTypes = types.nonzero()
 
-        unsorted = [(level.materials[t & 0xff, t >> 8], types[t]) for t in presentTypes[0]]
+        unsorted = [(materials[t & 0xff, t >> 8], types[t]) for t in presentTypes[0]]
         blockCounts = sorted(unsorted, key=lambda t: t[1], reverse=True)
 
         counts = []
         c = 0
-        b = level.materials.Air
+        b = materials.Air
         for block, count in blockCounts:
             if b.name != block.name:
                 counts.append((b, c))
@@ -2307,19 +2307,6 @@ class LevelEditor(GLViewport):
     @property
     def blockFaceUnderCursor(self):
         return self.currentViewport.blockFaceUnderCursor
-
-#    @property
-#    def worldTooltipText(self):
-#        try:
-#            if self.blockFaceUnderCursor:
-#                pos = self.blockFaceUnderCursor[0]
-#                blockID = self.level.blockAt(*pos)
-#                blockData = self.level.blockDataAt(*pos)
-#
-#                return "{name} ({bid})\n{pos}".format(name=self.level.materials.names[blockID][blockData], bid=blockID,pos=pos)
-#
-#        except Exception, e:
-#            return None
 #
 
     def generateStars(self):
@@ -3126,7 +3113,7 @@ class LevelEditor(GLViewport):
                     bdata = self.level.blockDataAt(*blockPosition)
                     blockID = self.level.blockAt(*blockPosition)
                     self.inspectionString += "ID: %d:%d (%s), " % (
-                        blockID, bdata, self.level.materials.names[blockID][bdata])
+                        blockID, bdata, materials.names[blockID][bdata])
 
                     try:
                         path = self.level.chunkFilenameAt(*blockPosition)
@@ -3161,7 +3148,7 @@ class LevelEditor(GLViewport):
                 else:  # classic
                     blockID = self.level.blockAt(*blockPosition)
                     self.inspectionString += "ID: %d (%s), " % (
-                        blockID, self.level.materials.names[blockID][0])
+                        blockID, materials.names[blockID][0])
 
         except Exception as e:
             self.inspectionString += "Chunk {0} had an error: {1!r}".format((int(np.floor(blockPosition[0])) >> 4, int(np.floor(blockPosition[2])) >> 4), e)

@@ -42,6 +42,7 @@ import numpy as np
 from OpenGL import GLU
 
 from pymclevel.box import BoundingBox
+from pymclevel.material import materials
 
 class NudgeButton(GLBackground):
     """ A button that captures movement keys while pressed and sends them to a listener as nudge events.
@@ -206,9 +207,8 @@ class ThumbView(GLPerspective):
 class BlockThumbView(Widget):
     is_gl_container = True
 
-    def __init__(self, materials, blockInfo=None, **kw):
+    def __init__(self, blockInfo=None, **kw):
         Widget.__init__(self, **kw)
-        self.materials = materials
         self.blockInfo = blockInfo
 
     thumb = None
@@ -241,11 +241,10 @@ class BlockThumbView(Widget):
 
 
 class BlockView(GLOrtho):
-    def __init__(self, materials, blockInfo=None):
+    def __init__(self, blockInfo=None):
         GLOrtho.__init__(self)
         self.list = DisplayList(self._gl_draw)
         self.blockInfo = blockInfo or materials.Air
-        self.materials = materials
 
     listBlockInfo = None
 
@@ -264,13 +263,13 @@ class BlockView(GLOrtho):
         glColor(1.0, 1.0, 1.0, 1.0)
         glEnable(GL_TEXTURE_2D)
         glEnable(GL_ALPHA_TEST)
-        self.materials.terrainTexture.bind()
+        materials.terrainTexture.bind()
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
         glVertexPointer(2, GL_FLOAT, 0, array([-1, -1,
                                  - 1, 1,
                                  1, 1,
                                  1, -1, ], dtype='float32'))
-        texOrigin = self.materials.blockTextures[blockInfo.ID, blockInfo.blockData, 0]
+        texOrigin = materials.blockTextures[blockInfo.ID, blockInfo.blockData, 0]
 
         tx = float(texOrigin[0])
         ty = float(texOrigin[1])
@@ -299,7 +298,7 @@ class BlockView(GLOrtho):
 class BlockButton(ButtonBase, Panel):
     _ref = None
 
-    def __init__(self, materials, blockInfo=None, ref=None, recentBlocks=None, *a, **kw):
+    def __init__(self, blockInfo=None, ref=None, recentBlocks=None, *a, **kw):
         self.allowWildcards = False
         Panel.__init__(self, *a, **kw)
 
@@ -314,20 +313,13 @@ class BlockButton(ButtonBase, Panel):
         else:
             self.recentBlocks = []
 
-        self.blockView = BlockThumbView(materials, blockInfo, size=(48, 48))
+        self.blockView = BlockThumbView(blockInfo, size=(48, 48))
         self.blockLabel = ValueDisplay(ref=AttrRef(self, 'labelText'), width=180, align="l")
         row = Row((self.blockView, self.blockLabel), align="b")
 
-        # col = Column( (self.blockButton, self.blockNameLabel) )
         self.add(row)
         self.shrink_wrap()
 
-        # self.blockLabel.bottom = self.blockButton.bottom
-        # self.blockLabel.centerx = self.blockButton.centerx
-
-        # self.add(self.blockLabel)
-
-        self.materials = materials
         self.blockInfo = blockInfo
         # self._ref = ref
         self.updateRecentBlockView()
@@ -365,7 +357,7 @@ class BlockButton(ButtonBase, Panel):
 
     def createRecentBlockView(self):
         def makeBlockView(bi):
-            bv = BlockView(self.materials, bi)
+            bv = BlockView(bi)
             bv.size = (16, 16)
 
             def action(evt):
@@ -399,17 +391,17 @@ class BlockButton(ButtonBase, Panel):
         return "{0}".format(self.blockInfo.name)
 
     def action(self):
-        blockPicker = BlockPicker(self.blockInfo, self.materials, allowWildcards=self.allowWildcards)
+        blockPicker = BlockPicker(self.blockInfo, allowWildcards=self.allowWildcards)
         if blockPicker.present():
             self.blockInfo = blockPicker.blockInfo
 
 
 def anySubtype(self):
-    bl = materials.Block(self.materials, self.ID, self.blockData)
+    bl = material.Block(materials, self.ID, self.blockData)
     bl.wildcard = True
     return bl
 
-from pymclevel.materials import Block
+from pymclevel.material import Block
 
 Block.anySubtype = anySubtype
 Block.wildcard = False  # True if
@@ -418,12 +410,11 @@ Block.wildcard = False  # True if
 class BlockPicker(Dialog):
     is_gl_container = True
 
-    def __init__(self, blockInfo, materials, *a, **kw):
+    def __init__(self, blockInfo, *a, **kw):
         self.allowWildcards = False
         Dialog.__init__(self, *a, **kw)
         panelWidth = 350
 
-        self.materials = materials
         self.anySubtype = blockInfo.wildcard
 
         self.matchingBlocks = materials.allBlocks
@@ -461,45 +452,43 @@ class BlockPicker(Dialog):
 
             return r
 
-        tableview = TableView(columns=[TableColumn(" ", 24, "l", lambda x: ""), TableColumn("(ID) Name [Aliases]", 276, "l", formatBlockName)])
-        tableicons = [BlockView(materials) for i in range(tableview.rows.num_rows())]
-        for t in tableicons:
+        table_view = TableView(columns=[TableColumn(" ", 24, "l", lambda x: ""), TableColumn("(ID) Name [Aliases]", 276, "l", formatBlockName)])
+        table_icons = [BlockView() for i in range(table_view.rows.num_rows())]
+        for t in table_icons:
             t.size = (16, 16)
             t.margin = 0
-        icons = Column(tableicons, spacing=2)
+        icons = Column(table_icons, spacing=2)
 
-        # tableview.margin = 5
-        tableview.num_rows = lambda: len(self.matchingBlocks)
-        tableview.row_data = lambda x: (self.matchingBlocks[x], x, x)
-        tableview.row_is_selected = lambda x: x == self.selectedBlockIndex
-        tableview.click_row = self.selectTableRow
-        draw_table_cell = tableview.draw_table_cell
+        table_view.num_rows = lambda: len(self.matchingBlocks)
+        table_view.row_data = lambda x: (self.matchingBlocks[x], x, x)
+        table_view.row_is_selected = lambda x: x == self.selectedBlockIndex
+        table_view.click_row = self.selectTableRow
+        draw_table_cell = table_view.draw_table_cell
 
         def draw_block_table_cell(surf, i, data, cell_rect, column):
             if isinstance(data, Block):
 
-                tableicons[int(i - tableview.rows.scroll)].blockInfo = data
+                table_icons[int(i - table_view.rows.scroll)].blockInfo = data
             else:
                 draw_table_cell(surf, i, data, cell_rect, column)
 
-        tableview.draw_table_cell = draw_block_table_cell
-        tableview.width = panelWidth
-        tableview.anchor = "lrbt"
-        # self.add(tableview)
-        self.tableview = tableview
+        table_view.draw_table_cell = draw_block_table_cell
+        table_view.width = panelWidth
+        table_view.anchor = "lrbt"
+        self.tableview = table_view
         tableWidget = Widget()
-        tableWidget.add(tableview)
+        tableWidget.add(table_view)
         tableWidget.shrink_wrap()
 
         def wdraw(*args):
-            for t in tableicons:
+            for t in table_icons:
                 t.blockInfo = materials.Air
 
         tableWidget.draw = wdraw
-        self.blockButton = blockView = BlockThumbView(materials, self.blockInfo)
+        self.blockButton = blockView = BlockThumbView(self.blockInfo)
 
         blockView.centerx = self.centerx
-        blockView.top = tableview.bottom
+        blockView.top = table_view.bottom
 
         # self.add(blockview)
 
@@ -548,7 +537,7 @@ class BlockPicker(Dialog):
                 return bl
 
         else:
-            return self.materials.Air
+            return materials.Air
 
     def selectTableRow(self, i, e):
         oldIndex = self.selectedBlockIndex
@@ -569,7 +558,7 @@ class BlockPicker(Dialog):
             else:
                 blockID = int(text) & 0xff
 
-            block = self.materials.blockWithID(blockID, blockData)
+            block = materials.blockWithID(blockID, blockData)
 
             self.matchingBlocks = [block]
             self.selectedBlockIndex = 0
@@ -582,18 +571,18 @@ class BlockPicker(Dialog):
         except Exception as e:
             print(repr(e))
 
-        blocks = self.materials.allBlocks
+        blocks = materials.allBlocks
 
         matches = blocks
-        oldBlock = self.materials.Air
+        oldBlock = materials.Air
         if len(self.matchingBlocks):
             oldBlock = self.matchingBlocks[self.selectedBlockIndex]
 
         if len(text):
-            matches = self.materials.blocksMatching(text)
+            matches = materials.blocksMatching(text)
             if blockData:
                 ids = set(b.ID for b in matches)
-                matches = sorted([self.materials.blockWithID(id, blockData) for id in ids])
+                matches = sorted([materials.blockWithID(id, blockData) for id in ids])
 
             self.matchingBlocks = matches
         else:

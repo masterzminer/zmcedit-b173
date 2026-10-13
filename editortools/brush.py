@@ -21,7 +21,7 @@ import tempfile
 from .toolbasics import *
 from functools import reduce
 import numpy as np
-from pymclevel.materials import alphaMaterials
+from pymclevel.material import materials
 from config import LastDir
 
 from pymclevel.box import BoundingBox
@@ -189,7 +189,7 @@ class Modes:
                     print("Wildcard replace")
                     blocksToReplace = []
                     for i in range(16):
-                        blocksToReplace.append(op.editor.level.materials.blockWithID(op.blockInfo.ID, i))
+                        blocksToReplace.append(materials.blockWithID(op.blockInfo.ID, i))
                 else:
                     blocksToReplace = [op.blockInfo]
 
@@ -592,16 +592,12 @@ class BrushPanel(Panel):
 
         self.hollowRow = Row((hollowCheckBox, hollowLabel))
 
-        self.blockButton = blockButton = BlockButton(
-            tool.editor.level.materials,
+        self.blockButton = BlockButton(
             ref=AttrRef(tool, 'blockInfo'),
             recentBlocks=tool.recentFillBlocks,
             allowWildcards=(tool.brushMode.name == "Replace"))
 
-        # col = [modeStyleGrid, hollowRow, noiseInput, shapeRows, blockButton]
-
-        self.replaceBlockButton = replaceBlockButton = BlockButton(
-            tool.editor.level.materials,
+        self.replaceBlockButton = BlockButton(
             ref=AttrRef(tool, 'replaceBlockInfo'),
             recentBlocks=tool.recentReplaceBlocks)
 
@@ -750,7 +746,7 @@ class BrushTool(CloneTool):
 
     chooseBlockImmediately = BrushSettings.chooseBlockImmediately.configProperty()
 
-    _blockInfo = alphaMaterials.Stone
+    _blockInfo = materials.Stone
 
     @property
     def blockInfo(self):
@@ -761,7 +757,7 @@ class BrushTool(CloneTool):
         self._blockInfo = bi
         self.setupPreview()
 
-    _replaceBlockInfo = alphaMaterials.Stone
+    _replaceBlockInfo = materials.Stone
 
     @property
     def replaceBlockInfo(self):
@@ -822,8 +818,8 @@ class BrushTool(CloneTool):
                     return
                 pos = self.editor.blockFaceUnderCursor[0]
                 blockID = self.editor.level.blockAt(*pos)
-                blockdata = self.editor.level.blockDataAt(*pos)
-                return "Click to use {0} ({1}:{2})".format(self.editor.level.materials.names[blockID][blockdata], blockID, blockdata)
+                block_data = self.editor.level.blockDataAt(*pos)
+                return "Click to use {0} ({1}:{2})".format(materials.names[blockID][block_data], blockID, block_data)
 
             except Exception as e:
                 return repr(e)
@@ -834,8 +830,8 @@ class BrushTool(CloneTool):
                     return
                 pos = self.editor.blockFaceUnderCursor[0]
                 blockID = self.editor.level.blockAt(*pos)
-                blockdata = self.editor.level.blockDataAt(*pos)
-                return "Click to replace {0} ({1}:{2})".format(self.editor.level.materials.names[blockID][blockdata], blockID, blockdata)
+                block_data = self.editor.level.blockDataAt(*pos)
+                return "Click to replace {0} ({1}:{2})".format(materials.names[blockID][block_data], blockID, block_data)
 
             except Exception as e:
                 return repr(e)
@@ -875,9 +871,9 @@ class BrushTool(CloneTool):
             id = self.editor.level.blockAt(*pos)
             data = self.editor.level.blockDataAt(*pos)
             if self.brushMode.name == "Replace":
-                self.panel.replaceBlockButton.blockInfo = self.editor.level.materials.blockWithID(id, data)
+                self.panel.replaceBlockButton.blockInfo = materials.blockWithID(id, data)
             else:
-                self.panel.blockButton.blockInfo = self.editor.level.materials.blockWithID(id, data)
+                self.panel.blockButton.blockInfo = materials.blockWithID(id, data)
 
             return
 
@@ -998,15 +994,14 @@ class BrushTool(CloneTool):
 
         class FakeLevel(MCLevel):
             filename = "Fake Level"
-            materials = self.editor.level.materials
 
             def __init__(self):
                 self.chunkCache = {}
 
             Width, Height, Length = brushSize
 
-            zerolight = np.zeros((16, 16, Height), dtype='uint8')
-            zerolight[:] = 15
+            zero_light = np.zeros((16, 16, Height), dtype='uint8')
+            zero_light[:] = 15
 
             def getChunk(self, cx, cz):
                 if (cx, cz) in self.chunkCache:
@@ -1025,8 +1020,8 @@ class BrushTool(CloneTool):
                 mask = BrushOperation.createBrushMask(brushSize, brushStyle, (0, 0, 0), BoundingBox((cx << 4, 0, cz << 4), (16, self.Height, 16)))
                 f.Blocks = np.zeros(mask.shape, dtype='uint8')
                 f.Data = np.zeros(mask.shape, dtype='uint8')
-                f.BlockLight = self.zerolight
-                f.SkyLight = self.zerolight
+                f.BlockLight = self.zero_light
+                f.SkyLight = self.zero_light
 
                 if blockInfo.ID:
                     f.Blocks[mask] = blockInfo.ID
@@ -1051,7 +1046,6 @@ class BrushTool(CloneTool):
         if self.chooseBlockImmediately:
             blockPicker = BlockPicker(
                 self.blockInfo,
-                self.editor.level.materials,
                 allowWildcards=self.brushMode.name == "Replace")
 
             if blockPicker.present():

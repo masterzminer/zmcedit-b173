@@ -11,25 +11,19 @@ import numpy as np
 from io import BytesIO
 from pymclevel import blockrotation
 from pymclevel.box import BoundingBox
-from pymclevel.materials import alphaMaterials
+from pymclevel.material import materials
 from pymclevel import nbt
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
 
-#schematic
-Materials = 'Materials'
-
 __all__ = ['MCSchematic', 'INVEditChest']
 class MCSchematic (EntityLevel):
-    materials = alphaMaterials
     def __init__(self, shape=None, root_tag=None, filename=None):
         """ shape is (x,y,z) for a new level's shape.  if none, takes
         root_tag as a TAG_Compound for an existing schematic file.  if
         none, tries to read the tag from filename.  if none, results
-        are undefined. materials can be a MCMaterials instance, or one of 
-        "Alpha", to indicate allowable blocks. The default
-        is Alpha.
+        are undefined
 
         block coordinate order in the file is y,z,x to use the same code as classic levels.  
         in hindsight, this was a completely arbitrary decision.
@@ -49,12 +43,8 @@ class MCSchematic (EntityLevel):
         else:
             self.filename = None
 
-        self.materials = alphaMaterials
-
         if root_tag:
             self.root_tag = root_tag
-            if Materials not in root_tag:
-                root_tag[Materials] = TAG_String(self.materials.name)
             self.shapeChunkData()
 
         else:
@@ -66,7 +56,6 @@ class MCSchematic (EntityLevel):
 
             root_tag[Entities] = TAG_List()
             root_tag[TileEntities] = TAG_List()
-            root_tag["Materials"] = TAG_String(self.materials.name)
 
             root_tag[Blocks] = TAG_Byte_Array(np.zeros((shape[1], shape[2], shape[0]), np.uint8))
             root_tag[Data] = TAG_Byte_Array(np.zeros((shape[1], shape[2], shape[0]), np.uint8))
@@ -77,7 +66,7 @@ class MCSchematic (EntityLevel):
 
 
     def __str__(self):
-        return "MCSchematic(shape={0}, materials={2}, filename=\"{1}\")".format(self.size, self.filename or u"", self.Materials)
+        return f"MCSchematic(shape={self.size}, filename=\"{self.filename or ""}\")"
 
     def compress(self):
         #if self.root_tag is not None, then our compressed data must be stale and we need to recompress.
@@ -165,8 +154,8 @@ class MCSchematic (EntityLevel):
     @Data.setter
     @decompress_first
     @unpack_first
-    def Data(self, newval):
-        self.root_tag[Data].value = newval
+    def Data(self, new_val):
+        self.root_tag[Data].value = new_val
 
     @property
     @decompress_first
@@ -177,18 +166,6 @@ class MCSchematic (EntityLevel):
     @decompress_first
     def TileEntities(self):
         return self.root_tag[TileEntities]
-
-    @property
-    @decompress_first
-    def Materials(self):
-        return self.root_tag[Materials].value
-
-    @Materials.setter
-    @decompress_first
-    def Materials(self, val):
-        if not Materials in self.root_tag:
-            self.root_tag[Materials] = TAG_String()
-        self.root_tag[Materials].value = val
 
     @classmethod
     def _isTagLevel(cls, root_tag):
@@ -346,8 +323,6 @@ class MCSchematic (EntityLevel):
             print("Attempted to save an unnamed schematic in place")
             return
 
-        self.Materials = self.materials.name
-
         self.compress()
 
         with open(filename, 'wb') as chunk_fh:
@@ -390,10 +365,9 @@ class INVEditChest(MCSchematic):
     Width = 1
     Height = 1
     Length = 1
-    Blocks = np.array([[[alphaMaterials.Chest.ID]]], 'uint8')
+    Blocks = np.array([[[materials.Chest.ID]]], 'uint8')
     Data = np.array([[[0]]], 'uint8')
     Entities = TAG_List()
-    Materials = alphaMaterials
 
     @classmethod
     def _isTagLevel(cls, root_tag):
@@ -523,7 +497,6 @@ def extractZipSchematicFromIter(sourceLevel, box, zipfilename=None, entities=Tru
     try:
         done = False
         tempSchematic = MCBetaLevel(tempfolder, create=True)
-        tempSchematic.materials = sourceLevel.materials
     
         destBox = BoundingBox(destPoint, sourceBox.size)
 
@@ -537,7 +510,6 @@ def extractZipSchematicFromIter(sourceLevel, box, zipfilename=None, entities=Tru
         schematicDat["Width"] = TAG_Int(sourceBox.size[0])
         schematicDat["Height"] = TAG_Int(sourceBox.size[1])
         schematicDat["Length"] = TAG_Int(sourceBox.size[2])
-        schematicDat["Materials"] = TAG_String(tempSchematic.materials.name)
         schematicDat.save(os.path.join(tempfolder, "schematic.dat"))
     
         zipdir(tempfolder, zipfilename)

@@ -7,29 +7,28 @@ http://www.minecraftforum.net/topic/13807-mcedit-minecraft-world-editor-compatib
 
 import numpy as np
 import itertools
-from pymclevel import alphaMaterials
-am = alphaMaterials
+from pymclevel.material import materials
 
 # Consider below materials when determining terrain height
 blocks = [
-  am.Stone,
-  am.Grass,
-  am.Dirt,
-  am.Bedrock,
-  am.Sand,
-  am.Sandstone,
-  am.Clay,
-  am.Gravel,
-  am.GoldOre,
-  am.IronOre,
-  am.CoalOre,
-  am.LapisLazuliOre,
-  am.DiamondOre,
-  am.RedstoneOre,
-  am.RedstoneOreGlowing,
-  am.Netherrack,
-  am.SoulSand,
-  am.Glowstone
+  materials.Stone,
+  materials.Grass,
+  materials.Dirt,
+  materials.Bedrock,
+  materials.Sand,
+  materials.Sandstone,
+  materials.Clay,
+  materials.Gravel,
+  materials.GoldOre,
+  materials.IronOre,
+  materials.CoalOre,
+  materials.LapisLazuliOre,
+  materials.DiamondOre,
+  materials.RedstoneOre,
+  materials.RedstoneOreGlowing,
+  materials.Netherrack,
+  materials.SoulSand,
+  materials.Glowstone
 ]
 terrainBlockTypes = [b.ID for b in blocks]
 terrainBlockMask = np.zeros((256,), dtype='bool')
@@ -232,9 +231,9 @@ def perform(level, box, options):
 
         water_depth = 0
         # Detect Water on top
-        if column[oh + 1:oh + 2] == am.Water.ID or column[oh + 1:oh + 2] == am.Ice.ID:
+        if column[oh + 1:oh + 2] == materials.Water.ID or column[oh + 1:oh + 2] == materials.Ice.ID:
             for cur_pos in range(oh + 1, schema.Height):
-                if column[cur_pos:cur_pos + 1] != am.Water.ID and column[cur_pos:cur_pos + 1] != am.Ice.ID: break
+                if column[cur_pos:cur_pos + 1] != materials.Water.ID and column[cur_pos:cur_pos + 1] != materials.Ice.ID: break
                 water_depth = water_depth + 1
 
         if delta == 0:
@@ -243,34 +242,34 @@ def perform(level, box, options):
         if delta < 0:
             # Moving column down
             column[keep:delta] = schema.Blocks[x, z, keep - delta:]
-            column[delta:] = am.Air.ID
+            column[delta:] = materials.Air.ID
             if water_depth > 0:
                 # Avoid steeping small lakes, etc on cliff top
                 # replace with dirt 'n grass
-                column[nh:nh + 1] = am.Grass.ID
-                column[nh + 1:nh + 1 + delta] = am.Air.ID
+                column[nh:nh + 1] = materials.Grass.ID
+                column[nh + 1:nh + 1 + delta] = materials.Air.ID
         if delta > 0:
             # Moving column up
             column[keep + delta:] = schema.Blocks[x, z, keep:-delta]
             # Put stone in gap at the bottom
-            column[keep:keep + delta] = am.Stone.ID
+            column[keep:keep + delta] = materials.Stone.ID
 
             if water_depth > 0:
                 if water_depth > delta:
                     # Retain Ice
-                    if column[nh + water_depth:nh + water_depth + 1] == am.Ice.ID:
+                    if column[nh + water_depth:nh + water_depth + 1] == materials.Ice.ID:
                         column[nh + water_depth - delta:nh + 1 + water_depth - delta] = \
-                            am.Ice.ID
-                    column[nh + 1 + water_depth - delta:nh + 1 + water_depth] = am.Air.ID
+                            materials.Ice.ID
+                    column[nh + 1 + water_depth - delta:nh + 1 + water_depth] = materials.Air.ID
                 else:
                     if water_depth < delta - 2:
-                        column[nh:nh + 1] = am.Grass.ID
-                        column[nh + 1:nh + 1 + water_depth] = am.Air.ID
+                        column[nh:nh + 1] = materials.Grass.ID
+                        column[nh + 1:nh + 1 + water_depth] = materials.Air.ID
                     else:
                         # Beach at the edge
-                        column[nh - 4:nh - 2] = am.Sandstone.ID
-                        column[nh - 2:nh + 1] = am.Sand.ID
-                        column[nh + 1:nh + 1 + water_depth] = am.Air.ID
+                        column[nh - 4:nh - 2] = materials.Sandstone.ID
+                        column[nh - 2:nh + 1] = materials.Sand.ID
+                        column[nh + 1:nh + 1 + water_depth] = materials.Air.ID
 
         schema.Blocks[x, z] = column
 

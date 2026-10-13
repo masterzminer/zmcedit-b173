@@ -17,7 +17,7 @@ import itertools
 from pymclevel.box import BoundingBox
 from pymclevel import nbt
 from pymclevel import blockrotation
-from pymclevel.materials import alphaMaterials
+from pymclevel.material import materials
 
 import traceback
 log = logging.getLogger(__name__)
@@ -148,10 +148,6 @@ class MCChunk(LightedChunk):
             if not world.containsChunk(*chunkPosition):
                 raise ChunkNotPresent("Chunk {0} not found", self.chunkPosition)
 
-    @property
-    def materials(self):
-        return self.world.materials
-
     @classmethod
     def compressTagGzip(cls, root_tag):
         buf = BytesIO()
@@ -201,19 +197,19 @@ class MCChunk(LightedChunk):
 
     def sanitizeBlocks(self):
         #change grass to dirt where needed so Minecraft doesn't flip out and die
-        grass = self.Blocks == self.materials.Grass.ID
-        grass |= self.Blocks == self.materials.Dirt.ID
-        badgrass = grass[:, :, 1:] & grass[:, :, :-1]
+        grass = self.Blocks == materials.Grass.ID
+        grass |= self.Blocks == materials.Dirt.ID
+        bad_grass = grass[:, :, 1:] & grass[:, :, :-1]
 
-        self.Blocks[:, :, :-1][badgrass] = self.materials.Dirt.ID
+        self.Blocks[:, :, :-1][bad_grass] = materials.Dirt.ID
 
         #remove any thin snow layers immediately above other thin snow layers.
         #minecraft doesn't flip out, but it's almost never intended
-        if hasattr(self.materials, "SnowLayer"):
-            snowlayer = self.Blocks == self.materials.SnowLayer.ID
-            badsnow = snowlayer[:, :, 1:] & snowlayer[:, :, :-1]
+        if hasattr(materials, "SnowLayer"):
+            snow_layer = self.Blocks == materials.SnowLayer.ID
+            bad_snow = snow_layer[:, :, 1:] & snow_layer[:, :, :-1]
 
-            self.Blocks[:, :, 1:][badsnow] = self.materials.Air.ID
+            self.Blocks[:, :, 1:][bad_snow] = materials.Air.ID
 
 
     def compress(self):
@@ -368,7 +364,7 @@ class MCChunk(LightedChunk):
         if self.world.dimNo == DIM_NETHER:
             self.HeightMap[:] = 0
         else:
-            computeChunkHeightMap(self.materials, self.Blocks, self.HeightMap)
+            computeChunkHeightMap(self.Blocks, self.HeightMap)
 
     def unpackChunkData(self):
         if not self.dataIsPacked: return
@@ -1213,14 +1209,14 @@ class ChunkedLevelMixin(object):
             blocktable = self.blockReplaceTable(blocksToReplace)
             shouldRetainData = all([blockrotation.SameRotationType(blockInfo, b) for b in blocksToReplace])
         
-            newAbsorption = self.materials.lightAbsorption[blockInfo.ID]
-            oldAbsorptions = [self.materials.lightAbsorption[b.ID] for b in blocksToReplace]
+            newAbsorption = materials.lightAbsorption[blockInfo.ID]
+            oldAbsorptions = [materials.lightAbsorption[b.ID] for b in blocksToReplace]
             changesLighting = False
             for a in oldAbsorptions:
                 if a != newAbsorption: changesLighting = True;
 
-            newEmission = self.materials.lightEmission[blockInfo.ID]
-            oldEmissions = [self.materials.lightEmission[b.ID] for b in blocksToReplace]
+            newEmission = materials.lightEmission[blockInfo.ID]
+            oldEmissions = [materials.lightEmission[b.ID] for b in blocksToReplace]
             for a in oldEmissions:
                 if a != newEmission: changesLighting = True;
 
@@ -1365,7 +1361,7 @@ class ChunkedLevelMixin(object):
 
     def _generateLightsIter(self, dirtyChunks):
         conserveMemory = False
-        la = np.array(self.materials.lightAbsorption)
+        la = np.array(materials.lightAbsorption)
         np.clip(la, 1, 15, la)
         
         dirtyChunks = set(dirtyChunks)
@@ -1402,7 +1398,7 @@ class ChunkedLevelMixin(object):
         workTotal += len(dirtyChunks) * 28
         
         for i, chunk in enumerate(dirtyChunks):
-            chunk.BlockLight[:] = self.materials.lightEmission[chunk.Blocks]
+            chunk.BlockLight[:] = materials.lightEmission[chunk.Blocks]
             chunk.dirty = True
             if conserveMemory:
                 chunk.compress()
@@ -1650,7 +1646,6 @@ def _dirhash(self):
     return s
     
 class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
-    materials = alphaMaterials
     isInfinite = True
     parentWorld = None
     dimNo = 0
@@ -2558,8 +2553,6 @@ class ZipSchematic (MCBetaLevel):
             self.Width = 0
             self.Height = 128
             self.Length = 0
-        if "Materials" in schematicDat:
-            self.materials = alphaMaterials
 
     def close(self):
         MCBetaLevel.close(self)

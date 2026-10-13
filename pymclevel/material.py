@@ -1,11 +1,8 @@
 
 import numpy as np
 import traceback
-from os.path import exists, join
 from collections import defaultdict
 from pprint import pformat
-
-import sys, os
 
 NOTEX = (0xB0, 0xE0)
 
@@ -37,8 +34,7 @@ class Block(object):
         return np.cmp( key(self), key(other))
         
     hasVariants = False #True if blockData defines additional blocktypes
-    def __init__(self, materials, blockID, blockData=0):
-        self.materials = materials
+    def __init__(self, blockID, blockData=0):
         self.ID = blockID
         self.blockData = blockData
         
@@ -46,9 +42,9 @@ class Block(object):
         if attr in self.__dict__:
             return self.__dict__[attr]
         if attr == "name":
-            r = self.materials.names[self.ID]
+            r = materials.names[self.ID]
         else:
-            r = getattr(self.materials, attr)[self.ID]
+            r = getattr(materials, attr)[self.ID]
         if attr in ("name", "aka", "color", "type"):
             r = r[self.blockData]
         return r
@@ -119,10 +115,10 @@ class MCMaterials(object):
             name matches exactly. If we get a (id, data) pair or an id, return
             that block. for example:
             
-                level.materials[0] #returns Air
-                level.materials["Air"] #also returns Air
-                level.materials["Powered Rail"] #returns Powered Rail
-                level.materials["Lapis Lazuli Block"] #in Classic
+                materials[0] #returns Air
+                materials["Air"] #also returns Air
+                materials["Powered Rail"] #returns Powered Rail
+                materials["Lapis Lazuli Block"] #in Classic
                     
            """
         if isinstance(key, str):
@@ -142,7 +138,7 @@ class MCMaterials(object):
         if (id, data) in self.blocksByID:
             return self.blocksByID[id, data]
         else:
-            bl = Block(self, id, blockData=data)
+            bl = Block(id, blockData=data)
             bl.hasVariants = True
             return bl
     
@@ -150,9 +146,9 @@ class MCMaterials(object):
     
     def addYamlBlocksFromFile(self, filename):
         with open(filename) as f:
-            info(u"Loading block info from %s", f)
-            blockyaml = yaml.safe_load(f)
-            self.addYamlBlocks(blockyaml)
+            info("Loading block info from %s", f)
+            block_yaml = yaml.safe_load(f)
+            self.addYamlBlocks(block_yaml)
             
     def addYamlBlocks(self, blockyaml):
         self.yamlDatas.append(blockyaml)
@@ -252,7 +248,7 @@ class MCMaterials(object):
             self.names[blockID][blockData] = name
             self.type[blockID][blockData] = type
 
-        block = Block(self, blockID, blockData)
+        block = Block(blockID, blockData)
         
         self.allBlocks.append(block)
         self.blocksByType[type].append(block)
@@ -268,9 +264,9 @@ class MCMaterials(object):
            
                 
     
-alphaMaterials = MCMaterials(defaultName="Future Block!")
-alphaMaterials.name = "Alpha"
-alphaMaterials.addYamlBlocksFromFile(directories.ASSETS / "minecraft.yaml")
+materials = MCMaterials(defaultName="Future Block!")
+materials.name = "Alpha"
+materials.addYamlBlocksFromFile(directories.ASSETS / "minecraft.yaml")
 
 
 
@@ -316,7 +312,7 @@ def defineShroomFaces(Shroom, id, name):
             if "east" in loway:
                 tex[FaceXIncreasing] = Shroom
                 
-        alphaMaterials.addBlock(id, blockData = data,
+        materials.addBlock(id, blockData = data,
             name="Huge " + name + " Mushroom (" + way + ")",
             texture=tex,
             )
@@ -327,141 +323,141 @@ defineShroomFaces(Red, 100, "Red")
 
 # --- Static block defs ---
 
-alphaMaterials.Stone = alphaMaterials[1, 0]
-alphaMaterials.Grass = alphaMaterials[2, 0]
-alphaMaterials.Dirt = alphaMaterials[3, 0]
-alphaMaterials.Cobblestone = alphaMaterials[4, 0]
-alphaMaterials.WoodPlanks = alphaMaterials[5, 0]
-alphaMaterials.Sapling = alphaMaterials[6, 0]
-alphaMaterials.SpruceSapling = alphaMaterials[6, 1]
-alphaMaterials.BirchSapling = alphaMaterials[6, 2]
-alphaMaterials.Bedrock = alphaMaterials[7, 0]
-alphaMaterials.WaterActive = alphaMaterials[8, 0]
-alphaMaterials.Water = alphaMaterials[9, 0]
-alphaMaterials.LavaActive = alphaMaterials[10, 0]
-alphaMaterials.Lava = alphaMaterials[11, 0]
-alphaMaterials.Sand = alphaMaterials[12, 0]
-alphaMaterials.Gravel = alphaMaterials[13, 0]
-alphaMaterials.GoldOre = alphaMaterials[14, 0]
-alphaMaterials.IronOre = alphaMaterials[15, 0]
-alphaMaterials.CoalOre = alphaMaterials[16, 0]
-alphaMaterials.Wood = alphaMaterials[17, 0]
-alphaMaterials.Ironwood = alphaMaterials[17, 1]
-alphaMaterials.BirchWood = alphaMaterials[17, 2]
-alphaMaterials.Leaves = alphaMaterials[18, 0]
-alphaMaterials.PineLeaves = alphaMaterials[18, 1]
-alphaMaterials.BirchLeaves = alphaMaterials[18, 2]
-alphaMaterials.LeavesDecaying = alphaMaterials[18, 4]
-alphaMaterials.PineLeavesDecaying = alphaMaterials[18, 5]
-alphaMaterials.BirchLeavesDecaying = alphaMaterials[18, 6]
-alphaMaterials.Sponge = alphaMaterials[19, 0]
-alphaMaterials.Glass = alphaMaterials[20, 0]
+materials.Stone = materials[1, 0]
+materials.Grass = materials[2, 0]
+materials.Dirt = materials[3, 0]
+materials.Cobblestone = materials[4, 0]
+materials.WoodPlanks = materials[5, 0]
+materials.Sapling = materials[6, 0]
+materials.SpruceSapling = materials[6, 1]
+materials.BirchSapling = materials[6, 2]
+materials.Bedrock = materials[7, 0]
+materials.WaterActive = materials[8, 0]
+materials.Water = materials[9, 0]
+materials.LavaActive = materials[10, 0]
+materials.Lava = materials[11, 0]
+materials.Sand = materials[12, 0]
+materials.Gravel = materials[13, 0]
+materials.GoldOre = materials[14, 0]
+materials.IronOre = materials[15, 0]
+materials.CoalOre = materials[16, 0]
+materials.Wood = materials[17, 0]
+materials.Ironwood = materials[17, 1]
+materials.BirchWood = materials[17, 2]
+materials.Leaves = materials[18, 0]
+materials.PineLeaves = materials[18, 1]
+materials.BirchLeaves = materials[18, 2]
+materials.LeavesDecaying = materials[18, 4]
+materials.PineLeavesDecaying = materials[18, 5]
+materials.BirchLeavesDecaying = materials[18, 6]
+materials.Sponge = materials[19, 0]
+materials.Glass = materials[20, 0]
 
-alphaMaterials.LapisLazuliOre = alphaMaterials[21, 0]
-alphaMaterials.LapisLazuliBlock = alphaMaterials[22, 0]
-alphaMaterials.Dispenser = alphaMaterials[23, 0]
-alphaMaterials.Sandstone = alphaMaterials[24, 0]
-alphaMaterials.NoteBlock = alphaMaterials[25, 0]
-alphaMaterials.Bed = alphaMaterials[26, 0]
-alphaMaterials.PoweredRail = alphaMaterials[27, 0]
-alphaMaterials.DetectorRail = alphaMaterials[28, 0]
-alphaMaterials.StickyPiston = alphaMaterials[29, 0]
-alphaMaterials.Web = alphaMaterials[30, 0]
-alphaMaterials.UnusedShrub = alphaMaterials[31, 0]
-alphaMaterials.TallGrass = alphaMaterials[31, 1]
-alphaMaterials.Shrub = alphaMaterials[31, 2]
-alphaMaterials.DesertShrub2 = alphaMaterials[32, 0]
-alphaMaterials.Piston = alphaMaterials[33, 0]
-alphaMaterials.PistonHead = alphaMaterials[34, 0]
-alphaMaterials.WhiteWool = alphaMaterials[35, 0]
-alphaMaterials.OrangeWool = alphaMaterials[35, 1]
-alphaMaterials.MagentaWool = alphaMaterials[35, 2]
-alphaMaterials.LightBlueWool = alphaMaterials[35, 3]
-alphaMaterials.YellowWool = alphaMaterials[35, 4]
-alphaMaterials.LightGreenWool = alphaMaterials[35, 5]
-alphaMaterials.PinkWool = alphaMaterials[35, 6]
-alphaMaterials.GrayWool = alphaMaterials[35, 7]
-alphaMaterials.LightGrayWool = alphaMaterials[35, 8]
-alphaMaterials.CyanWool = alphaMaterials[35, 9]
-alphaMaterials.PurpleWool = alphaMaterials[35, 10]
-alphaMaterials.BlueWool = alphaMaterials[35, 11]
-alphaMaterials.BrownWool = alphaMaterials[35, 12]
-alphaMaterials.DarkGreenWool = alphaMaterials[35, 13]
-alphaMaterials.RedWool = alphaMaterials[35, 14]
-alphaMaterials.BlackWool = alphaMaterials[35, 15]
+materials.LapisLazuliOre = materials[21, 0]
+materials.LapisLazuliBlock = materials[22, 0]
+materials.Dispenser = materials[23, 0]
+materials.Sandstone = materials[24, 0]
+materials.NoteBlock = materials[25, 0]
+materials.Bed = materials[26, 0]
+materials.PoweredRail = materials[27, 0]
+materials.DetectorRail = materials[28, 0]
+materials.StickyPiston = materials[29, 0]
+materials.Web = materials[30, 0]
+materials.UnusedShrub = materials[31, 0]
+materials.TallGrass = materials[31, 1]
+materials.Shrub = materials[31, 2]
+materials.DesertShrub2 = materials[32, 0]
+materials.Piston = materials[33, 0]
+materials.PistonHead = materials[34, 0]
+materials.WhiteWool = materials[35, 0]
+materials.OrangeWool = materials[35, 1]
+materials.MagentaWool = materials[35, 2]
+materials.LightBlueWool = materials[35, 3]
+materials.YellowWool = materials[35, 4]
+materials.LightGreenWool = materials[35, 5]
+materials.PinkWool = materials[35, 6]
+materials.GrayWool = materials[35, 7]
+materials.LightGrayWool = materials[35, 8]
+materials.CyanWool = materials[35, 9]
+materials.PurpleWool = materials[35, 10]
+materials.BlueWool = materials[35, 11]
+materials.BrownWool = materials[35, 12]
+materials.DarkGreenWool = materials[35, 13]
+materials.RedWool = materials[35, 14]
+materials.BlackWool = materials[35, 15]
 
-alphaMaterials.Flower = alphaMaterials[37, 0]
-alphaMaterials.Rose = alphaMaterials[38, 0]
-alphaMaterials.BrownMushroom = alphaMaterials[39, 0]
-alphaMaterials.RedMushroom = alphaMaterials[40, 0]
-alphaMaterials.BlockofGold = alphaMaterials[41, 0]
-alphaMaterials.BlockofIron = alphaMaterials[42, 0]
-alphaMaterials.DoubleStoneSlab = alphaMaterials[43, 0]
-alphaMaterials.DoubleSandstoneSlab = alphaMaterials[43, 1]
-alphaMaterials.DoubleWoodenSlab = alphaMaterials[43, 2]
-alphaMaterials.DoubleCobblestoneSlab = alphaMaterials[43, 3]
-alphaMaterials.DoubleBrickSlab = alphaMaterials[43, 4]
-alphaMaterials.DoubleStoneBrickSlab = alphaMaterials[43, 5]
-alphaMaterials.StoneSlab = alphaMaterials[44, 0]
-alphaMaterials.SandstoneSlab = alphaMaterials[44, 1]
-alphaMaterials.WoodenSlab = alphaMaterials[44, 2]
-alphaMaterials.CobblestoneSlab = alphaMaterials[44, 3]
-alphaMaterials.BrickSlab = alphaMaterials[44, 4]
-alphaMaterials.StoneBrickSlab = alphaMaterials[44, 5]
-alphaMaterials.Brick = alphaMaterials[45, 0]
-alphaMaterials.TNT = alphaMaterials[46, 0]
-alphaMaterials.Bookshelf = alphaMaterials[47, 0]
-alphaMaterials.MossStone = alphaMaterials[48, 0]
-alphaMaterials.Obsidian = alphaMaterials[49, 0]
+materials.Flower = materials[37, 0]
+materials.Rose = materials[38, 0]
+materials.BrownMushroom = materials[39, 0]
+materials.RedMushroom = materials[40, 0]
+materials.BlockofGold = materials[41, 0]
+materials.BlockofIron = materials[42, 0]
+materials.DoubleStoneSlab = materials[43, 0]
+materials.DoubleSandstoneSlab = materials[43, 1]
+materials.DoubleWoodenSlab = materials[43, 2]
+materials.DoubleCobblestoneSlab = materials[43, 3]
+materials.DoubleBrickSlab = materials[43, 4]
+materials.DoubleStoneBrickSlab = materials[43, 5]
+materials.StoneSlab = materials[44, 0]
+materials.SandstoneSlab = materials[44, 1]
+materials.WoodenSlab = materials[44, 2]
+materials.CobblestoneSlab = materials[44, 3]
+materials.BrickSlab = materials[44, 4]
+materials.StoneBrickSlab = materials[44, 5]
+materials.Brick = materials[45, 0]
+materials.TNT = materials[46, 0]
+materials.Bookshelf = materials[47, 0]
+materials.MossStone = materials[48, 0]
+materials.Obsidian = materials[49, 0]
 
-alphaMaterials.Torch = alphaMaterials[50, 0]
-alphaMaterials.Fire = alphaMaterials[51, 0]
-alphaMaterials.MonsterSpawner = alphaMaterials[52, 0]
-alphaMaterials.WoodenStairs = alphaMaterials[53, 0]
-alphaMaterials.Chest = alphaMaterials[54, 0]
-alphaMaterials.RedstoneWire = alphaMaterials[55, 0]
-alphaMaterials.DiamondOre = alphaMaterials[56, 0]
-alphaMaterials.BlockofDiamond = alphaMaterials[57, 0]
-alphaMaterials.CraftingTable = alphaMaterials[58, 0]
-alphaMaterials.Crops = alphaMaterials[59, 0]
-alphaMaterials.Farmland = alphaMaterials[60, 0]
-alphaMaterials.Furnace = alphaMaterials[61, 0]
-alphaMaterials.LitFurnace = alphaMaterials[62, 0]
-alphaMaterials.Sign = alphaMaterials[63, 0]
-alphaMaterials.WoodenDoor = alphaMaterials[64, 0]
-alphaMaterials.Ladder = alphaMaterials[65, 0]
-alphaMaterials.Rail = alphaMaterials[66, 0]
-alphaMaterials.StoneStairs = alphaMaterials[67, 0]
-alphaMaterials.WallSign = alphaMaterials[68, 0]
-alphaMaterials.Lever = alphaMaterials[69, 0]
-alphaMaterials.StoneFloorPlate = alphaMaterials[70, 0]
-alphaMaterials.IronDoor = alphaMaterials[71, 0]
-alphaMaterials.WoodFloorPlate = alphaMaterials[72, 0]
-alphaMaterials.RedstoneOre = alphaMaterials[73, 0]
-alphaMaterials.RedstoneOreGlowing = alphaMaterials[74, 0]
-alphaMaterials.RedstoneTorchOff = alphaMaterials[75, 0]
-alphaMaterials.RedstoneTorchOn = alphaMaterials[76, 0]
-alphaMaterials.Button = alphaMaterials[77, 0]
-alphaMaterials.SnowLayer = alphaMaterials[78, 0]
-alphaMaterials.Ice = alphaMaterials[79, 0]
-alphaMaterials.Snow = alphaMaterials[80, 0]
+materials.Torch = materials[50, 0]
+materials.Fire = materials[51, 0]
+materials.MonsterSpawner = materials[52, 0]
+materials.WoodenStairs = materials[53, 0]
+materials.Chest = materials[54, 0]
+materials.RedstoneWire = materials[55, 0]
+materials.DiamondOre = materials[56, 0]
+materials.BlockofDiamond = materials[57, 0]
+materials.CraftingTable = materials[58, 0]
+materials.Crops = materials[59, 0]
+materials.Farmland = materials[60, 0]
+materials.Furnace = materials[61, 0]
+materials.LitFurnace = materials[62, 0]
+materials.Sign = materials[63, 0]
+materials.WoodenDoor = materials[64, 0]
+materials.Ladder = materials[65, 0]
+materials.Rail = materials[66, 0]
+materials.StoneStairs = materials[67, 0]
+materials.WallSign = materials[68, 0]
+materials.Lever = materials[69, 0]
+materials.StoneFloorPlate = materials[70, 0]
+materials.IronDoor = materials[71, 0]
+materials.WoodFloorPlate = materials[72, 0]
+materials.RedstoneOre = materials[73, 0]
+materials.RedstoneOreGlowing = materials[74, 0]
+materials.RedstoneTorchOff = materials[75, 0]
+materials.RedstoneTorchOn = materials[76, 0]
+materials.Button = materials[77, 0]
+materials.SnowLayer = materials[78, 0]
+materials.Ice = materials[79, 0]
+materials.Snow = materials[80, 0]
 
-alphaMaterials.Cactus = alphaMaterials[81, 0]
-alphaMaterials.Clay = alphaMaterials[82, 0]
-alphaMaterials.SugarCane = alphaMaterials[83, 0]
-alphaMaterials.Jukebox = alphaMaterials[84, 0]
-alphaMaterials.Fence = alphaMaterials[85, 0]
-alphaMaterials.Pumpkin = alphaMaterials[86, 0]
-alphaMaterials.Netherrack = alphaMaterials[87, 0]
-alphaMaterials.SoulSand = alphaMaterials[88, 0]
-alphaMaterials.Glowstone = alphaMaterials[89, 0]
-alphaMaterials.NetherPortal = alphaMaterials[90, 0]
-alphaMaterials.JackOLantern = alphaMaterials[91, 0]
-alphaMaterials.Cake = alphaMaterials[92, 0]
-alphaMaterials.RedstoneRepeaterOff = alphaMaterials[93, 0]
-alphaMaterials.RedstoneRepeaterOn = alphaMaterials[94, 0]
-alphaMaterials.AprilFoolsChest = alphaMaterials[95, 0]
-alphaMaterials.Trapdoor = alphaMaterials[96, 0]
+materials.Cactus = materials[81, 0]
+materials.Clay = materials[82, 0]
+materials.SugarCane = materials[83, 0]
+materials.Jukebox = materials[84, 0]
+materials.Fence = materials[85, 0]
+materials.Pumpkin = materials[86, 0]
+materials.Netherrack = materials[87, 0]
+materials.SoulSand = materials[88, 0]
+materials.Glowstone = materials[89, 0]
+materials.NetherPortal = materials[90, 0]
+materials.JackOLantern = materials[91, 0]
+materials.Cake = materials[92, 0]
+materials.RedstoneRepeaterOff = materials[93, 0]
+materials.RedstoneRepeaterOn = materials[94, 0]
+materials.AprilFoolsChest = materials[95, 0]
+materials.Trapdoor = materials[96, 0]
 
 
 _indices = np.rollaxis(np.indices( (256, 16) ), 0, 3)

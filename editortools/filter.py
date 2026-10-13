@@ -19,6 +19,7 @@ from albow import *
 import importlib
 
 from pymclevel.box import BoundingBox
+from pymclevel.material import materials
 
 def alertFilterException(func):
     def _func(*args, **kw):
@@ -153,9 +154,9 @@ class FilterModuleOptions(Widget):
             elif isinstance(optionType, (int, float)):
                 rows.append(addNumField(self, optionName, optionType))
 
-            elif optionType == "blocktype" or isinstance(optionType, materials.Block):
-                blockButton = BlockButton(tool.editor.level.materials)
-                if isinstance(optionType, materials.Block):
+            elif optionType == "blocktype" or isinstance(optionType, material.Block):
+                blockButton = BlockButton(materials)
+                if isinstance(optionType, material.Block):
                     blockButton.blockInfo = optionType
 
                 row = Column((Label(optionName), blockButton))

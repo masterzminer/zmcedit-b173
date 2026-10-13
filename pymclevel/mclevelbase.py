@@ -9,7 +9,7 @@ from contextlib import contextmanager
 import logging
 
 from .nbt import *
-from .materials import *
+from .material import *
 from .entity import *
 
 from .faces import *
