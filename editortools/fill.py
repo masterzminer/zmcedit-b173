@@ -67,7 +67,7 @@ class FillToolPanel(Panel):
         self.tool = tool
         replacing = tool.replacing
 
-        self.blockButton = BlockButton(materials)
+        self.blockButton = BlockButton()
         self.blockButton.blockInfo = tool.blockInfo
         self.blockButton.action = self.pickFillBlock
 

@@ -20,6 +20,66 @@ import importlib
 
 from pymclevel.box import BoundingBox
 from pymclevel.material import materials
+import arguments
+
+
+def init_filter_dirs():
+    """
+    Find all relevant filter directories
+    """
+    filter_dirs = []
+
+    # Add the base filters directory
+    filter_dirs.append(directories.STOCK_FILTERS)
+
+    # Add the directories from the arguments
+    filter_dirs.extend(arguments.FILTER_DIRS)
+
+    # Add the directory from user configuration
+    user_dir = config.get_user_filters_dir()
+    if user_dir:
+        filter_dirs.append(user_dir)
+
+    return filter_dirs
+
+
+
+def moduleDisplayName(module):
+    return module.displayName if hasattr(module, 'displayName') else module.__name__.capitalize()
+
+ALL_FILTER_MODULES = []
+
+def reload_filters():
+    # Find all filter files
+    all_py_files = []
+    for filters_dir in ALL_FILTER_DIRS:
+        # Add all filter directories to the path
+        if filters_dir not in [s if isinstance(s, str) else s for s in sys.path]:              
+            sys.path.append(str(filters_dir))
+        # Add to the list of all files
+        filter_files = os.listdir(filters_dir)
+        all_py_files.extend([x for x in filter_files if x.endswith(".py")])
+    # Import all filters
+    all_modules = (__import__(m[:-3]) for m in all_py_files)
+    # Only load modules that are valid filters
+    filter_modules = []
+    for m in all_modules:
+        if hasattr(m, "perform"):
+            filter_modules.append(m)
+        else:
+            print(f"Invalid filter: {moduleDisplayName(m)}, missing perform function")
+    # Map all filters by their display name
+    filter_modules = dict((moduleDisplayName(m), m) for m in filter_modules)
+    # Force reload every filter
+    [importlib.reload(m) for m in filter_modules.values()]
+
+    global ALL_FILTER_MODULES
+    ALL_FILTER_MODULES = filter_modules
+
+# Init filter directories and filters
+ALL_FILTER_DIRS = init_filter_dirs()
+reload_filters()
+
 
 def alertFilterException(func):
     def _func(*args, **kw):
@@ -155,7 +215,7 @@ class FilterModuleOptions(Widget):
                 rows.append(addNumField(self, optionName, optionType))
 
             elif optionType == "blocktype" or isinstance(optionType, material.Block):
-                blockButton = BlockButton(materials)
+                blockButton = BlockButton()
                 if isinstance(optionType, material.Block):
                     blockButton.blockInfo = optionType
 
@@ -220,7 +280,7 @@ class FilterToolPanel(Panel):
 
         self.tool = tool
         self.selectedFilterName = None
-        if len(self.tool.filterModules):
+        if len(ALL_FILTER_MODULES):
             self.reload()
 
     def reload(self):
@@ -229,8 +289,9 @@ class FilterToolPanel(Panel):
 
         tool = self.tool
 
-        if len(tool.filterModules) == 0:
+        if len(ALL_FILTER_MODULES) == 0:
             self.add(Label("No filter modules found!"))
+            self.add_centered(self.build_reload_button())
             self.shrink_wrap()
             return
 
@@ -239,13 +300,13 @@ class FilterToolPanel(Panel):
 
         self.filterOptionsPanel = None
         while self.filterOptionsPanel is None:
-            module = self.tool.filterModules[self.selectedFilterName]
+            module = ALL_FILTER_MODULES[self.selectedFilterName]
             try:
                 self.filterOptionsPanel = FilterModuleOptions(self.tool, module)
             except Exception as e:
                 alert("Error creating filter inputs for {0}: {1}".format(module, e))
                 traceback.print_exc()
-                self.tool.filterModules.pop(self.selectedFilterName)
+                ALL_FILTER_MODULES.pop(self.selectedFilterName)
                 self.selectedFilterName = tool.filterNames[0]
 
             if len(tool.filterNames) == 0:
@@ -257,18 +318,32 @@ class FilterToolPanel(Panel):
         self.confirmButton = Button("Filter", action=self.tool.confirm)
 
         filterLabel = Label("Filter:", fg_color=(177, 177, 255, 255))
-        filterLabel.mouse_down = lambda x: mcplatform.platform_open(mcplatform.filtersDir)
-        filterLabel.tooltipText = "Click to open filters folder"
+        # filterLabel.mouse_down = lambda x: mcplatform.platform_open(filtersDir)
+        # filterLabel.tooltipText = "Click to open filters folder"
         filterSelectRow = Row((filterLabel, self.filterSelect))
 
-        self.add(Column((filterSelectRow, self.filterOptionsPanel, self.confirmButton)))
-
+        self.add(Column((
+            # Input rows
+            filterSelectRow, self.filterOptionsPanel, self.confirmButton,
+            # Space and then the reload button
+            Label(""), self.build_reload_button()
+        )))
+                 
         self.shrink_wrap()
         if self.parent:
             self.centery = self.parent.centery
 
         if self.selectedFilterName in self.savedOptions:
             self.filterOptionsPanel.options = self.savedOptions[self.selectedFilterName]
+
+    def build_reload_button(self):
+        reload_filters_button = Button("Reload Filters", action=self.reload_filters_and_ui)
+        reload_filters_button.top = self.bottom
+        return reload_filters_button
+
+    def reload_filters_and_ui(self):
+        reload_filters()
+        self.reload()
 
     def filterChanged(self):
         self.saveOptions()
@@ -317,8 +392,6 @@ class FilterTool(EditorTool):
     def __init__(self, editor):
         EditorTool.__init__(self, editor)
 
-        self.filterModules = {}
-
         self.panel = FilterToolPanel(self)
 
     @property
@@ -336,8 +409,7 @@ class FilterTool(EditorTool):
         if self.panel.parent:
             self.editor.remove(self.panel)
 
-        self.reloadFilters()
-        #self.panel = FilterToolPanel(self)
+        reload_filters()
         self.panel.reload()
 
         self.panel.left = self.editor.left
@@ -350,32 +422,18 @@ class FilterTool(EditorTool):
         if self.panel.parent:
             self.panel.parent.remove(self.panel)
 
-    def reloadFilters(self):
-        filterDir = mcplatform.filtersDir
-        filterFiles = os.listdir(filterDir)
-        filterPyFiles = [x for x in filterFiles if x.endswith(".py")]
-
-        filterModules = (__import__(x[:-3]) for x in filterPyFiles)
-        filterModules = [module for module in filterModules if hasattr(module, "perform")]
-
-        self.filterModules = dict((self.moduleDisplayName(x), x) for x in filterModules)
-        [importlib.reload(m) for m in self.filterModules.values()]
-        filterModules = (__import__(x[:-3]) for x in filterPyFiles)
 
     @property
     def filterNames(self):
-        names = [self.moduleDisplayName(module) for module in self.filterModules.values()]
+        names = [moduleDisplayName(module) for module in ALL_FILTER_MODULES.values()]
         names.sort()
         return names
-
-    def moduleDisplayName(self, module):
-        return module.displayName if hasattr(module, 'displayName') else module.__name__.capitalize()
 
     @alertFilterException
     def confirm(self):
 
         with setWindowCaption("APPLYING FILTER - "):
-            filterModule = self.filterModules[self.panel.filterSelect.selectedChoice]
+            filterModule = ALL_FILTER_MODULES[self.panel.filterSelect.selectedChoice]
 
             op = FilterOperation(self.editor.level, self.selectionBox(), filterModule, self.panel.filterOptionsPanel.options)
 

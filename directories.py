@@ -25,7 +25,7 @@ FROZEN = getattr(sys, "frozen", False)
 ASSETS_NAME = "assets"
 CONFIG_NAME = ".zmcedit-b173"
 STOCK_SCHEMATICS_NAME = "stock-schematics"
-FILTERS_NAME = "filters"
+STOCK_FILTERS_NAME = "filters"
 LOG_NAME = "mcedit.log"
 INI_NAME = "mcedit.ini"
 
@@ -76,14 +76,14 @@ def findDirectories():
 
     stock_schematics = assets / STOCK_SCHEMATICS_NAME
 
-    filters = install_root / FILTERS_NAME
-    os.makedirs(filters, exist_ok=True)
+    stock_filters = install_root / STOCK_FILTERS_NAME
+    os.makedirs(stock_filters, exist_ok=True)
 
-    return install_root, config, assets, stock_schematics, filters
+    return install_root, config, assets, stock_schematics, stock_filters
 
 
 # Absolute paths to files and directories
-INSTALL_ROOT, CONFIG, ASSETS, STOCK_SCHEMATICS, FILTERS = findDirectories()
+INSTALL_ROOT, CONFIG, ASSETS, STOCK_SCHEMATICS, STOCK_FILTERS = findDirectories()
 
 LOG_FILE = CONFIG / LOG_NAME
 INI_FILE = CONFIG / INI_NAME

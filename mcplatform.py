@@ -18,7 +18,6 @@ mcplatform.py
 Platform-specific functions, file io
 """
 
-import directories
 import os
 from os.path import exists
 import sys
@@ -34,7 +33,6 @@ import crossfiledialog
 enc = sys.getfilesystemencoding()
 
 from albow import request_new_filename, request_old_filename
-from pymclevel import items
 
 
 AppKit = None
@@ -156,20 +154,6 @@ def askSaveFile(lastDir: LastDir, title: str, defaultName, filetype: str=None):
 def platform_open(path: Path):
     return os_ops.open_file(path)
 
-
-
-# TODO treat these as "stock" filters
-# TODO allow these filters to be configured as hidden individually per filter
-# TODO make a separate directory where custom filters can be added
-filtersDir = directories.FILTERS
-if filtersDir not in [s
-                      if isinstance(s, str)
-                      else s
-                      for s in sys.path]:
-                          
-    sys.path.append(filtersDir)
-
-items.items = items.Items(directories.ASSETS / "items.txt")
 
 
 class OS():

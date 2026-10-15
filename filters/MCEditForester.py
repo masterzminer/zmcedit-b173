@@ -8,8 +8,8 @@
 
 
 from pymclevel.material import materials
-import Forester
-import mcInterface
+import forester.Forester as Forester
+import forester.mcInterface as mcInterface
 
 displayName = "Forester"
 

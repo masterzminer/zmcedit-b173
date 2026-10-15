@@ -1,8 +1,8 @@
 
 
-from collections import defaultdict
 import logging
 logger = logging.getLogger(__file__)
+import directories
 
 items_txt = """
 :version 27
@@ -434,5 +434,4 @@ class Items (object):
 
 class ItemNotFound(KeyError): pass
 
-items = Items()
-
+items = Items(directories.ASSETS / "items.txt")

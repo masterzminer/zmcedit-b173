@@ -13,6 +13,8 @@ filters
         verify if setting a biome is possible in beta 1.7.3
     topsoil
         figure out overflow error during subtraction
+    Allow a new selection to be made or the existing selection modified with the mouse without changing out of the filters tool
+    Allow stock filters to be hidden
 
 level rendering
     make some way of viewing the current biome of a block
@@ -38,9 +40,18 @@ main menu
 config
     standardize the config strings to constants, maybe replace it with json
 
+add other world generators for making new worlds and generating chunks
 
 
 next:
     Make proper directories for custom filters, and where to load filters from, i.e. not the config directory, probably check multiple places
+        Add ui for choosing a filter directory
+            Add a button for opening the user filter directory
+            Add in main menu, ctrl options menu, and filter tool
+        Add a minimal filters template that can be created as a new filter without having to know the filter format ahead of time
+        Only reload filters when strictly necessary, double check the filter tool doesn't keep reloading them
+        Add docs in readme
 
     fix typing in the search box for brushes selecting a block
+
+    remove all remaining references to post beta 1.7.3 blocks and items

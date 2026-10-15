@@ -160,6 +160,14 @@ def initDefaultLastDirs():
             update_last_dir(d, home)
 
 
+def update_user_filters_dir(filters_dir):
+    config.set("Settings", "user filters", str(filters_dir))
+
+def get_user_filters_dir():
+    if not config.has_option("Settings", "user filters"):
+        return None
+    return Path(config.get("Settings", "user filters"))
+
 def use_classic_mouse():
     if not config.has_option("Settings", "classic mouse"):
         return False

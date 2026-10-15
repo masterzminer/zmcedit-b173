@@ -32,6 +32,13 @@ def init():
         help="Path to custom install directory, used to access assets directory, readme, etc"
     )
 
+    parser.add_argument(
+        "--filters",
+        type=validate_dir,
+        help="Additional path to custom filters",
+        action="append"
+    )
+
     return parser.parse_args();
 
 parsed_args = init()
@@ -42,3 +49,7 @@ CONFIG_OVERRIDE = parsed_args.config
 """Path override for config directory"""
 INSTALLED_OVERRIDE = parsed_args.installed
 """Path override for install directory"""
+FILTER_DIRS = parsed_args.filters or []
+"""Additional paths for custom filters"""
+
+print("filters", FILTER_DIRS)
