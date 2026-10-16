@@ -158,6 +158,18 @@ class ControlPanel(Panel):
 
         self.bg_color = (0, 0, 0, 0.8)
 
+        self.sideColumn = None
+        self.buttons = None
+        self.reset_buttons()
+        
+    def reset_buttons(self):
+        editor = self.editor
+
+        if self.buttons:
+            self.remove(self.buttons)
+        if self.sideColumn:
+            self.remove(self.sideColumn)
+
         header = self.getHeader()
         keysColumn = [Label("")]
         buttonsColumn = [header]
@@ -191,17 +203,17 @@ class ControlPanel(Panel):
 
         buttons = mceutils.HotkeyColumn(hotkeys, keysColumn, buttonsColumn)
 
-        # buttons.buttons[-1].ref =
-
         self.add(buttons)
         buttons.right = self.centerx
         buttons.centery = self.centery
         buttons.anchor = "wh"
+        self.buttons = buttons
 
-        sideColumn = editor.mcedit.makeSideColumn()
+        sideColumn = editor.mcedit.makeSideColumn(self.reset_buttons)
         sideColumn.centery = self.centery
         sideColumn.left = self.centerx
         sideColumn.anchor = "wh"
+        self.sideColumn = sideColumn
 
         self.add(sideColumn)
 

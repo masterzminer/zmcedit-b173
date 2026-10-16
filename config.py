@@ -138,6 +138,7 @@ class LastDir(Enum):
     world = "world"
     data = "data"
     schematic = "schematic"
+    filter = "filters"
 
 LAST_DIR_ALL = list(LastDir)
 

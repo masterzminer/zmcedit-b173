@@ -45,9 +45,6 @@ add other world generators for making new worlds and generating chunks
 
 next:
     Make proper directories for custom filters, and where to load filters from, i.e. not the config directory, probably check multiple places
-        Add ui for choosing a filter directory
-            Add a button for opening the user filter directory
-            Add in main menu, ctrl options menu, and filter tool
         Add a minimal filters template that can be created as a new filter without having to know the filter format ahead of time
         Only reload filters when strictly necessary, double check the filter tool doesn't keep reloading them
         Add docs in readme

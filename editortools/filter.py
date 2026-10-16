@@ -291,7 +291,9 @@ class FilterToolPanel(Panel):
 
         if len(ALL_FILTER_MODULES) == 0:
             self.add(Label("No filter modules found!"))
-            self.add_centered(self.build_reload_button())
+            reload_button = self.build_reload_button()
+            reload_button.top = self.bottom
+            self.add_centered(reload_button)
             self.shrink_wrap()
             return
 
@@ -338,7 +340,6 @@ class FilterToolPanel(Panel):
 
     def build_reload_button(self):
         reload_filters_button = Button("Reload Filters", action=self.reload_filters_and_ui)
-        reload_filters_button.top = self.bottom
         return reload_filters_button
 
     def reload_filters_and_ui(self):

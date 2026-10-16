@@ -51,5 +51,3 @@ INSTALLED_OVERRIDE = parsed_args.installed
 """Path override for install directory"""
 FILTER_DIRS = parsed_args.filters or []
 """Additional paths for custom filters"""
-
-print("filters", FILTER_DIRS)

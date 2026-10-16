@@ -31,6 +31,8 @@ import traceback
 from PIL import Image
 import directories
 from albow import FloatField, IntField, TextField
+import config
+from mcplatform import os_ops, askSaveFolder, LastDir
 
 
 def alertException(func):
@@ -610,6 +612,36 @@ def showProgress(progressText, progressIterator, cancel=False):
     else:
         return "Canceled"
 
+class FilterControls(Column):
+
+    def __init__(self, reload):
+        """
+        reload: function that will be called when this control panel needs to be reloaded
+        """
+        self.reload = reload
+
+        controls = []
+        controls.append(Button("Choose Filters Folder", action=self.choose_filter_folder))
+        if config.get_user_filters_dir():
+            controls.append(Button("Open Filters Folder", action=self.open_filters_folder))
+        Column.__init__(self, controls)
+
+    def choose_filter_folder(self):
+        folder = askSaveFolder(LastDir.filter, title="Choose folder for custom filters")
+        if folder:
+            config.update_user_filters_dir(folder)
+            self.reload()
+
+            # TODO make this properly reload filters and the filter ui list
+            from editortools.filter import reload_filters
+            reload_filters()
+
+    def open_filters_folder(self):
+        os_ops.open_file(config.get_user_filters_dir())
+
+
+
 from glutils import DisplayList
 
 import functools
+

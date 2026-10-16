@@ -51,6 +51,7 @@ import traceback
 import importlib
 from pymclevel.infiniteworld import MCBetaLevel
 from pymclevel.material import materials
+from mceutils import FilterControls
 
 MCBetaLevel.loadedChunkLimit = 0
 
@@ -65,7 +66,10 @@ class FileOpener(albow.Widget):
         albow.Widget.__init__(self, *args, **kwargs)
         self.anchor = 'tlbr'
         self.mcedit = mcedit
+        self.contentRow = None
+        self.reset_content_row()
 
+    def reset_content_row(self):
         helpColumn = []
 
         label = albow.Label("{0} {1} {2} {3} {4} {5}".format(
@@ -97,7 +101,7 @@ class FileOpener(albow.Widget):
         helpColumn.anchor = "whrt"
         self.add(helpColumn)
 
-        infoButtonsColumn = mcedit.makeInfoButtonsColumn()
+        infoButtonsColumn = self.mcedit.makeInfoButtonsColumn()
         infoButtonsColumn.anchor = 'whrb'
         infoButtonsColumn.bottomright = self.bottomright
         self.add(infoButtonsColumn)
@@ -133,13 +137,17 @@ class FileOpener(albow.Widget):
         commandRow = mceutils.HotkeyColumn(hotkeys, keysColumn, buttonsColumn)
         commandRow.anchor = 'lrh'
 
-        sideColumn = mcedit.makeSideColumn()
+        sideColumn = self.mcedit.makeSideColumn(reset_parent=self.reset_content_row)
         sideColumn.anchor = 'wh'
 
-        contentRow = albow.Row((commandRow, sideColumn))
+        if self.contentRow:
+            self.remove(self.contentRow)
+
+        contentRow = albow.Row((commandRow, albow.Label("      "), sideColumn))
         contentRow.center = self.center
         contentRow.anchor = "rh"
         self.add(contentRow)
+        self.contentRow = contentRow
         self.sideColumn = sideColumn
 
     def gl_draw_self(self, root, offset):
@@ -652,23 +660,15 @@ class MCEdit(GLViewport):
         for i, filename in enumerate(worlds):
             config.config.set("Recent Worlds", str(i), filename)
             
-    def makeSideColumn(self):
-        hotkeys = ([
-            ("",
-                "Keys",
-                self.showKeyConfig
-            ),
-            ("",
-                "Graphics",
-                self.showGraphicOptions
-            ),
-            ("",
-                "Options",
-                self.showOptions
-            ),
-        ])
+    def makeSideColumn(self, reset_parent):
+        items = (
+            albow.Button("Keys", action=self.showKeyConfig),
+            albow.Button("Graphics", action=self.showGraphicOptions),
+            albow.Button("Options", action=self.showOptions),
+            FilterControls(reload=reset_parent)
+        )
 
-        return mceutils.HotkeyColumn(hotkeys)
+        return albow.Column(items)
 
     def makeInfoButtonsColumn(self):
         def showLicense():
@@ -696,7 +696,7 @@ class MCEdit(GLViewport):
             albow.Button(
                 "License",
                 showLicense
-            ),
+            )
         ])
 
         return albow.Column(column, align="r")
