@@ -45,7 +45,8 @@ add other world generators for making new worlds and generating chunks
 
 next:
     Make proper directories for custom filters, and where to load filters from, i.e. not the config directory, probably check multiple places
-        Add a minimal filters template that can be created as a new filter without having to know the filter format ahead of time
+        Add a button to open a readme for how to use filters
+        Make a checkbox or something to by default hide all the extra buttons for making filters
         Add docs in readme
 
     fix typing in the search box for brushes selecting a block

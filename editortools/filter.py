@@ -350,8 +350,9 @@ class FilterToolPanel(Panel):
         self.add(Column((
             # Input rows
             filterSelectRow, self.filterOptionsPanel, self.confirmButton,
-            # Space and then the reload button
-            Label(""), self.build_reload_button()
+            # Space and then the filter controls
+            Label(""),
+            Row((self.build_reload_button(), Button("Create Template", action=self.create_template)))
         )))
                  
         self.shrink_wrap()
@@ -362,12 +363,33 @@ class FilterToolPanel(Panel):
             self.filterOptionsPanel.options = self.savedOptions[self.selectedFilterName]
 
     def build_reload_button(self):
-        reload_filters_button = Button("Reload Filters", action=self.reload_filters_and_ui)
-        return reload_filters_button
-
+        return Button("Reload Filters", action=self.reload_filters_and_ui)
+    
     def reload_filters_and_ui(self):
         reload_filter_modules()
         self.reload()
+
+    def create_template(self):
+        # Get the template text
+        template_text = None
+        with open(directories.FILTER_TEMPLATE_FILE, "r") as f:
+            template_text = "\n".join(f.readlines())
+
+        # Failed to get the template text
+        if not template_text:
+            print("Failed to load filter template")
+            return
+        
+        # Select a file to save
+        path = mcplatform.askSaveFile(LastDir.filter, "Choose filter name", "new filter", "py")
+        if not path: return
+
+        # Write the contents of the template filter
+        with open(path, "w") as f:
+            f.write(template_text)
+
+        # Reload filters after adding a new one
+        self.reload_filters_and_ui()
 
     def filterChanged(self):
         self.saveOptions()
