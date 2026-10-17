@@ -104,7 +104,7 @@ Settings.windowShowCmd = Settings("window showcmd", 1)
 Settings.setWindowPlacement = Settings("SetWindowPlacement", True)
 
 Settings.showHiddenOres = Settings("show hidden ores", False)
-Settings.fastLeaves = Settings("fast leaves", True)
+Settings.fastLeaves = Settings("fast leaves", False)
 Settings.roughGraphics = Settings("rough graphics", False)
 Settings.showChunkRedraw = Settings("show chunk redraw", True)
 Settings.drawSky = Settings("draw sky", True)
