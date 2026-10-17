@@ -379,57 +379,13 @@ blocks:
         mapcolor: [60, 192, 41]
         tex: [5, 3]
       1:
-        name: Pine Leaves
-        aka: Spruce Leaves
+        name: Spruce Leaves
         mapcolor: [74, 131, 66]
         tex: [5, 8]
       2:
         name: Birch Leaves
         mapcolor: [89, 151, 76]
         tex: [5, 3]
-      3:
-        name: Leaves
-        mapcolor: [74, 131, 66]
-        tex: [5, 3]
-        aka: Off-color
-        
-      4: # bit 0x4 - "Permanent"
-        name: Leaves (Permanent)
-        mapcolor: [60, 192, 41]
-        tex: [5, 3]
-      5:
-        name: Pine Leaves (Permanent)
-        aka: Spruce Leaves
-        mapcolor: [74, 131, 66]
-        tex: [5, 8]
-      6:
-        name: Birch Leaves (Permanent)
-        mapcolor: [89, 151, 76]
-        tex: [5, 3]
-      7:
-        name: Leaves (Permanent)
-        mapcolor: [74, 131, 66]
-        tex: [5, 3]
-        aka: Off-color   
-             
-      8: # bit 0x8 - "Decaying"
-        name: Leaves (Decaying)
-        mapcolor: [60, 192, 41]
-        tex: [5, 3]
-      9:
-        name: Pine Leaves (Decaying)
-        aka: Spruce Leaves
-        mapcolor: [74, 131, 66]
-        tex: [5, 8]
-      10:
-        name: Birch Leaves (Decaying)
-        mapcolor: [89, 151, 76]
-        tex: [5, 3]
-      11:
-        name: Leaves (Decaying)
-        mapcolor: [74, 131, 66]
-        tex: [5, 3]
-        aka: Off-color   
              
       
   - id: 19
