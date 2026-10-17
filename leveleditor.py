@@ -2684,7 +2684,10 @@ class LevelEditor(GLViewport):
 
     def closeEditor(self):
         if self.unsavedEdits:
-            if ask("Save unsaved edits before closing?", ["Don't Save", "Save"], default=-1, cancel=0) == "Save":
+            choice = ask("Save unsaved edits before closing?", ["Cancel", "Don't Save", "Save"], default=-1, cancel=0)
+            if choice == "Cancel":
+                return
+            elif choice == "Save":
                 self.saveFile()
         self.unsavedEdits = 0
 
