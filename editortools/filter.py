@@ -22,11 +22,13 @@ from pymclevel.box import BoundingBox
 from pymclevel.material import materials
 import arguments
 
+ALL_FILTER_DIRS = []
 
-def init_filter_dirs():
+def reload_filter_dirs():
     """
     Find all relevant filter directories
     """
+    print("Reloading filter directories")
     filter_dirs = []
 
     # Add the base filters directory
@@ -40,16 +42,21 @@ def init_filter_dirs():
     if user_dir:
         filter_dirs.append(user_dir)
 
-    return filter_dirs
+    # Replace the contents of the reference for the list of dirs
+    global ALL_FILTER_DIRS
+    ALL_FILTER_DIRS.clear()
+    ALL_FILTER_DIRS.extend(filter_dirs)
 
+    print("Loaded filter directories", [str(s) for s in filter_dirs])
 
 
 def moduleDisplayName(module):
     return module.displayName if hasattr(module, 'displayName') else module.__name__.capitalize()
 
-ALL_FILTER_MODULES = []
+ALL_FILTER_MODULES = {}
 
-def reload_filters():
+def reload_filter_modules():
+    print("Reloading filter modules from dirs", [str(s) for s in ALL_FILTER_DIRS])
     # Find all filter files
     all_py_files = []
     for filters_dir in ALL_FILTER_DIRS:
@@ -72,12 +79,26 @@ def reload_filters():
     filter_modules = dict((moduleDisplayName(m), m) for m in filter_modules)
     # Force reload every filter
     [importlib.reload(m) for m in filter_modules.values()]
-
+    
     global ALL_FILTER_MODULES
-    ALL_FILTER_MODULES = filter_modules
+    ALL_FILTER_MODULES.clear()
+    ALL_FILTER_MODULES.update(filter_modules)
+
+    print(f"Reloaded {len(filter_modules)} filters")
+
+
+def reload_filters():
+    reload_filter_dirs()
+    reload_filter_modules()
+    global filterToolPanel
+    if filterToolPanel:
+        if filterToolPanel.panel:
+            filterToolPanel.panel.reload()
+
+filterToolPanel = None
+"""The panel that holds the current filters for the editor"""
 
 # Init filter directories and filters
-ALL_FILTER_DIRS = init_filter_dirs()
 reload_filters()
 
 
@@ -284,6 +305,8 @@ class FilterToolPanel(Panel):
             self.reload()
 
     def reload(self):
+        print("Reloading filters panel")
+
         for i in list(self.subwidgets):
             self.remove(i)
 
@@ -343,7 +366,7 @@ class FilterToolPanel(Panel):
         return reload_filters_button
 
     def reload_filters_and_ui(self):
-        reload_filters()
+        reload_filter_modules()
         self.reload()
 
     def filterChanged(self):
@@ -395,6 +418,10 @@ class FilterTool(EditorTool):
 
         self.panel = FilterToolPanel(self)
 
+        # Rather hacky to do this, but keep a global reference to the last filter tool so the ui can be updated
+        global filterToolPanel
+        filterToolPanel = self
+
     @property
     def statusText(self):
         return "Choose a filter, then click Filter or press ENTER to apply it."
@@ -410,7 +437,7 @@ class FilterTool(EditorTool):
         if self.panel.parent:
             self.editor.remove(self.panel)
 
-        reload_filters()
+        reload_filter_modules()
         self.panel.reload()
 
         self.panel.left = self.editor.left

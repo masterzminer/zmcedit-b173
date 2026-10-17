@@ -629,10 +629,12 @@ class FilterControls(Column):
     def choose_filter_folder(self):
         folder = askSaveFolder(LastDir.filter, title="Choose folder for custom filters")
         if folder:
+            # Update the directory
             config.update_user_filters_dir(folder)
+            # Reload the menu to account for the updated directory
             self.reload()
 
-            # TODO make this properly reload filters and the filter ui list
+            # Reload all filters
             from editortools.filter import reload_filters
             reload_filters()
 
