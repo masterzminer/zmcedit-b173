@@ -429,12 +429,8 @@ class BlockPicker(Dialog):
                     break
 
         lbl = Label("Search")
-        # lbl.rect.topleft = (0,0)
 
         fld = TextField(300)
-        # fld.rect.topleft = (100, 10)
-        # fld.centery = lbl.centery
-        # fld.left = lbl.right
 
         fld.change_action = self.textEntered
         fld.enter_action = self.ok
@@ -467,7 +463,6 @@ class BlockPicker(Dialog):
 
         def draw_block_table_cell(surf, i, data, cell_rect, column):
             if isinstance(data, Block):
-
                 table_icons[int(i - table_view.rows.scroll)].blockInfo = data
             else:
                 draw_table_cell(surf, i, data, cell_rect, column)
