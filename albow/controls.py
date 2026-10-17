@@ -326,8 +326,15 @@ class ValueButton(ButtonBase, ValueDisplay):
 
 class CheckControl(Control):
 
+    def __init__(self, on_change=None, **kwds):
+        self.on_change = on_change
+        super().__init__(**kwds)
+
     def mouse_down(self, e):
         self.value = not self.value
+        if self.on_change:
+            self.on_change(self.value)
+
 
     def get_highlighted(self):
         return self.value
@@ -365,6 +372,10 @@ class CheckWidget(Widget):
 
 
 class CheckBox(CheckControl, CheckWidget):
+
+    def __init__(self, invert=False, on_change=None, **kwargs):
+        super().__init__(invert=invert, on_change=on_change, **kwargs)
+
     pass
 
 #---------------------------------------------------------------------------

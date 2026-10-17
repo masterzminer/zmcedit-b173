@@ -298,6 +298,8 @@ class FilterToolPanel(Panel):
         Panel.__init__(self)
 
         self.savedOptions = {}
+        self.file_controls = None
+        self.show_file_controls = False
 
         self.tool = tool
         self.selectedFilterName = None
@@ -340,27 +342,55 @@ class FilterToolPanel(Panel):
         self.filterSelect = ChoiceButton(tool.filterNames, choose=self.filterChanged)
         self.filterSelect.selectedChoice = self.selectedFilterName
 
-        self.confirmButton = Button("Filter", action=self.tool.confirm)
+        self.confirmButton = Button("Confirm", action=self.tool.confirm)
 
         filterLabel = Label("Filter:", fg_color=(177, 177, 255, 255))
-        # filterLabel.mouse_down = lambda x: mcplatform.platform_open(filtersDir)
-        # filterLabel.tooltipText = "Click to open filters folder"
         filterSelectRow = Row((filterLabel, self.filterSelect))
 
-        self.add(Column((
+        show_controls_button = CheckBoxLabel("Show File Controls", on_change=self.update_file_controls)
+        show_controls_button.value = self.show_file_controls
+
+        input_columns = Column((
             # Input rows
             filterSelectRow, self.filterOptionsPanel, self.confirmButton,
-            # Space and then the filter controls
-            Label(""),
-            Row((self.build_reload_button(), Button("Create Template", action=self.create_template)))
-        )))
-                 
+            show_controls_button
+        ))
+
+        self.add(input_columns)
+        self.input_columns = input_columns
+
         self.shrink_wrap()
         if self.parent:
             self.centery = self.parent.centery
 
         if self.selectedFilterName in self.savedOptions:
             self.filterOptionsPanel.options = self.savedOptions[self.selectedFilterName]
+
+        self.file_controls = Row((
+            self.build_reload_button(),
+            Button("Template", action=self.create_template),
+            Button("Guide", action=self.open_filter_guide)
+        ))
+
+        self.update_file_controls(self.show_file_controls)
+
+
+    def update_file_controls(self, show):
+        c = self.file_controls
+        showing = c.parent is self
+    
+        if show:
+            if not showing:
+                self.add(c)
+        else:
+            if showing:
+                self.remove(c)
+
+        c.top = self.input_columns.bottom
+        self.shrink_wrap()
+
+        self.show_file_controls = show
+                
 
     def build_reload_button(self):
         return Button("Reload Filters", action=self.reload_filters_and_ui)
@@ -390,6 +420,9 @@ class FilterToolPanel(Panel):
 
         # Reload filters after adding a new one
         self.reload_filters_and_ui()
+
+    def open_filter_guide(self):
+        mcplatform.platform_open(directories.FILTER_GUIDE_FILE);
 
     def filterChanged(self):
         self.saveOptions()
