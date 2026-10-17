@@ -264,61 +264,11 @@ class MCMaterials(object):
            
                 
     
-materials = MCMaterials(defaultName="Future Block!")
+materials = MCMaterials(defaultName="Unknown")
 materials.addYamlBlocksFromFile(directories.ASSETS / "minecraft.yaml")
 
 
-
-
-
-# --- Special treatment for some blocks ---
-
-HugeMushroomTypes = {
-   "Northwest" : 1,
-   "North" : 2,
-   "Northeast" : 3,
-   "East" : 6,
-   "Southeast" : 9,
-   "South" : 8,
-   "Southwest" : 7,
-   "West" : 4,
-   "Stem" : 10,
-   "Top" : 5,
-}
 from .faces import *
-
-Red = (0xD0, 0x70)
-Brown = (0xE0, 0x70)
-Pore = (0xE0, 0x80)
-Stem = (0xD0, 0x80)
-
-def defineShroomFaces(Shroom, id, name):
-    for way, data in sorted(list(HugeMushroomTypes.items()), key=lambda a:a[1]):
-        loway = way.lower()
-        if way == "Stem":
-            tex = [Stem, Stem, Pore, Pore, Stem, Stem]
-        elif way == "Pore":
-            tex = Pore
-        else:
-            tex = [Pore] * 6
-            tex[FaceYIncreasing] = Shroom
-            if "north" in loway:
-                tex[FaceZDecreasing] = Shroom
-            if "south" in loway:
-                tex[FaceZIncreasing] = Shroom
-            if "west" in loway:
-                tex[FaceXDecreasing] = Shroom
-            if "east" in loway:
-                tex[FaceXIncreasing] = Shroom
-                
-        materials.addBlock(id, blockData = data,
-            name="Huge " + name + " Mushroom (" + way + ")",
-            texture=tex,
-            )
-
-        
-defineShroomFaces(Brown, 99, "Brown")
-defineShroomFaces(Red, 100, "Red")
 
 # --- Static block defs ---
 
@@ -396,13 +346,11 @@ materials.DoubleSandstoneSlab = materials[43, 1]
 materials.DoubleWoodenSlab = materials[43, 2]
 materials.DoubleCobblestoneSlab = materials[43, 3]
 materials.DoubleBrickSlab = materials[43, 4]
-materials.DoubleStoneBrickSlab = materials[43, 5]
 materials.StoneSlab = materials[44, 0]
 materials.SandstoneSlab = materials[44, 1]
 materials.WoodenSlab = materials[44, 2]
 materials.CobblestoneSlab = materials[44, 3]
 materials.BrickSlab = materials[44, 4]
-materials.StoneBrickSlab = materials[44, 5]
 materials.Brick = materials[45, 0]
 materials.TNT = materials[46, 0]
 materials.Bookshelf = materials[47, 0]

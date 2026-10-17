@@ -41,9 +41,3 @@ config
     standardize the config strings to constants, maybe replace it with json
 
 add other world generators for making new worlds and generating chunks
-
-
-next:
-    fix typing in the search box for brushes selecting a block
-
-    remove all remaining references to post beta 1.7.3 blocks and items

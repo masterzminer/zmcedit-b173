@@ -49,10 +49,6 @@ class TileEntity(object):
             ("progress", TAG_Float),
             ("extending", TAG_Byte),
         ),
-        "Cauldron": (
-            ("Items", TAG_List),
-            ("BrewTime", TAG_Int),
-        ),
     }
     
     knownIDs = list(baseStructures.keys())
@@ -60,7 +56,6 @@ class TileEntity(object):
         "Furnace" : 3,
         "Chest" : 27,
         "Trap" : 9,
-        "Cauldron": 4,
     }
     slotNames = {
         "Furnace": {
@@ -68,12 +63,6 @@ class TileEntity(object):
             1: "Fuel",
             2: "Product"
         },
-        "Cauldron": {
-            0: "Potion",
-            1: "Potion",
-            2: "Potion",
-            3: "Reagent",
-        }
     }
     @classmethod
     def Create(cls, tileEntityID, **kw):
@@ -122,24 +111,15 @@ class Entity(object):
                  "Squid",
                  "Wolf",
                  "Monster",
-                 "Enderman",
-                 "Silverfish",
-                 "Blaze",
-                 "Villager",
-                 "LavaSlime",
                  ]
     projectiles = ["Arrow", 
                    "Snowball", 
                    "Egg", 
                    "Fireball", 
-                   "SmallFireball", 
-                   "ThrownEnderpearl",
                    ]
                    
     items =    [ "Item",
                  "XPOrb",
-                 "Painting",
-                 "EnderCrystal",
                  ]
     vehicles = [ "Minecart", "Boat" ]
     tiles = ["PrimedTnt", "FallingSand"]

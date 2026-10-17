@@ -17,7 +17,6 @@ import mclevel
 blocks[blocks == materials.Sand.ID] = materials.Glass.ID
 
 # Loading a world immediately scans the folder for chunk files.  This takes longer for large worlds.
-ourworld = mclevel.fromFile("C:\\Minecraft\\OurWorld");
 
 # Find out which chunks are present. Doing this will scan the chunk folders the
 # first time it is used. If you already know where you want to be, skip to 
