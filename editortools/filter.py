@@ -437,7 +437,6 @@ class FilterTool(EditorTool):
         if self.panel.parent:
             self.editor.remove(self.panel)
 
-        reload_filter_modules()
         self.panel.reload()
 
         self.panel.left = self.editor.left
