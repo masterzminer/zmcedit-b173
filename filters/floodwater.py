@@ -1,5 +1,5 @@
 
-from pymclevel import alphaMaterials, faceDirections, FaceYIncreasing
+from pymclevel.material import materials, faceDirections, FaceYIncreasing
 from collections import deque
 import datetime
 import numpy as np
@@ -66,10 +66,10 @@ def perform(level, box, options):
         level.showProgress("Spreading water...", spread(coords), cancel=True)
 
     if options["Flood Water"]:
-        waterIDs = [alphaMaterials.WaterActive.ID, alphaMaterials.Water.ID]
-        waterID = alphaMaterials.Water.ID
+        waterIDs = [materials.WaterActive.ID, materials.Water.ID]
+        waterID = materials.Water.ID
         floodFluid(waterIDs, waterID)
     if options["Flood Lava"]:
-        lavaIDs = [alphaMaterials.LavaActive.ID, alphaMaterials.Lava.ID]
-        lavaID = alphaMaterials.Lava.ID
+        lavaIDs = [materials.LavaActive.ID, materials.Lava.ID]
+        lavaID = materials.Lava.ID
         floodFluid(lavaIDs, lavaID)

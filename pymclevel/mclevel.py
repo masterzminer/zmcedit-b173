@@ -10,18 +10,13 @@ import mclevel
 #
 # Schematics - gzipped NBT data in a single file.  Returns an MCSchematic.  
 #   MCSchematics have the special method rotateLeft which will reorient torches, stairs, and other tiles appropriately.
-# Alpha levels - world folder structure containing level.dat and chunk folders.  Single or Multiplayer.
+# levels - world folder structure containing level.dat and chunk folders.  Single or Multiplayer.
 #   Can accept a path to the world folder or a path to the level.dat.  Returns an MCLevel
 
 # Sand to glass.
-blocks[blocks == level.materials.Sand.ID] = level.materials.Glass.ID
+blocks[blocks == materials.Sand.ID] = materials.Glass.ID
 
-# Save the file with another name.  This only works for non-Alpha levels.
-level.saveToFile("server_level_glassy.dat");
-
-# Load an Alpha world
-# Loading an Alpha world immediately scans the folder for chunk files.  This takes longer for large worlds.
-ourworld = mclevel.fromFile("C:\\Minecraft\\OurWorld");
+# Loading a world immediately scans the folder for chunk files.  This takes longer for large worlds.
 
 # Find out which chunks are present. Doing this will scan the chunk folders the
 # first time it is used. If you already know where you want to be, skip to 
@@ -81,11 +76,11 @@ midBlocks[:] = 0
 # positions in the array.
  
 # Create the mask from the result of the equality test.
-fireBlocks = ( chunk.Blocks==world.materials.Fire.ID )
+fireBlocks = ( chunk.Blocks==materials.Fire.ID )
 
 # Access Blocks using the mask to set elements. The syntax is the same as 
 # using []= with slices
-chunk.Blocks[fireBlocks] = world.materials.Leaves.ID
+chunk.Blocks[fireBlocks] = materials.Leaves.ID
 
 # You can also combine mask arrays using logical operations (&, |, ^) and use
 # the mask to access any other array of the same shape.
@@ -99,8 +94,8 @@ chunk.Blocks[fireBlocks] = world.materials.Leaves.ID
 # unpacked from 4-bit arrays to numpy uint8 arrays. This makes them much easier
 # to work with.
 
-treeBlocks = ( chunk.Blocks == world.materials.Wood.ID )
-treeBlocks |= ( chunk.Blocks == world.materials.Leaves.ID )
+treeBlocks = ( chunk.Blocks == materials.Wood.ID )
+treeBlocks |= ( chunk.Blocks == materials.Leaves.ID )
 chunk.Data[treeBlocks] = 2 # birch
 
 

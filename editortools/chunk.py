@@ -17,6 +17,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 from .toolbasics import *
 from albow.dialogs import Dialog
 import numpy as np
+import config
+from config import LastDir
 
 from pymclevel.box import BoundingBox
 
@@ -208,14 +210,14 @@ class ChunkTool(EditorTool):
 
     @alertException
     def extractChunks(self):
-        folder = mcplatform.askSaveFolder(mcplatform.docsFolder, title='Export chunks to...')
+        folder = mcplatform.askSaveFolder(LastDir.data, title='Export chunks to...')
         if not folder:
             return
 
-        # TODO: We need a third dimension, Scotty!
         for cx, cz in self.selectedChunks():
             if self.editor.level.containsChunk(cx, cz):
                 self.editor.level.extractChunk(cx, cz, folder)
+
 
     @alertException
     def destroyChunks(self, chunks=None):
@@ -377,7 +379,7 @@ def GeneratorPanel():
     def generate(level, arg):
         def _createChunks():
             height = panel.chunkHeight
-            grass = panel.grass and alphaMaterials.Grass.ID or alphaMaterials.Dirt.ID
+            grass = panel.grass and materials.Grass.ID or materials.Dirt.ID
             if isinstance(arg, BoundingBox):
                 chunks = list(arg.chunkPositions)
             else:
@@ -406,10 +408,10 @@ def GeneratorPanel():
                         grassHeight = max(0, height - 1)
 
                         ch.Blocks[:, :, grassHeight] = grass
-                        ch.Blocks[:, :, stoneHeight:grassHeight] = alphaMaterials.Dirt.ID
-                        ch.Blocks[:, :, :stoneHeight] = alphaMaterials.Stone.ID
+                        ch.Blocks[:, :, stoneHeight:grassHeight] = materials.Dirt.ID
+                        ch.Blocks[:, :, :stoneHeight] = materials.Stone.ID
 
-                        ch.Blocks[:, :, 0] = alphaMaterials.Bedrock.ID
+                        ch.Blocks[:, :, 0] = materials.Bedrock.ID
                         ch.SkyLight[:, :, height:] = max_skylight
                         if max_skylight:
                             ch.HeightMap[:] = height

@@ -5,6 +5,7 @@ from pygame.locals import K_RETURN, K_KP_ENTER, K_ESCAPE, K_TAB, \
     KEYDOWN, SRCALPHA
 from pygame.mouse import set_cursor
 from pygame.cursors import arrow as arrow_cursor
+from pygame import SYSTEM_CURSOR_ARROW as system_cursor
 from pygame.transform import rotozoom
 from .vectors import add, subtract
 from .utils import frame_rect
@@ -13,6 +14,7 @@ from .theme import ThemeProperty, FontProperty
 
 from numpy import frombuffer
 import sys
+import config
 
 debug_rect = False
 debug_tab = True
@@ -147,8 +149,8 @@ class Widget(object):
             anchor += chars[i]
         self.anchor = anchor + value
 
-    def _resized(self, xxx_todo_changeme):
-        (old_width, old_height) = xxx_todo_changeme
+    def _resized(self, dims):
+        (old_width, old_height) = dims
         new_width, new_height = self._rect.size
         dw = new_width - old_width
         dh = new_height - old_height
@@ -366,10 +368,13 @@ class Widget(object):
 
     def setup_cursor(self, event):
         global current_cursor
-        cursor = self.get_cursor(event) or arrow_cursor
-        if cursor is not current_cursor:
-            set_cursor(*cursor)
-            current_cursor = cursor
+        disabled = config.use_classic_mouse();
+
+        expected = system_cursor if disabled else self.get_cursor(event) or arrow_cursor
+        if expected == current_cursor: return
+
+        set_cursor(expected)
+        current_cursor = expected
 
     def dispatch_key(self, name, event):
         """

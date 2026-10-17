@@ -337,7 +337,7 @@ TRUNK_FILL_INFO = {'B': TRUNK_FILL_MAT, 'D': TRUNK_FILL_DATA}
 # The following also includes a useful coordinate to index convertor and several
 # other useful functions.
 
-import mcInterface
+import forester.mcInterface as mcInterface
 
 #some handy functions
 

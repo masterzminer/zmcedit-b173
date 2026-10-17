@@ -15,42 +15,43 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 """
 mcplatform.py
 
-Platform-specific functions, folder paths
+Platform-specific functions, file io
 """
 
-import directories
 import os
-from os.path import dirname, exists
+from os.path import exists
 import sys
 import traceback
 import platform
 import subprocess
 from pathlib import Path
+import config
+from config import LastDir
 
 import crossfiledialog
 
 enc = sys.getfilesystemencoding()
 
 from albow import request_new_filename, request_old_filename
-from pymclevel import items
 
 
 AppKit = None
 
-lastSchematicsDir = None
-lastSaveDir = None
 cmd_name = "Ctrl"
 option_name = "Alt"
 
-def askOpenFile(title='Select a Minecraft level...', schematics=False):
+def askOpenFile(lastDir: LastDir, title: str):
+    """
+    dirType: String constant from config.LastDir representing the initial dir to open from
+    """
+    initialDir = config.get_last_dir(lastDir)
+
     file_types = ["mclevel", "dat", "mine", "mine.gz", "schematic"]
 
-    global lastSchematicsDir, lastSaveDir
-    initialDir = lastSaveDir
-    if schematics:
-        initialDir = lastSchematicsDir or directories.STOCK_SCHEMATICS
-
     def _ask_open():
+        if config.use_old_file_browser():
+            return request_old_filename(file_types, initialDir)
+
         try:
             return crossfiledialog.open_file(
                 title=title,
@@ -61,30 +62,33 @@ def askOpenFile(title='Select a Minecraft level...', schematics=False):
             print("Failed to load os file dialog, falling back to built in gui")
             traceback.print_exc()
 
-            # TODO make a setting to allow using the os native path or not, to force disable it
             # On an exception, fall back to the built in gui selector
-            return request_old_filename(None, str(initialDir))
+            return request_old_filename(file_types, initialDir)
 
-    filename = _ask_open()
-    
-    if filename:
-        if schematics:
-            lastSchematicsDir = Path(dirname(filename))
-        else:
-            lastSaveDir = Path(dirname(filename))
+    file_name = _ask_open()
 
-    return filename
+    if file_name:
+        config.update_last_dir(lastDir, Path(file_name).parent)
+
+    return file_name
 
 
-def askSaveSchematic(initialDir: Path, defaultName: str, filetype: str):
-    return askSaveFile(initialDir,
+def askSaveSchematic(defaultName: str):
+    file_name = askSaveFile(LastDir.schematic,
                 title='Save this schematic...',
                 defaultName=defaultName,
-                filetype=filetype
+                filetype="schematic"
             )
 
+    if file_name:
+        config.update_last_dir(LastDir.schematic, Path(file_name).parent)
 
-def askCreateWorld(initialDir: Path):
+    return file_name
+
+
+def askCreateWorld():
+    initialDir = config.get_last_dir(LastDir.world)
+
     # Find a valid name for a folder that doesn't already exist
     defaultName = name = "Untitled World"
     i = 0
@@ -93,32 +97,45 @@ def askCreateWorld(initialDir: Path):
         name = defaultName + " " + str(i)
 
     # Select the directory
-    return askSaveFile(initialDir, title='Name this new world', defaultName=defaultName)
+    selected = askSaveFile(LastDir.world, title='Name this new world', defaultName=name)
+    
+    config.update_last_dir(LastDir.world, Path(selected).parent)
 
-
-def askSaveFolder(initialDir: Path, title):
-    selected = crossfiledialog.choose_folder(
-        start_dir=str(initialDir),
-        title=title
-    )
-    if selected is None or selected == "":
-        return None
     return selected
 
-def askSaveFile(initialDir: Path, title: str, defaultName, filetype: str=None):
-    # TODO make an option to force using the built in gui file selector
-    useOldFile = False;
-    if useOldFile:
-        return request_new_filename(
+
+def askSaveFolder(lastDir: LastDir, title):
+    initialDir = config.get_last_dir(lastDir)
+
+    if config.use_old_file_browser():
+        selected = request_old_filename(directory=initialDir, selectDir=True)
+    else:
+        selected = crossfiledialog.choose_folder(
+            start_dir=str(initialDir),
+            title=title
+        )
+    
+    if selected is None or selected == "":
+        return None
+    
+    config.update_last_dir(lastDir, selected)
+
+    return selected
+
+
+def askSaveFile(lastDir: LastDir, title: str, defaultName, filetype: str=None):
+    initialDir = config.get_last_dir(lastDir);
+
+    if config.use_old_file_browser():
+        selected_path = request_new_filename(
             prompt=title,
             suffix=("" if filetype is None else ("." + filetype)),
             directory=initialDir,
             filename=defaultName,
-            pathname=None
         )
     else:
         selected_path = crossfiledialog.save_file(
-            start_dir=str((initialDir if defaultName is None else initialDir / defaultName)),
+            start_dir=str(initialDir if defaultName is None else initialDir / defaultName),
             title=title,
         )
 
@@ -127,29 +144,16 @@ def askSaveFile(initialDir: Path, title: str, defaultName, filetype: str=None):
 
         if filetype is not None:
             selected_path += "." + filetype
-        return selected_path
+
+    if selected_path is not None:
+        config.update_last_dir(LastDir.data, Path(selected_path).parent)
+
+    return selected_path
 
 
 def platform_open(path: Path):
     return os_ops.open_file(path)
 
-
-docsFolder = directories.USER
-iniFile = directories.INI_FILE
-
-
-# TODO treat these as "stock" filters
-# TODO allow these filters to be configured as hidden individually per filter
-# TODO make a separate directory where custom filters can be added
-filtersDir = directories.FILTERS
-if filtersDir not in [s
-                      if isinstance(s, str)
-                      else s
-                      for s in sys.path]:
-                          
-    sys.path.append(str(filtersDir))
-
-items.items = items.Items(directories.ASSETS / "items.txt")
 
 
 class OS():

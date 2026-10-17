@@ -20,6 +20,7 @@ import tempfile
 from .toolbasics import *
 
 from pymclevel.box import BoundingBox, FloatBox
+from pymclevel.material import materials
 
 SelectSettings = config.Settings("Selection")
 SelectSettings.showPreviousSelection = SelectSettings("Show Previous Selection", True)
@@ -213,7 +214,7 @@ class NudgeBlocksOperation (Operation):
             if recordUndo:
                 self.undoSchematic = self.extractUndoSchematicFrom(level, dirtyBox)
 
-            level.fillBlocks(self.sourceBox, level.materials.Air)
+            level.fillBlocks(self.sourceBox, materials.Air)
             level.removeTileEntitiesInBox(self.sourceBox)
             level.removeTileEntitiesInBox(self.destBox)
 
@@ -266,7 +267,7 @@ class SelectionTool(EditorTool):
         block_data = self.editor.level.blockDataAt(*pos)
         text = "X: {pos[0]}\nY: {pos[1]}\nZ: {pos[2]}\n".format(pos=pos)
         text += "L: {0} S: {1}\n".format(self.editor.level.blockLightAt(*pos), self.editor.level.skylightAt(*pos))
-        text += "{name} ({bid}:{bdata})\n".format(name=self.editor.level.materials.names[blockID][block_data], bid=blockID, pos=pos, bdata=block_data)
+        text += "{name} ({bid}:{bdata})\n".format(name=materials.names[blockID][block_data], bid=blockID, pos=pos, bdata=block_data)
         t = self.editor.level.tileEntityAt(*pos)
         if t:
             text += "TileEntity:\n"
@@ -322,10 +323,10 @@ class SelectionTool(EditorTool):
                         return "Chunk is present and filled with air."
 
         block = self.editor.level.blockAt(*pos)
-        if block in (alphaMaterials.Chest.ID,
-                     alphaMaterials.Furnace.ID,
-                     alphaMaterials.LitFurnace.ID,
-                     alphaMaterials.Dispenser.ID):
+        if block in (materials.Chest.ID,
+                     materials.Furnace.ID,
+                     materials.LitFurnace.ID,
+                     materials.Dispenser.ID):
             t = self.editor.level.tileEntityAt(*pos)
             if t:
                 containerID = t["id"].value
@@ -346,8 +347,8 @@ class SelectionTool(EditorTool):
                     else:
                         return "Empty {0}. \n\nDouble-click to edit {0}.".format(containerID)
             else:
-                return "Double-click to initialize the {0}.".format(alphaMaterials.names[block][0])
-        if block == alphaMaterials.MonsterSpawner.ID:
+                return "Double-click to initialize the {0}.".format(materials.names[block][0])
+        if block == materials.MonsterSpawner.ID:
 
             t = self.editor.level.tileEntityAt(*pos)
             if t:
@@ -357,8 +358,8 @@ class SelectionTool(EditorTool):
 
             return "{id} spawner. \n\nDouble-click to edit spawner.".format(id=id)
 
-        if block in (alphaMaterials.Sign.ID,
-                     alphaMaterials.WallSign.ID):
+        if block in (materials.Sign.ID,
+                     materials.WallSign.ID):
             t = self.editor.level.tileEntityAt(*pos)
             if t:
                 sign_text = u"\n".join(t["Text" + str(x)].value for x in range(1, 5))
@@ -366,7 +367,7 @@ class SelectionTool(EditorTool):
                 sign_text = "Undefined"
             return "Sign text: \n" + sign_text + "\n\n" + "Double-click to edit sign."
 
-        absentTexture = (self.editor.level.materials.blockTextures[block, 0, 0] == materials.NOTEX).all()
+        absentTexture = (materials.blockTextures[block, 0, 0] == material.NOTEX).all()
         if absentTexture:
             return self.describeBlockAt(pos)
 
@@ -885,7 +886,6 @@ class SelectionTool(EditorTool):
         try:
             bt = self.editor.level.blockAt(*pos)
             if(bt):
-##                textureCoords = materials[bt][0]
                 alpha = 0.12
         except ChunkNotPresent:
             pass
@@ -972,7 +972,7 @@ class SelectionTool(EditorTool):
         box = self.selectionBox()
         if None is box:
             return
-        op = BlockFillOperation(self.editor, self.editor.level, box, self.editor.level.materials.Air, [])
+        op = BlockFillOperation(self.editor, self.editor.level, box, materials.Air, [])
         with setWindowCaption("DELETING - "):
             self.editor.freezeStatus("Deleting {0} blocks".format(box.volume))
             self.performWithRetry(op, recordUndo)

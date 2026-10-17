@@ -1,9 +1,6 @@
 add command line arguments
     load a world by supplying a .dat file to load immediately
     specifying a dimension and or position to load into the save with
-    load the main config file from an absolute path, or relative to the executable, a minimal version of the old "portable" mode
-
-fix the brush sizes not always saving after changing them and closing out of mcedit
 
 filters
     make the last filter used, along with its settings, for the next time mc edit starts
@@ -16,27 +13,31 @@ filters
         verify if setting a biome is possible in beta 1.7.3
     topsoil
         figure out overflow error during subtraction
+    Allow a new selection to be made or the existing selection modified with the mouse without changing out of the filters tool
+    Allow stock filters to be hidden
 
-make some way of viewing the current biome of a block
+level rendering
+    make some way of viewing the current biome of a block
+    fix buttons and other non full blocks rendering weirdly
 
-fix buttons and other non full blocks rendering weirdly
-
-change key handling to use a binding system, allowing shortcuts to be customized and to avoid hacky work arounds
+input
+    change key handling to use a binding system, allowing shortcuts to be customized and to avoid hacky work arounds
+    fix the mouse issue when using mouse look and the sidebar of the os panel still being activated
 
 Avoid having to constantly parse adding level.dat, probably make save files represented by an object
 
 standardize logging, print statements, and traceback error logging calls
 
-make a max spacing feature for the brush tool so it can't skip long distances
+brush
+    make a max spacing feature so it can't skip long distances
+    make the last selected block or blocks for the brush save with the config, similar to the last brush size
 
-maybe put the starts back in the main menu, or make it a toggle option
+main menu
+    maybe put the stars back in the main menu, or make it a toggle option
+    fix the screen going blank if it fails to load a world
+    make buttons on the main menu to open the config and assets directories
 
-fix the mouse issue when using mouse look and the sidebar of the os panel still being activated
+config
+    standardize the config strings to constants, maybe replace it with json
 
-
-
-next:
-    go over todos and resolve essential issues
-    Make proper directories for custom filters, and where to load filters from, i.e. not the config directory, probably check multiple places
-
-    fix typing in the search box for brushes selecting a block
+add other world generators for making new worlds and generating chunks

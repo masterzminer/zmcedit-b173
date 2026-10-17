@@ -18,10 +18,6 @@ mceutils.py
 Exception catching, some basic box drawing, texture pack loading, oddball UI elements
 """
 
-# TODO figure out these libpng errors
-# libpng warning: iCCP: known incorrect sRGB profile
-# libpng warning: iCCP: cHRM chunk does not match sRGB
-
 
 from albow.controls import ValueDisplay
 from albow import alert, ask, Button, Column, Label, root, Row, ValueButton, Widget
@@ -35,6 +31,8 @@ import traceback
 from PIL import Image
 import directories
 from albow import FloatField, IntField, TextField
+import config
+from mcplatform import os_ops, askSaveFolder, LastDir
 
 
 def alertException(func):
@@ -467,10 +465,10 @@ class ChoiceButton(ValueButton):
         self.menu = Menu("", ((name, "pickMenu") for name in self._choices))
 
 
-def CheckBoxLabel(title, *args, **kw):
+def CheckBoxLabel(title, invert=False, on_change=None, **kw):
     tooltipText = kw.pop('tooltipText', None)
 
-    cb = CheckBox(*args, **kw)
+    cb = CheckBox(invert, on_change, **kw)
     lab = Label(title, fg_color=cb.fg_color)
     lab.mouse_down = cb.mouse_down
 
@@ -614,6 +612,38 @@ def showProgress(progressText, progressIterator, cancel=False):
     else:
         return "Canceled"
 
+class FilterControls(Column):
+
+    def __init__(self, reload):
+        """
+        reload: function that will be called when this control panel needs to be reloaded
+        """
+        self.reload = reload
+
+        controls = []
+        controls.append(Button("Choose Filters Folder", action=self.choose_filter_folder))
+        if config.get_user_filters_dir():
+            controls.append(Button("Open Filters Folder", action=self.open_filters_folder))
+        Column.__init__(self, controls)
+
+    def choose_filter_folder(self):
+        folder = askSaveFolder(LastDir.filter, title="Choose folder for custom filters")
+        if folder:
+            # Update the directory
+            config.update_user_filters_dir(folder)
+            # Reload the menu to account for the updated directory
+            self.reload()
+
+            # Reload all filters
+            from editortools.filter import reload_filters
+            reload_filters()
+
+    def open_filters_folder(self):
+        os_ops.open_file(config.get_user_filters_dir())
+
+
+
 from glutils import DisplayList
 
 import functools
+

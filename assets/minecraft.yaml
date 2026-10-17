@@ -60,15 +60,12 @@
 #          so shouldn't be changed.  A complete list of the ones that
 #          shouldn't be changed are:
 #
-#               IRON_BARS (the "solid pane" renderer uses it)
 #               PISTON_HEAD (the piston renderers use it)
 #               PISTON_STICKY_BODY (the piston renderers use it)
 #               BEDROCK (the "bedrock" toggle uses it)
 #               GRASS (the "grass rendering" toggle uses it)
-#               SILVERFISH (the "silverfish highlighting" toggle uses it)
 #               SAPLING (some special data handling is needed)
 #               PORTAL (we generate the texture to use for this one)
-#               ENDER_PORTAL (we generate the texture to use for this one)
 #               FIRE (we generate the texture to use for this one)
 #               WATER (we do extra processing on the texture)
 #               STATIONARY_WATER (we do extra processing on the texture)
@@ -137,7 +134,6 @@
 #             DECORATION_CROSS
 #             DOOR
 #             FENCE
-#             FENCE_GATE
 #             FLOOR
 #             HALFHEIGHT
 #             LADDER
@@ -164,7 +160,7 @@
 #         be considered fully solid by X-Ray's rendering engine.  Examples
 #         are lava, fire, and mob spawners.
 #
-#         "FLOOR" is currently used for redstone wire and Water Lilies
+#         "FLOOR" is currently used for redstone wire
 #
 #         "THINSLICE" is currently only used for snow, and I may eventually
 #         change that to "SNOW" instead, and clean up that rendering.
@@ -383,57 +379,13 @@ blocks:
         mapcolor: [60, 192, 41]
         tex: [5, 3]
       1:
-        name: Pine Leaves
-        aka: Spruce Leaves
+        name: Spruce Leaves
         mapcolor: [74, 131, 66]
         tex: [5, 8]
       2:
         name: Birch Leaves
         mapcolor: [89, 151, 76]
         tex: [5, 3]
-      3:
-        name: Leaves
-        mapcolor: [74, 131, 66]
-        tex: [5, 3]
-        aka: Off-color
-        
-      4: # bit 0x4 - "Permanent"
-        name: Leaves (Permanent)
-        mapcolor: [60, 192, 41]
-        tex: [5, 3]
-      5:
-        name: Pine Leaves (Permanent)
-        aka: Spruce Leaves
-        mapcolor: [74, 131, 66]
-        tex: [5, 8]
-      6:
-        name: Birch Leaves (Permanent)
-        mapcolor: [89, 151, 76]
-        tex: [5, 3]
-      7:
-        name: Leaves (Permanent)
-        mapcolor: [74, 131, 66]
-        tex: [5, 3]
-        aka: Off-color   
-             
-      8: # bit 0x8 - "Decaying"
-        name: Leaves (Decaying)
-        mapcolor: [60, 192, 41]
-        tex: [5, 3]
-      9:
-        name: Pine Leaves (Decaying)
-        aka: Spruce Leaves
-        mapcolor: [74, 131, 66]
-        tex: [5, 8]
-      10:
-        name: Birch Leaves (Decaying)
-        mapcolor: [89, 151, 76]
-        tex: [5, 3]
-      11:
-        name: Leaves (Decaying)
-        mapcolor: [74, 131, 66]
-        tex: [5, 3]
-        aka: Off-color   
              
       
   - id: 19
@@ -739,9 +691,6 @@ blocks:
       4: 
         tex: [7, 0]
         name: Double Brick Slab
-      5: 
-        tex: [6, 3]
-        name: Double Stone Brick Slab
       
   - id: 44
     idStr: SLAB
@@ -772,9 +721,6 @@ blocks:
       4: 
         tex: [7, 0]
         name: Brick Slab
-      5: 
-        tex: [6, 3]
-        name: Stone Brick Slab
     type: HALFHEIGHT
   
   - id: 45

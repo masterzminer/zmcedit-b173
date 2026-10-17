@@ -260,7 +260,6 @@ class TAG_String(TAG_Value):
         (string_len,) = struct.unpack_from(">H", data)
 
         value = data[2:string_len + 2]
-        # TODO see if there's a way to not need this hack
         if not (isinstance(value, bytes)):
             value = value.tobytes()
         value = value.decode("utf-8")

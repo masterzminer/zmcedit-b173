@@ -7,9 +7,9 @@
 
 
 
-from pymclevel.materials import alphaMaterials
-import Forester
-import mcInterface
+from pymclevel.material import materials
+import forester.Forester as Forester
+import forester.mcInterface as mcInterface
 
 displayName = "Forester"
 
@@ -42,9 +42,9 @@ inputs = (
     ("Roots", ("Yes", "To Stone", "Hanging", "No")),
     ("Root Buttresses", False),
 
-    ("Wood Material", alphaMaterials.Wood),
-    ("Leaf Material", alphaMaterials.Leaves),
-    ("Plant On", alphaMaterials.Grass),
+    ("Wood Material", materials.Wood),
+    ("Leaf Material", materials.Leaves),
+    ("Plant On", materials.Grass),
 
 )
 

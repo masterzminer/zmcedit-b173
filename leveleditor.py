@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Copyright (c) 2010-2012 David Rio Vierra
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -23,7 +25,6 @@ imported from editortools/
 
 """
 
-
 import gc
 import os
 import csv
@@ -31,6 +32,7 @@ import copy
 import time
 import numpy as np
 import config
+from config import LastDir
 import frustum
 import logging
 import glutils
@@ -44,6 +46,8 @@ import mcplatform
 import pymclevel
 import renderer
 import traceback
+from pathlib import Path
+from pymclevel.schematic import MCSchematic
 
 from math import isnan
 from os.path import dirname, isdir
@@ -68,13 +72,12 @@ from glutils import gl, Texture
 from mcplatform import askSaveFile
 from pymclevel.infiniteworld import alphanum_key
 from renderer import MCRenderer
-import directories
 
 from pymclevel.box import BoundingBox
 from pymclevel.entity import Entity
 from pymclevel.level import MCLevel
 from pymclevel.infiniteworld import MCBetaLevel
-from pymclevel.materials import alphaMaterials
+from pymclevel.material import materials
 import pymclevel.mclevel as mclevel
 
 # Label = GLLabel
@@ -101,7 +104,7 @@ Settings.windowShowCmd = Settings("window showcmd", 1)
 Settings.setWindowPlacement = Settings("SetWindowPlacement", True)
 
 Settings.showHiddenOres = Settings("show hidden ores", False)
-Settings.fastLeaves = Settings("fast leaves", True)
+Settings.fastLeaves = Settings("fast leaves", False)
 Settings.roughGraphics = Settings("rough graphics", False)
 Settings.showChunkRedraw = Settings("show chunk redraw", True)
 Settings.drawSky = Settings("draw sky", True)
@@ -118,6 +121,8 @@ Settings.vertexBufferLimit = Settings("vertex buffer limit", 384)
 Settings.vsync = Settings("vertical sync", 0)
 Settings.visibilityCheck = Settings("visibility check", False)
 Settings.viewMode = Settings("View Mode", "Camera")
+Settings.classicMouse = Settings("classic mouse", False)
+Settings.useOldFileBrowser = Settings("old file browser", False)
 
 ControlSettings = config.Settings("Controls")
 ControlSettings.mouseSpeed = ControlSettings("mouse speed", 5.0)
@@ -153,6 +158,18 @@ class ControlPanel(Panel):
 
         self.bg_color = (0, 0, 0, 0.8)
 
+        self.sideColumn = None
+        self.buttons = None
+        self.reset_buttons()
+        
+    def reset_buttons(self):
+        editor = self.editor
+
+        if self.buttons:
+            self.remove(self.buttons)
+        if self.sideColumn:
+            self.remove(self.sideColumn)
+
         header = self.getHeader()
         keysColumn = [Label("")]
         buttonsColumn = [header]
@@ -186,17 +203,17 @@ class ControlPanel(Panel):
 
         buttons = mceutils.HotkeyColumn(hotkeys, keysColumn, buttonsColumn)
 
-        # buttons.buttons[-1].ref =
-
         self.add(buttons)
         buttons.right = self.centerx
         buttons.centery = self.centery
         buttons.anchor = "wh"
+        self.buttons = buttons
 
-        sideColumn = editor.mcedit.makeSideColumn()
+        sideColumn = editor.mcedit.makeSideColumn(self.reset_buttons)
         sideColumn.centery = self.centery
         sideColumn.left = self.centerx
         sideColumn.anchor = "wh"
+        self.sideColumn = sideColumn
 
         self.add(sideColumn)
 
@@ -542,7 +559,7 @@ class CameraViewport(GLViewport):
         except pymclevel.ChunkNotPresent:
             return intProjectedPoint, d
 
-        if block == alphaMaterials.SnowLayer.ID:
+        if block == materials.SnowLayer.ID:
             potentialOffsets.append((0, 1, 0))
         else:
             # discard any faces that aren't likely to be exposed
@@ -984,9 +1001,9 @@ class CameraViewport(GLViewport):
                     block = self.editor.level.blockAt(*point)
                     if distance2(point, self.cameraPosition) > 4:
                         blockEditors = {
-                            pymclevel.alphaMaterials.MonsterSpawner.ID:   self.editMonsterSpawner,
-                            pymclevel.alphaMaterials.Sign.ID:             self.editSign,
-                            pymclevel.alphaMaterials.WallSign.ID:         self.editSign,
+                            pymclevel.materials.MonsterSpawner.ID:   self.editMonsterSpawner,
+                            pymclevel.materials.Sign.ID:             self.editSign,
+                            pymclevel.materials.WallSign.ID:         self.editSign,
                         }
                         edit = blockEditors.get(block)
                         if edit:
@@ -1727,12 +1744,12 @@ class LevelEditor(GLViewport):
         tileEntitySum = np.sum(list(tileEntityCounts.values()))
         presentTypes = types.nonzero()
 
-        unsorted = [(level.materials[t & 0xff, t >> 8], types[t]) for t in presentTypes[0]]
+        unsorted = [(materials[t & 0xff, t >> 8], types[t]) for t in presentTypes[0]]
         blockCounts = sorted(unsorted, key=lambda t: t[1], reverse=True)
 
         counts = []
         c = 0
-        b = level.materials.Air
+        b = materials.Air
         for block, count in blockCounts:
             if b.name != block.name:
                 counts.append((b, c))
@@ -1794,7 +1811,7 @@ class LevelEditor(GLViewport):
 
         def saveToFile():
             filename = askSaveFile(
-                initialDir=mcplatform.docsFolder,
+                lastDir=LastDir.data,
                 title='Save analysis...',
                 defaultName=self.level.displayName + "_analysis",
                 filetype="csv"
@@ -1802,19 +1819,20 @@ class LevelEditor(GLViewport):
 
             if filename:
                 try:
-                    csvfile = csv.writer(open(filename, "wb"))
+                    with open(filename, "w", newline="", encoding="utf-8") as f:
+                        writer = csv.writer(f)
+                        writer.writerows(rows)
                 except Exception as e:
                     traceback.print_exc()
                     alert(str(e))
-                else:
-                    csvfile.writerows(rows)
+
 
         saveButton = Button("Save to file...", action=saveToFile)
         col = Column((Label("Volume: {0} blocks.".format(box.volume)), tableBacking, saveButton))
         Dialog(client=col, responses=["OK"]).present()
 
-    def exportSchematic(self, schematic):
-        filename = mcplatform.askSaveSchematic(mcplatform.lastSchematicsDir or directories.USER_SCHEMATICS, self.level.displayName, "schematic")
+    def exportSchematic(self, schematic: MCSchematic):
+        filename = mcplatform.askSaveSchematic(self.level.displayName)
 
         if filename:
             schematic.saveToFile(filename)
@@ -2066,7 +2084,7 @@ class LevelEditor(GLViewport):
     def initWindowCaption(self):
         filename = self.level.filename
         s = os.path.split(filename)
-        title = os.path.split(s[0])[1] + os.sep + s[1] + u" - MCEdit " + release.VERSION
+        title = os.path.split(s[0])[1] + os.sep + s[1] + u" - " + release.NAME + " " + release.VERSION
         # title = title.encode('ascii', 'replace')
         display.set_caption(title)
 
@@ -2081,7 +2099,8 @@ class LevelEditor(GLViewport):
     @mceutils.alertException
     def saveFile(self):
         with mceutils.setWindowCaption("SAVING - "):
-            if isinstance(self.level, pymclevel.ChunkedLevelMixin):  # xxx relight indev levels?
+            # Relight chunks
+            if isinstance(self.level, pymclevel.ChunkedLevelMixin):
                 level = self.level
                 if level.parentWorld:
                     level = level.parentWorld
@@ -2099,6 +2118,9 @@ class LevelEditor(GLViewport):
             self.level.saveInPlace()
 
         self.clearUnsavedEdits()
+
+        # Also save the config, already doing file io, may as well keep the config updated in case mc edit doesn't shut down properly
+        config.saveConfig()
 
     def addUnsavedEdit(self):
         if self.unsavedEdits:
@@ -2297,19 +2319,6 @@ class LevelEditor(GLViewport):
     @property
     def blockFaceUnderCursor(self):
         return self.currentViewport.blockFaceUnderCursor
-
-#    @property
-#    def worldTooltipText(self):
-#        try:
-#            if self.blockFaceUnderCursor:
-#                pos = self.blockFaceUnderCursor[0]
-#                blockID = self.level.blockAt(*pos)
-#                blockData = self.level.blockDataAt(*pos)
-#
-#                return "{name} ({bid})\n{pos}".format(name=self.level.materials.names[blockID][blockData], bid=blockID,pos=pos)
-#
-#        except Exception, e:
-#            return None
 #
 
     def generateStars(self):
@@ -2675,7 +2684,10 @@ class LevelEditor(GLViewport):
 
     def closeEditor(self):
         if self.unsavedEdits:
-            if ask("Save unsaved edits before closing?", ["Don't Save", "Save"], default=-1, cancel=0) == "Save":
+            choice = ask("Save unsaved edits before closing?", ["Cancel", "Don't Save", "Save"], default=-1, cancel=0)
+            if choice == "Cancel":
+                return
+            elif choice == "Save":
                 self.saveFile()
         self.unsavedEdits = 0
 
@@ -2819,9 +2831,8 @@ class LevelEditor(GLViewport):
     def askOpenFile(self):
         self.mouseLookOff()
         try:
-            filename = mcplatform.askOpenFile()
+            filename = mcplatform.askOpenFile(LastDir.world, "Select a world...")
 
-            # TODO how should this work?
             # Get rid of the key events that happened while waiting for the file
             pygame.event.clear()
             
@@ -2859,8 +2870,8 @@ class LevelEditor(GLViewport):
         result = Dialog(client=newWorldPanel, responses=["Create", "Cancel"]).present()
         if result == "Cancel":
             return
-        # TODO probably make this remember the last directory you opened
-        filename = mcplatform.askCreateWorld(directories.USER)
+        
+        filename = mcplatform.askCreateWorld()
 
         if not filename:
             return
@@ -3117,7 +3128,7 @@ class LevelEditor(GLViewport):
                     bdata = self.level.blockDataAt(*blockPosition)
                     blockID = self.level.blockAt(*blockPosition)
                     self.inspectionString += "ID: %d:%d (%s), " % (
-                        blockID, bdata, self.level.materials.names[blockID][bdata])
+                        blockID, bdata, materials.names[blockID][bdata])
 
                     try:
                         path = self.level.chunkFilenameAt(*blockPosition)
@@ -3152,7 +3163,7 @@ class LevelEditor(GLViewport):
                 else:  # classic
                     blockID = self.level.blockAt(*blockPosition)
                     self.inspectionString += "ID: %d (%s), " % (
-                        blockID, self.level.materials.names[blockID][0])
+                        blockID, materials.names[blockID][0])
 
         except Exception as e:
             self.inspectionString += "Chunk {0} had an error: {1!r}".format((int(np.floor(blockPosition[0])) >> 4, int(np.floor(blockPosition[2])) >> 4), e)

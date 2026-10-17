@@ -17,22 +17,17 @@ config.py
 Configuration settings and storage.
 """
 
-import os
 import logging
 import collections
-from io import BytesIO
 import configparser
 import sys
+from pathlib import Path
+from enum import Enum
 
-import mcplatform
-
-from albow import alert
+import directories
 
 log = logging.getLogger(__name__)
 
-
-def configFilePath():
-    return mcplatform.iniFile
 
 
 def loadConfig():
@@ -82,10 +77,10 @@ def loadConfig():
     config = configparser.RawConfigParser([], keyDict)
     config.read_string(configDefaults)
     try:
-        config.read(configFilePath())
+        config.read(directories.INI_FILE)
 
     except Exception as e:
-        log.warn(u"Error while reading configuration file mcedit.ini: {0}".format(e))
+        log.warn("Error while reading configuration file mcedit.ini: {0}".format(e))
 
     return config
 
@@ -95,15 +90,8 @@ def updateConfig():
 
 
 def saveConfig():
-    try:
-        cf = open(configFilePath(), 'w')
-        config.write(cf)
-        cf.close()
-    except Exception as e:
-        try:
-            alert(u"Error saving configuration settings to mcedit.ini: {0}".format(e))
-        except:
-            pass
+    with open(directories.INI_FILE, 'w') as f:
+        config.write(f)
 
 configDefaults = """
 [Keys]
@@ -141,9 +129,62 @@ toggle renderer = m
 
 """
 
-log.info("Loading config...")
+log.info("Loading config")
 config = loadConfig()
 config.observers = {}
+
+
+class LastDir(Enum):
+    world = "world"
+    data = "data"
+    schematic = "schematic"
+    filter = "filters"
+
+LAST_DIR_ALL = list(LastDir)
+
+
+def get_last_dir(lastDir: LastDir):
+    return Path(config.get("Directories", lastDir.value))
+
+def update_last_dir(lastDir: LastDir, newPath):
+    config.set("Directories", lastDir.value, str(newPath))
+
+def initDefaultLastDirs():
+    # Create the section if it doesn't exist
+    if not config.has_section("Directories"):
+        config.add_section("Directories")
+
+    # Default all dirs to home
+    home = Path.home()
+    for d in LAST_DIR_ALL:
+        if not config.has_option("Directories", d.value):
+            update_last_dir(d, home)
+
+
+def update_user_filters_dir(filters_dir):
+    config.set("Settings", "user filters", str(filters_dir))
+
+def get_user_filters_dir():
+    if not config.has_option("Settings", "user filters"):
+        return None
+    return Path(config.get("Settings", "user filters"))
+
+def use_classic_mouse():
+    if not config.has_option("Settings", "classic mouse"):
+        return False
+    return config.getboolean("Settings", "classic mouse")
+
+def update_classic_mouse(use: bool):
+    config.set("Settings", "classic mouse", use)
+
+
+def use_old_file_browser():
+    if not config.has_option("Settings", "old file browser"):
+        return False
+    return config.getboolean("Settings", "old file browser")
+
+def update_old_file_browser(use: bool):
+    config.set("Settings", "old file browser", use)
 
 
 def _propertyRef(section, name, dtype=str, default=None):

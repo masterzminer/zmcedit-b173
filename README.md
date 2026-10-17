@@ -44,8 +44,23 @@ To build from source
 If you already have the virtual environment setup, the pip dependencies installed, and the Cython for the nbt module is already built, just run `./installing/build.sh`
 
 
-# TODO
-Need to add a section about adding custom filters and modifying configuration files
+# Custom Filters
+Filters are the same as the original MC Edit, effectively minimal plugins for the level editor.
+They are custom arbitrary code, and are designed for use in implementing custom behavior without having to modify the MC Edit source.
+Filters are py files that the application directly runs.
+
+To add custom filters, configure the user directory for filters from the application.
+
+This can be done from the main menu or the level editor menu while holding ctrl.
+
+Select the "Choose Filters Folder" button and select a folder from the prompt, this is where custom filters will be loaded from.
+
+The "Open Filters Folder" button will also open the selected folder, place custom filters here.
+
+The Filter tool in the editor has additional options. Select the "Show File Controls" option to show additional options
+1. Reload Filters: reload the filters directory. Run this when you've manually changed a filter to tell MC Edit to use the updated version
+2. Template: Prompts to save a stub py file in the filters directory. This filter shows example input options and the entry function for running a filter
+3. Guide: Opens a demo file with more in depth detail about how to implement a filter
 
 
 # Removed Features
@@ -62,3 +77,6 @@ Some of the features removed
 - Removed blocks and items that do not exist in Minecraft Beta 1.7.3
 
 Maybe one day I'll port the last release of MC Edit, or make another fork of this port to allow it to modify Anvil worlds. Probably not though, unless I decide I want to make another map in 1.2.5
+
+# Command Line Arguments
+Run the program with `-h` to print all valid arguments

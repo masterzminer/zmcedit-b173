@@ -17,7 +17,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 from .toolbasics import *
 
 from pymclevel.box import BoundingBox
-from pymclevel.materials import alphaMaterials
+from pymclevel.material import materials
 
 FillSettings = config.Settings("Fill")
 FillSettings.chooseBlockImmediately = FillSettings("Choose Block Immediately", True)
@@ -67,7 +67,7 @@ class FillToolPanel(Panel):
         self.tool = tool
         replacing = tool.replacing
 
-        self.blockButton = BlockButton(tool.editor.level.materials)
+        self.blockButton = BlockButton()
         self.blockButton.blockInfo = tool.blockInfo
         self.blockButton.action = self.pickFillBlock
 
@@ -94,7 +94,7 @@ class FillToolPanel(Panel):
         if replacing:
             self.fillWithLabel = Label("Find:", width=self.blockButton.width, align="c")
 
-            self.replaceBlockButton = BlockButton(tool.editor.level.materials)
+            self.replaceBlockButton = BlockButton()
             self.replaceBlockButton.blockInfo = tool.replaceBlockInfo
             self.replaceBlockButton.action = self.pickReplaceBlock
             self.replaceLabel.text = "Replace with:"
@@ -130,12 +130,12 @@ class FillToolPanel(Panel):
         self.blockButton.blockInfo = self.tool.blockInfo  # xxx put this in a property
 
     def pickReplaceBlock(self):
-        blockPicker = BlockPicker(self.tool.replaceBlockInfo, self.tool.editor.level.materials)
+        blockPicker = BlockPicker(self.tool.replaceBlockInfo)
         if blockPicker.present():
             self.replaceBlockButton.blockInfo = self.tool.replaceBlockInfo = blockPicker.blockInfo
 
     def pickFillBlock(self):
-        blockPicker = BlockPicker(self.tool.blockInfo, self.tool.editor.level.materials, allowWildcards=True)
+        blockPicker = BlockPicker(self.tool.blockInfo, allowWildcards=True)
         if blockPicker.present():
             self.tool.blockInfo = blockPicker.blockInfo
 
@@ -156,8 +156,8 @@ class FillToolOptions(ToolOptions):
 
 class FillTool(EditorTool):
     toolIconName = "fill"
-    _blockInfo = alphaMaterials.Stone
-    replaceBlockInfo = alphaMaterials.Air
+    _blockInfo = materials.Stone
+    replaceBlockInfo = materials.Air
     tooltipText = "Fill and Replace\nRight-click for options"
     replacing = False
 
@@ -202,7 +202,7 @@ class FillTool(EditorTool):
         self.showPanel()
 
         if self.chooseBlockImmediately:
-            blockPicker = BlockPicker(self.blockInfo, self.editor.level.materials, allowWildcards=True)
+            blockPicker = BlockPicker(self.blockInfo, allowWildcards=True)
 
             if blockPicker.present():
                 self.blockInfo = blockPicker.blockInfo
@@ -234,7 +234,7 @@ class FillTool(EditorTool):
                     print("Wildcard replace")
                     blocksToReplace = []
                     for i in range(16):
-                        blocksToReplace.append(self.editor.level.materials.blockWithID(self.blockInfo.ID, i))
+                        blocksToReplace.append(materials.blockWithID(self.blockInfo.ID, i))
                 else:
                     blocksToReplace = [self.blockInfo]
 
@@ -270,9 +270,9 @@ class FillTool(EditorTool):
 
     def initTextures(self):
 
-        terrainTexture = self.editor.level.materials.terrainTexture
+        terrainTexture = materials.terrainTexture
 
-        blockTextures = self.editor.level.materials.blockTextures[:, 0]
+        blockTextures = materials.blockTextures[:, 0]
 
         if hasattr(self, 'blockTextures'):
             for tex in self.blockTextures.values():
@@ -342,8 +342,8 @@ class FillTool(EditorTool):
                     return
                 pos = self.editor.blockFaceUnderCursor[0]
                 blockID = self.editor.level.blockAt(*pos)
-                blockdata = self.editor.level.blockDataAt(*pos)
-                return "Click to use {0} ({1}:{2})".format(self.editor.level.materials.blockWithID(blockID, blockdata).name, blockID, blockdata)
+                block_data = self.editor.level.blockDataAt(*pos)
+                return "Click to use {0} ({1}:{2})".format(materials.blockWithID(blockID, block_data).name, blockID, block_data)
 
             except Exception as e:
                 return repr(e)
@@ -357,6 +357,6 @@ class FillTool(EditorTool):
             id = self.editor.level.blockAt(*pos)
             data = self.editor.level.blockDataAt(*pos)
 
-            self.blockInfo = self.editor.level.materials.blockWithID(id, data)
+            self.blockInfo = materials.blockWithID(id, data)
         else:
             return self.editor.selectionTool.mouseDown(evt, pos, dir)

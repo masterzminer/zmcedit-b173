@@ -8,6 +8,9 @@ mcedit.py
 Startup, main menu, keyboard configuration, automatic updating.
 """
 
+# Explicitly set up arguments before doing much else
+import arguments
+
 # Hide the default pygame message
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
@@ -24,6 +27,7 @@ from albow.dialogs import Dialog
 from albow.openglwidgets import GLViewport
 from albow.root import RootWidget
 import config
+from config import LastDir
 import directories
 import functools
 from glbackground import Panel
@@ -46,7 +50,8 @@ import sys
 import traceback
 import importlib
 from pymclevel.infiniteworld import MCBetaLevel
-from pymclevel.materials import alphaMaterials
+from pymclevel.material import materials
+from mceutils import FilterControls
 
 MCBetaLevel.loadedChunkLimit = 0
 
@@ -61,7 +66,10 @@ class FileOpener(albow.Widget):
         albow.Widget.__init__(self, *args, **kwargs)
         self.anchor = 'tlbr'
         self.mcedit = mcedit
+        self.contentRow = None
+        self.reset_content_row()
 
+    def reset_content_row(self):
         helpColumn = []
 
         label = albow.Label("{0} {1} {2} {3} {4} {5}".format(
@@ -93,7 +101,7 @@ class FileOpener(albow.Widget):
         helpColumn.anchor = "whrt"
         self.add(helpColumn)
 
-        infoButtonsColumn = mcedit.makeInfoButtonsColumn()
+        infoButtonsColumn = self.mcedit.makeInfoButtonsColumn()
         infoButtonsColumn.anchor = 'whrb'
         infoButtonsColumn.bottomright = self.bottomright
         self.add(infoButtonsColumn)
@@ -129,13 +137,17 @@ class FileOpener(albow.Widget):
         commandRow = mceutils.HotkeyColumn(hotkeys, keysColumn, buttonsColumn)
         commandRow.anchor = 'lrh'
 
-        sideColumn = mcedit.makeSideColumn()
+        sideColumn = self.mcedit.makeSideColumn(reset_parent=self.reset_content_row)
         sideColumn.anchor = 'wh'
 
-        contentRow = albow.Row((commandRow, sideColumn))
+        if self.contentRow:
+            self.remove(self.contentRow)
+
+        contentRow = albow.Row((commandRow, albow.Label("      "), sideColumn))
         contentRow.center = self.center
         contentRow.anchor = "rh"
         self.add(contentRow)
+        self.contentRow = contentRow
         self.sideColumn = sideColumn
 
     def gl_draw_self(self, root, offset):
@@ -159,9 +171,8 @@ class FileOpener(albow.Widget):
 
     def promptOpenAndLoad(self):
         try:
-            filename = mcplatform.askOpenFile()
+            filename = mcplatform.askOpenFile(LastDir.world, "Select a world...")
 
-            # TODO how should this work?
             # Get rid of the key events that happened while waiting for the file
             pygame.event.clear()
 
@@ -408,7 +419,7 @@ class GraphicsPanel(Panel):
         self.shrink_wrap()
 
     def _reloadTextures(self, pack):
-        if hasattr(pymclevel.alphaMaterials, "terrainTexture"):
+        if hasattr(pymclevel.materials, "terrainTexture"):
             self.mcedit.displayContext.loadTextures()
 
 class OptionsPanel(Dialog):
@@ -445,18 +456,27 @@ class OptionsPanel(Dialog):
         invertRow = mceutils.CheckBoxLabel("Invert Mouse",
             ref=ControlSettings.invertMousePitch.propertyRef(),
             tooltipText="Reverse the up and down motion of the mouse.")
+        
+        classicMouseRow = mceutils.CheckBoxLabel("Classic Mouse",
+            ref=Settings.classicMouse.propertyRef(),
+            invert=True,
+            tooltipText="Use the mouse pointer from the original version of MC Edit")
+        
+        oldFileBrowserRow = mceutils.CheckBoxLabel("Old File Browser",
+            ref=Settings.useOldFileBrowser.propertyRef(),
+            tooltipText="Use the built in file browser instead of an os native browser")
 
         spaceHeightRow = mceutils.IntInputRow("Low Detail Height",
             ref=Settings.spaceHeight.propertyRef(),
-            tooltipText="When you are this far above the top of the world, move fast and use low-detail mode.")
+            tooltipText="When you are this far above the top of the world, move fast and use low-detail mode")
 
         blockBufferRow = mceutils.IntInputRow("Block Buffer",
             ref=Settings.blockBuffer.propertyRef(), min=1,
-            tooltipText="Amount of memory used for temporary storage.  When more than this is needed, the disk is used instead.")
+            tooltipText="Amount of memory used for temporary storage. When more than this is needed, the disk is used instead")
 
         visibilityCheckRow = mceutils.CheckBoxLabel("Visibility Check",
             ref=Settings.visibilityCheck.propertyRef(),
-            tooltipText="Do a visibility check on chunks while loading. May cause a crash.")
+            tooltipText="Do a visibility check on chunks while loading. May cause a crash")
 
         longDistanceRow = mceutils.CheckBoxLabel("Long-Distance Mode",
             ref=Settings.longDistanceMode.propertyRef(),
@@ -464,7 +484,7 @@ class OptionsPanel(Dialog):
 
         flyModeRow = mceutils.CheckBoxLabel("Fly Mode",
             ref=Settings.flyMode.propertyRef(),
-            tooltipText="Moving forward and backward will not change your altitude in Fly Mode.")
+            tooltipText="Moving forward and backward will not change your altitude in Fly Mode")
 
         inputs = (
             spaceHeightRow,
@@ -482,6 +502,8 @@ class OptionsPanel(Dialog):
             autoBrakeRow,
             swapAxesRow,
             invertRow,
+            classicMouseRow,
+            oldFileBrowserRow,
             visibilityCheckRow
         )
 
@@ -493,10 +515,14 @@ class OptionsPanel(Dialog):
 
         settingsRow = albow.Row((optionsColumn,))
 
-        optionsColumn = albow.Column((settingsRow, albow.Button("OK", action=self.dismiss)))
+        optionsColumn = albow.Column((settingsRow, albow.Button("OK", action=self.closeSettings)))
 
         self.add(optionsColumn)
         self.shrink_wrap()
+
+    def closeSettings(self):
+        saveConfig()
+        self.dismiss()
 
     @property
     def blockBuffer(self):
@@ -522,27 +548,14 @@ class MCEdit(GLViewport):
             config.config.add_section("Recent Worlds")
             self.setRecentWorlds([""] * 5)
 
+        config.initDefaultLastDirs()
+
         self.optionsPanel = OptionsPanel(self)
         self.graphicOptionsPanel = GraphicsPanel(self)
 
         self.keyConfigPanel = KeyConfigPanel()
 
-        self.droppedLevel = None
         self.reloadEditor()
-
-        """
-        check command line for files dropped from explorer
-        """
-        if len(sys.argv) > 1:
-            for arg in sys.argv[1:]:
-                f = arg.decode(sys.getfilesystemencoding())
-                if os.path.isdir(os.path.join(pymclevel.saveFileDir, f)):
-                    f = os.path.join(pymclevel.saveFileDir, f)
-                    self.droppedLevel = f
-                    break
-                if os.path.exists(f):
-                    self.droppedLevel = f
-                    break
 
         self.fileOpener = FileOpener(self)
         self.add(self.fileOpener)
@@ -646,30 +659,22 @@ class MCEdit(GLViewport):
     def setRecentWorlds(self, worlds):
         for i, filename in enumerate(worlds):
             config.config.set("Recent Worlds", str(i), filename)
+            
+    def makeSideColumn(self, reset_parent):
+        items = (
+            albow.Button("Keys", action=self.showKeyConfig),
+            albow.Button("Graphics", action=self.showGraphicOptions),
+            albow.Button("Options", action=self.showOptions),
+            FilterControls(reload=reset_parent)
+        )
 
-    def makeSideColumn(self):
-        hotkeys = ([
-            ("",
-                "Keys",
-                self.showKeyConfig
-            ),
-            ("",
-                "Graphics",
-                self.showGraphicOptions
-            ),
-            ("",
-                "Options",
-                self.showOptions
-            ),
-        ])
-
-        return mceutils.HotkeyColumn(hotkeys)
+        return albow.Column(items)
 
     def makeInfoButtonsColumn(self):
         def showLicense():
-            platform_open(directories.READ_ROOT / "LICENSE.txt")
+            platform_open(directories.INSTALL_ROOT / "LICENSE.txt")
 
-        readmePath = directories.READ_ROOT / "README.md"
+        readmePath = directories.INSTALL_ROOT / "README.md"
 
         column = ([
             albow.Button(
@@ -691,7 +696,7 @@ class MCEdit(GLViewport):
             albow.Button(
                 "License",
                 showLicense
-            ),
+            )
         ])
 
         return albow.Column(column, align="r")
@@ -718,7 +723,7 @@ class MCEdit(GLViewport):
         if w > 0 and h > 0:
             Settings.windowWidth.set(w)
             Settings.windowHeight.set(h)
-            config.saveConfig()
+            saveConfig()
 
     def loadFile(self, filename):
         self.removeGraphicOptions()
@@ -787,24 +792,21 @@ class MCEdit(GLViewport):
 
         root_widget.add(mcedit)
         root_widget.focus_switch = mcedit
-        if 0 == len(alphaMaterials.yamlDatas):
+        if 0 == len(materials.yamlDatas):
             albow.alert("Failed to load minecraft.yaml. Check the console window for details.")
-
-        if mcedit.droppedLevel:
-            mcedit.loadFile(mcedit.droppedLevel)
 
         if mcedit.closeMinecraftWarning:
             answer = albow.ask("Warning: You must close Minecraft completely before editing. Save corruption may result", ["Don't remind me again.", "OK"], default=1, cancel=1)
             if answer == "Don't remind me again.":
                 mcedit.closeMinecraftWarning = False
 
-        config.saveConfig()
+        saveConfig()
 
         while True:
             try:
                 root_widget.run()
             except SystemExit:
-                config.saveConfig()
+                saveConfig()
                 mcedit.editor.renderer.discardAllChunks()
                 mcedit.editor.deleteAllCopiedSchematics()
                 raise
@@ -812,6 +814,14 @@ class MCEdit(GLViewport):
                 traceback.print_exc()
                 mcedit.editor.handleMemoryError()
 
+def saveConfig():
+    try:
+        config.saveConfig()
+    except Exception as e:
+        try:
+            albow.alert("Error saving configuration settings to mcedit.ini: {0}".format(e))
+        except:
+            pass
 
 def main(argv):
     """
@@ -913,10 +923,10 @@ class GLDisplayContext(object):
         self.loadTextures()
 
     def getTerrainTexture(self, level):
-        return self.terrainTextures.get(level.materials.name, self.terrainTextures["Alpha"])
+        return self.terrainTextures
 
     def loadTextures(self):
-        self.terrainTextures = {}
+        self.terrainTextures = None
 
         def makeTerrainTexture(mats):
             w, h = 1, 1
@@ -935,27 +945,23 @@ class GLDisplayContext(object):
                 tex_image
             )
 
-        # TODO probably simplify this
         textures = (
-            (pymclevel.materials.alphaMaterials, 'terrain.png'),
+            (materials, 'terrain.png'),
         )
 
         for mats, matFile in textures:
             try:
-                if mats.name == 'Alpha':
-                    tex = mceutils.loadTerrainTexture()
-                else:
-                    tex = mceutils.loadPNGTexture(matFile)
-                self.terrainTextures[mats.name] = tex
+                tex = mceutils.loadTerrainTexture()
+                self.terrainTextures = tex
             except Exception as e:
                 logging.warning(
                     'Unable to load terrain from {0}, using flat colors.'
                     'Error was: {1!r}'.format(matFile, e)
                 )
-                self.terrainTextures[mats.name] = glutils.Texture(
+                self.terrainTextures = glutils.Texture(
                     functools.partial(makeTerrainTexture, mats)
                 )
-            mats.terrainTexture = self.terrainTextures[mats.name]
+            mats.terrainTexture = self.terrainTextures
 
 
 mcplatform.os_ops.handle_init()

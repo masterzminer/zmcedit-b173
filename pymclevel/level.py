@@ -11,9 +11,11 @@ Created on Jul 22, 2011
 
 from .mclevelbase import *
 from collections import defaultdict
-from . import materials
+from . import material
 import numpy as np
 from pymclevel.box import BoundingBox
+from pymclevel.material import materials
+from pymclevel import material
 
 from pymclevel import blockrotation
 import itertools
@@ -21,7 +23,7 @@ import itertools
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
 
-def computeChunkHeightMap(materials, blocks, heightMap = None):
+def computeChunkHeightMap(blocks, heightMap = None):
     """Computes the HeightMap array for a chunk, which stores the lowest 
     y-coordinate of each column where the sunlight is still at full strength.
     The HeightMap array is indexed z,x contrary to the blocks array which is x,z,y.
@@ -135,7 +137,6 @@ class MCLevel(object):
     ###common to Creative, Survival. these routines assume
     ###self has Width, Height, Length, and Blocks
 
-    materials = alphaMaterials
     isInfinite = False
 
     compressedTag = None
@@ -334,7 +335,7 @@ class MCLevel(object):
 
 
     def fakeBlocksForChunk(self, cx, cz):
-        #return a 16x16xH block array for rendering.  Alpha levels can
+        #return a 16x16xH block array for rendering. Levels can
         #just return the chunk data.  other levels need to reorder the
         #indices and return a slice of the blocks.
 
@@ -407,16 +408,16 @@ class MCLevel(object):
         
         blocks = self.Blocks[slices[0], slices[2], slices[1]]
         if len(blocksToReplace):
-            blocktable = self.blockReplaceTable(blocksToReplace)
-            shouldRetainData = (self.materials == alphaMaterials) and all([blockrotation.SameRotationType(blockInfo, b) for b in blocksToReplace])
+            block_table = self.blockReplaceTable(blocksToReplace)
+            shouldRetainData = all([blockrotation.SameRotationType(blockInfo, b) for b in blocksToReplace])
             
             if hasattr(self, "Data") and shouldRetainData:
                 data = self.Data[slices[0], slices[2], slices[1]]
-                mask = blocktable[blocks, data]
+                mask = block_table[blocks, data]
 
                 data[mask] = blockInfo.blockData
             else:
-                mask = blocktable[blocks, 0]
+                mask = block_table[blocks, 0]
 
             blocks[mask] = blockInfo.ID
 
@@ -586,7 +587,7 @@ class MCLevel(object):
 
 
     def convertBlocksFromLevel(self, sourceLevel, blocks, blockData):
-        return materials.convertBlocks(self.materials, sourceLevel.materials, blocks, blockData)
+        return material.convertBlocks(materials, materials, blocks, blockData)
         
     def saveInPlace(self):
         self.saveToFile(self.filename)
@@ -802,8 +803,6 @@ class ChunkBase(EntityLevel):
     def chunkChanged(self, needsLighting = True):
         self.dirty = True
         self.needsLighting = needsLighting or self.needsLighting
-    @property
-    def materials(self): return self.world.materials
 
 class FakeChunk(ChunkBase):
     @property
@@ -811,14 +810,14 @@ class FakeChunk(ChunkBase):
         if hasattr(self, "_heightMap"):
             return self._heightMap
             
-        self._heightMap = computeChunkHeightMap(self.materials, self.Blocks)
+        self._heightMap = computeChunkHeightMap(self.Blocks)
         return self._heightMap
 
 class LightedChunk(ChunkBase):
     def isLoaded(self): return True
 
     def generateHeightMap(self):
-        computeChunkHeightMap(self.materials, self.Blocks, self.HeightMap)
+        computeChunkHeightMap(self.Blocks, self.HeightMap)
 
     def chunkChanged(self, calcLighting=True):
         """ You are required to call this function after you are done modifying
@@ -839,19 +838,19 @@ class LightedChunk(ChunkBase):
             return #no light in nether or the end
 
         blocks = self.Blocks
-        la = self.world.materials.lightAbsorption
+        la = materials.lightAbsorption
         skylight = self.SkyLight
-        heightmap = self.HeightMap
+        height_map = self.HeightMap
 
         # Go through every point in the x z plane
         for x, z in itertools.product(range(16), range(16)):
 
             # Find the highest point on the chunk that is exposed to air, it's light will be 15
-            skylight[x, z, heightmap[z, x]:] = 15
+            skylight[x, z, height_map[z, x]:] = 15
             # The lighting for each y column will start at 15
             lv = 15
             # From the top of the column of blocks, go down
-            for y in reversed(list(range(heightmap[z, x]))):
+            for y in reversed(list(range(height_map[z, x]))):
                 # The next light value will go down by the absorption of that block type, always at least one
                 # Water absorbs more light than air, etc
                 lv -= int(la[blocks[x, z, y]] or 1)
