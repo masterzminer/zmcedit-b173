@@ -3,17 +3,12 @@ filters
     make the default filter something generally useful
     forester
         figure out if it works
-    set biome
-        fix it locking up controls after running it
-        verify which biomes are valid
-        verify if setting a biome is possible in beta 1.7.3
     topsoil
         figure out overflow error during subtraction
     Allow a new selection to be made or the existing selection modified with the mouse without changing out of the filters tool
     Allow stock filters to be hidden
 
 level rendering
-    make some way of viewing the current biome of a block
     fix buttons and other non full blocks rendering weirdly
 
 input
