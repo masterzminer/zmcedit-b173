@@ -701,6 +701,14 @@ class MCEdit(GLViewport):
             albow.Button(
                 "License",
                 showLicense
+            ),
+            albow.Button(
+                "View Install Folder",
+                lambda: platform_open(directories.INSTALL_ROOT)
+            ),
+            albow.Button(
+                "View Config Folder",
+                lambda: platform_open(directories.CONFIG)
             )
         ])
 

@@ -23,8 +23,5 @@ brush
     make a max spacing feature so it can't skip long distances
     make the last selected block or blocks for the brush save with the config, similar to the last brush size
 
-main menu
-    make buttons on the main menu to open the config and assets directories
-
 config
     standardize the config strings to constants
