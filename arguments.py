@@ -9,6 +9,17 @@ def validate_dir(dir: str):
     return path
 
 
+def validate_dat_file(file: str):
+    path = Path(file)
+    if not path.is_file():
+        raise argparse.ArgumentTypeError(f"Value is not a file or does not exist: {file}")
+    
+    if path.stem != "level" or path.suffix != ".dat":
+        raise argparse.ArgumentTypeError(f"File is not a level.dat file: {file}")
+        
+    return path
+
+
 # Parse arguments
 def init():
     """
@@ -39,6 +50,12 @@ def init():
         action="append"
     )
 
+    parser.add_argument(
+        "--world",
+        type=validate_dat_file,
+        help="A world to load immediately on start up",
+    )
+
     return parser.parse_args();
 
 parsed_args = init()
@@ -51,3 +68,4 @@ INSTALLED_OVERRIDE = parsed_args.installed
 """Path override for install directory"""
 FILTER_DIRS = parsed_args.filters or []
 """Additional paths for custom filters"""
+LOAD_WORLD = parsed_args.world

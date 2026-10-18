@@ -1,5 +1,4 @@
 add command line arguments
-    load a world by supplying a .dat file to load immediately
     specifying a dimension and or position to load into the save with
 
 filters

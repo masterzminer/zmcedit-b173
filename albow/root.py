@@ -399,15 +399,12 @@ scheduled_calls = []
 
 def make_scheduled_calls():
     sched = scheduled_calls
-    t = time()
-    while sched and sched[0][0] <= t:
-        sched[0][1]()
+    while scheduled_calls:
+        sched[0]()
         sched.pop(0)
 
 
-def schedule(delay, func):
-    """Arrange for the given function to be called after the specified
-    delay in seconds. Scheduled functions are called synchronously from
-    the event loop, and only when the frame timer is running."""
-    t = time() + delay
-    insort(scheduled_calls, (t, func))
+def schedule(func):
+    """Arrange for the given function to be called in the next pygame loop"""
+    insort(scheduled_calls, func)
+    pygame.event.post(pygame.event.Event(USEREVENT))

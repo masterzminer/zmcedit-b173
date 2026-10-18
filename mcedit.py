@@ -25,7 +25,7 @@ if "-debug" not in sys.argv:
 import albow
 from albow.dialogs import Dialog
 from albow.openglwidgets import GLViewport
-from albow.root import RootWidget
+from albow.root import RootWidget, schedule as albow_schedule
 import config
 from config import LastDir
 import directories
@@ -802,6 +802,12 @@ class MCEdit(GLViewport):
 
         saveConfig()
 
+
+        # If a world was supplied, load it immediately
+        start_world = arguments.LOAD_WORLD
+        if start_world:
+            albow_schedule(lambda: mcedit.loadFile(str(start_world)))
+
         while True:
             try:
                 root_widget.run()
@@ -823,7 +829,7 @@ def saveConfig():
         except:
             pass
 
-def main(argv):
+def main():
     """
     Setup logging, display, bundled schematics. Handle unclean
     shutdowns.
@@ -967,4 +973,4 @@ class GLDisplayContext(object):
 mcplatform.os_ops.handle_init()
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(main())
