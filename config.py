@@ -187,6 +187,15 @@ def update_old_file_browser(use: bool):
     config.set("Settings", "old file browser", use)
 
 
+def hide_menu_stars():
+    if not config.has_option("Settings", "hide menu stars"):
+        return False
+    return config.getboolean("Settings", "hide menu stars")
+
+def update_hide_menu_stars(use: bool):
+    config.set("Settings", "hide menu stars", use)
+
+
 def _propertyRef(section, name, dtype=str, default=None):
     class PropRef(object):
         def get(self):

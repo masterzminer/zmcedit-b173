@@ -152,12 +152,10 @@ class FileOpener(albow.Widget):
         self.sideColumn = sideColumn
 
     def gl_draw_self(self, root, offset):
-        #self.mcedit.editor.mainViewport.setPerspective();
         self.mcedit.editor.drawStars()
 
     def idle_event(self, evt):
         self.mcedit.editor.doWorkUnit()
-        #self.invalidate()
 
     def key_down(self, evt):
         keyname = key.name(evt.key)
@@ -462,6 +460,11 @@ class OptionsPanel(Dialog):
             ref=Settings.classicMouse.propertyRef(),
             invert=True,
             tooltipText="Use the mouse pointer from the original version of MC Edit")
+         
+        menuStarsRow = mceutils.CheckBoxLabel("Menu Stars",
+            ref=Settings.menuStars.propertyRef(),
+            invert=True,
+            tooltipText="Show the stars in the main menu from older MC Edit versions")
         
         oldFileBrowserRow = mceutils.CheckBoxLabel("Old File Browser",
             ref=Settings.useOldFileBrowser.propertyRef(),
@@ -504,6 +507,7 @@ class OptionsPanel(Dialog):
             swapAxesRow,
             invertRow,
             classicMouseRow,
+            menuStarsRow,
             oldFileBrowserRow,
             visibilityCheckRow
         )

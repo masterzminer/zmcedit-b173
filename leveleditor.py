@@ -124,6 +124,7 @@ Settings.visibilityCheck = Settings("visibility check", False)
 Settings.viewMode = Settings("View Mode", "Camera")
 Settings.classicMouse = Settings("classic mouse", False)
 Settings.useOldFileBrowser = Settings("old file browser", False)
+Settings.menuStars = Settings("hide menu stars", False)
 
 ControlSettings = config.Settings("Controls")
 ControlSettings.mouseSpeed = ControlSettings("mouse speed", 5.0)
@@ -1289,7 +1290,6 @@ class CameraViewport(GLViewport):
         else:
             self.viewingFrustum = None
 
-        # self.editor.drawStars()
         if self.drawSky:
             self.drawSkyBackground()
         if self.drawFog:
@@ -1458,8 +1458,6 @@ class LevelEditor(GLViewport):
         self.createRenderers()
 
         self.sixteenBlockTex = self.genSixteenBlockTexture()
-
-        # self.Font = Font("Verdana, Arial", 18)
 
         self.generateStars()
 
@@ -2333,7 +2331,6 @@ class LevelEditor(GLViewport):
     @property
     def blockFaceUnderCursor(self):
         return self.currentViewport.blockFaceUnderCursor
-#
 
     def generateStars(self):
         starDistance = 999.0
@@ -2341,34 +2338,29 @@ class LevelEditor(GLViewport):
 
         r = starDistance
 
-        randPoints = (np.random.random(size=starCount * 3)) * 2.0 * r
-        randPoints.shape = (starCount, 3)
-
-        nearbyPoints = (randPoints[:, 0] < r) & (randPoints[:, 1] < r) & (randPoints[:, 2] < r)
-        randPoints[nearbyPoints] += r
+        randPoints = (np.random.random(size=(starCount, 3))) * 2.0 * r
 
         randPoints[:starCount // 2, 0] = -randPoints[:starCount // 2, 0]
         randPoints[::2, 1] = -randPoints[::2, 1]
         randPoints[::4, 2] = -randPoints[::4, 2]
         randPoints[1::4, 2] = -randPoints[1::4, 2]
 
-        randsizes = np.random.random(size=starCount) * 6 + 0.8
+        rand_sizes = np.random.random(size=starCount) * 3 + 0.5
 
         vertsPerStar = 4
 
         vertexBuffer = np.zeros((starCount, vertsPerStar, 3), dtype='float32')
 
-        def normvector(x):
+        def norm_vector(x):
             return x / np.sqrt(np.sum(x * x, 1))[:, np.newaxis]
 
-        viewVector = normvector(randPoints)
+        viewVector = norm_vector(randPoints)
 
-        rmod = np.random.random(size=starCount * 3) * 2.0 - 1.0
-        rmod.shape = (starCount, 3)
+        rmod = np.random.random(size=(starCount, 3)) * 2.0 - 1.0
         referenceVector = viewVector + rmod
 
-        rightVector = normvector(np.cross(referenceVector, viewVector)) * randsizes[:, np.newaxis]  # vector perpendicular to viewing line
-        upVector = normvector(np.cross(rightVector, viewVector)) * randsizes[:, np.newaxis]  # vector perpendicular previous vector and viewing line
+        rightVector = norm_vector(np.cross(referenceVector, viewVector)) * rand_sizes[:, np.newaxis]  # vector perpendicular to viewing line
+        upVector = norm_vector(np.cross(rightVector, viewVector)) * rand_sizes[:, np.newaxis]  # vector perpendicular previous vector and viewing line
 
         p = randPoints
         p1 = p + (- upVector - rightVector)
@@ -2381,19 +2373,25 @@ class LevelEditor(GLViewport):
         vertexBuffer[:, 2, :] = p3
         vertexBuffer[:, 3, :] = p4
 
-        self.starVertices = vertexBuffer.ravel()
-
-    starColor = None
+        self.starVertices = vertexBuffer.ravel() / 1000
 
     def drawStars(self):
+        if config.hide_menu_stars():
+            return
+
         pos = self.mainViewport.cameraPosition
         self.mainViewport.cameraPosition = [x / 128.0 for x in pos]
         self.mainViewport.setModelview()
 
-        GL.glColor(.5, .5, .5, 1.)
+        GL.glColor(.42, .376, .671, 1.)
 
-        GL.glVertexPointer(3, GL.GL_FLOAT, 0, self.starVertices)
-        GL.glDrawArrays(GL.GL_QUADS, 0, len(self.starVertices) // 3)
+        w = self.mcedit.rect.width
+        h = self.mcedit.rect.height
+        r = w / h
+        starVertices = self.starVertices
+
+        GL.glVertexPointer(3, GL.GL_FLOAT, 0, starVertices)
+        GL.glDrawArrays(GL.GL_QUADS, 0, len(starVertices) // 3)
 
         self.mainViewport.cameraPosition = pos
         self.mainViewport.setModelview()
@@ -3044,9 +3042,6 @@ class LevelEditor(GLViewport):
 
         frameStartTime = datetime.now()
         timeDelta = frameStartTime - self.frameStartTime
-
-        # self.addDebugString("FrameStart: {0}  CameraTick: {1}".format(frameStartTime, self.mainViewport.lastTick))
-        # self.addDebugString("D: %d, " % () )
 
         self.currentFrameDelta = timeDelta
         self.frameSamples.pop(0)
