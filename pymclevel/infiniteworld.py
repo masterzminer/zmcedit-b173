@@ -1654,17 +1654,12 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
 
     @property
     def displayName(self):
-        #shortname = os.path.basename(self.filename);
-        #if shortname == "level.dat":
         shortname = os.path.basename(os.path.dirname(self.filename))
 
         return shortname
 
     @classmethod
     def _isLevel(cls, filename):
-        join = os.path.join
-        exists = os.path.exists
-        
         if not os.path.isdir(filename):
             f = os.path.basename(filename)
             if f not in ("level.dat", "level.dat_old"): return False
@@ -1805,7 +1800,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
 
         self.Length = 0
         self.Width = 0
-        self.Height = 128 #subject to change?
+        self.Height = 128
         self.playerTagCache = {}
         self.players = []
         if not os.path.exists(filename):

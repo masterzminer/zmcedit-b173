@@ -15,8 +15,6 @@ input
     change key handling to use a binding system, allowing shortcuts to be customized and to avoid hacky work arounds
     fix the mouse issue when using mouse look and the sidebar of the os panel still being activated
 
-Avoid having to constantly parse adding level.dat, probably make save files represented by an object
-
 standardize logging, print statements, and traceback error logging calls
 
 brush

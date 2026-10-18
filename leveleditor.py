@@ -2919,7 +2919,7 @@ class LevelEditor(GLViewport):
             if "Canceled" == mceutils.showProgress("Generating chunks...", worker, cancel=True):
                 raise RuntimeError("Canceled")
 
-            self.loadFile(os.path.join(filename, "level.dat"))
+            self.loadFile(filename)
         except Exception:
             logging.exception('Error while creating world. {world => %s}' % filename)
             return

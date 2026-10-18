@@ -157,7 +157,7 @@ from .infiniteworld import *
 from .level import *
 from .schematic import *
 
-import sys
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -168,11 +168,15 @@ class LoadingError(RuntimeError): pass
 def fromFile(filename) -> MCLevel:
     ''' The preferred method for loading Minecraft levels of any type
     '''
+
     info(u"Identifying " + filename)
 
     if not filename:
         raise IOError("File not found: " + filename)
-    if not os.path.exists(filename):
+    
+    file_path = Path(filename)
+
+    if not file_path.exists():
         raise IOError("File not found: " + filename)
 
     if ZipSchematic._isLevel(filename):
@@ -181,16 +185,17 @@ def fromFile(filename) -> MCLevel:
         info("Detected zipped level")
         return lev
 
-    if os.path.isdir(filename):
-        raise ValueError("Folder {0} was not identified as a Minecraft level.".format(os.path.basename(filename)))
+    # If it's a directory, try to load the level.dat
+    if file_path.is_dir():
+        file_path = file_path / "level.dat"
 
-    f = open(filename, 'rb')
+    f = open(file_path, 'rb')
     raw_data = f.read()
     f.close()
     if len(raw_data) < 4:
-        raise ValueError("{0} is too small! ({1}) ".format(filename, len(raw_data)))
+        raise ValueError(f"{str(file_path)} is too small! ({len(raw_data)}), cannot load")
 
-    if MCBetaLevel._isLevel(filename):
+    if MCBetaLevel._isLevel(str(file_path)):
         info(u"Detected level.dat")
         return MCBetaLevel(filename=filename)
 
@@ -199,14 +204,12 @@ def fromFile(filename) -> MCLevel:
     if not data.any():
         raise ValueError("{0} contains only zeroes. This file is damaged beyond repair.")
 
-    compressed = True
     unzippedData = None
     try:
         unzippedData = gunzip(raw_data)
     except Exception as e:
         info("Exception during Gzip operation, assuming {0} uncompressed: {1!r}".format(filename, e))
         if unzippedData is None:
-            compressed = False
             unzippedData = raw_data
 
     data = unzippedData

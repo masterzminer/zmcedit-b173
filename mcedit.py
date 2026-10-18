@@ -186,7 +186,7 @@ class FileOpener(albow.Widget):
         self.parent.createNewWorld()
 
     def createLoadButtonHandler(self, filename):
-        return lambda: self.mcedit.loadFile(os.path.join(filename, "level.dat"))
+        return lambda: self.mcedit.loadFile(filename)
 
 
 class KeyConfigPanel(Dialog):
@@ -630,7 +630,7 @@ class MCEdit(GLViewport):
     def loadRecentWorldNumber(self, i):
         worlds = list(self.recentWorlds())
         if i - 1 < len(worlds):
-            self.loadFile(os.path.join(worlds[i - 1], "level.dat"))
+            self.loadFile(worlds[i - 1])
 
     numRecentWorlds = 5
 
