@@ -1,5 +1,3 @@
-fix the change dimensions button missing
-
 filters
     make the last filter used, along with its settings, for the next time mc edit starts
     make the default filter something generally useful

@@ -1541,8 +1541,10 @@ class LevelEditor(GLViewport):
 
         viewDistanceLabel = Label("View Distance:")
 
+        self.dimension_button = Button("Change Dimension", action=self.swap_dimension)
+
         row = (viewDistanceDown, viewDistanceLabel, viewDistanceReadout, viewDistanceUp,
-               readoutGrid, viewButton, self.viewportButton)
+               readoutGrid, viewButton, self.viewportButton, self.dimension_button)
 
         row = Row(row)
         self.add(row)
@@ -2024,8 +2026,6 @@ class LevelEditor(GLViewport):
                 self.mainViewport.yaw = -45.
                 self.mainViewport.pitch = 0.0
 
-        self.removeNetherPanel()
-
         self.undoStack = []
         self.loadLevel(level)
         self.renderer.position = self.currentViewport.cameraPosition
@@ -2059,16 +2059,9 @@ class LevelEditor(GLViewport):
                 self.toolbar.tools[8].createChunks()
                 self.mainViewport.cameraPosition = (x, self.level.Height, z)
 
-    def removeNetherPanel(self):
-        if self.netherPanel:
-            self.remove(self.netherPanel)
-            self.netherPanel = None
-        pass
-
     @mceutils.alertException
     def gotoEarth(self):
         assert self.level.parentWorld
-        self.removeNetherPanel()
         self.loadLevel(self.level.parentWorld)
 
         x, y, z = self.mainViewport.cameraPosition
@@ -2076,7 +2069,6 @@ class LevelEditor(GLViewport):
 
     @mceutils.alertException
     def gotoNether(self):
-        self.removeNetherPanel()
         x, y, z = self.mainViewport.cameraPosition
         self.mainViewport.cameraPosition = [x / 8, y, z / 8]
         self.loadLevel(self.level.getDimension(-1))
@@ -2089,7 +2081,6 @@ class LevelEditor(GLViewport):
         elif dimNo == 0 and self.level.dimNo == -1:
             self.gotoEarth()
         else:
-            self.removeNetherPanel()
             if dimNo:
                 if dimNo == 1:
                     self.mainViewport.cameraPosition = (0, 96, 0)
@@ -2098,7 +2089,11 @@ class LevelEditor(GLViewport):
             else:
                 self.loadLevel(self.level.parentWorld)
 
-    netherPanel = None
+    def swap_dimension(self):
+        if self.level.dimNo == 0:
+            self.gotoNether()
+        else:
+            self.gotoEarth()
 
     def initWindowCaption(self):
         filename = self.level.filename
