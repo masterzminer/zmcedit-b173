@@ -82,9 +82,15 @@ def init():
     )
 
     parser.add_argument(
+        "--overworld",
+        action="store_true",
+        help="When loading a world immediately, force load into the overworld instead of the nether",
+    )
+
+    parser.add_argument(
         "--nether",
         action="store_true",
-        help="When loading a world immediately, load into the nether instead of the overworld",
+        help="When loading a world immediately, force load into the nether instead of the overworld",
     )
 
     # Parse arguments
@@ -97,8 +103,14 @@ def init():
     if parsed.look and not parsed.world:
         parser.error("--look requires a --world")
 
+    if parsed.overworld and not parsed.world:
+        parser.error("--overworld requires a --world")
+    
     if parsed.nether and not parsed.world:
         parser.error("--nether requires a --world")
+    
+    if parsed.overworld and parsed.nether:
+        parser.error("--overworld and --nether are mutually exclusive")
     
     # Return final parsed values
     return parsed
@@ -121,3 +133,5 @@ START_LOOK = parsed_args.look
 """Tuple of (yaw,pitch) direction to load into the world on startup"""
 START_NETHER = parsed_args.nether
 """True to load the nether instead of the overworld when loading into the world on startup"""
+START_OVERWORLD = parsed_args.overworld
+"""True to load the overworld instead of the nether when loading into the world on startup"""

@@ -52,7 +52,7 @@ Player = 'Player'
 DIM_NETHER = -1
 DIM_END = 1
 
-__all__ = ["ZeroChunk", "MCChunk", "ChunkedLevelMixin", "MCBetaLevel", "MCAlphaDimension", "ZipSchematic"]
+__all__ = ["ZeroChunk", "MCChunk", "ChunkedLevelMixin", "MCBetaLevel", "McDimension", "ZipSchematic"]
 
 
 import re
@@ -1880,7 +1880,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
                 try:
                     dimNo = int(dirname[3:])
                     info("Found dimension {0}".format(dirname))
-                    dim = MCAlphaDimension(self, dimNo)
+                    dim = McDimension(self, dimNo)
                     self.dimensions[dimNo] = dim
                 except Exception as e:
                     error(u"Error loading dimension {0}: {1}".format(dirname, e))
@@ -1893,7 +1893,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
             return self
 
         if dimNo in self.dimensions: return self.dimensions[dimNo]
-        dim = MCAlphaDimension(self, dimNo, create=True)
+        dim = McDimension(self, dimNo, create=True)
         self.dimensions[dimNo] = dim
         return dim
 
@@ -2482,7 +2482,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
         yp = y, p
         return np.array(yp)
 
-class MCAlphaDimension (MCBetaLevel):
+class McDimension (MCBetaLevel):
     def __init__(self, parentWorld, dimNo, create=False):
         filename = os.path.join(parentWorld.worldDir, "DIM" + str(int(dimNo)))
         self.parentWorld = parentWorld
@@ -2498,7 +2498,7 @@ class MCAlphaDimension (MCBetaLevel):
 
 
     def __str__(self):
-        return "MCAlphaDimension({0}, {1})".format(self.parentWorld, self.dimNo)
+        return "McDimension({0}, {1})".format(self.parentWorld, self.dimNo)
 
     def loadLevelDat(self, create=False, random_seed=None, last_played=None):
         pass;

@@ -134,8 +134,7 @@ class MCLevel(object):
     Subclasses must also have Blocks, and optionally Data and BlockLight.
     """
 
-    ###common to Creative, Survival. these routines assume
-    ###self has Width, Height, Length, and Blocks
+    # these routines assume self has Width, Height, Length, and Blocks
 
     isInfinite = False
 

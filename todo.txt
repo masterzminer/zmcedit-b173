@@ -1,5 +1,4 @@
-add command line arguments
-    specifying a dimension and or position to load into the save with
+fix the change dimensions button missing
 
 filters
     make the last filter used, along with its settings, for the next time mc edit starts

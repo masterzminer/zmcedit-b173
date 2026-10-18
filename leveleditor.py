@@ -46,6 +46,7 @@ import mcplatform
 import pymclevel
 import renderer
 import traceback
+from typing import Literal
 from pathlib import Path
 from pymclevel.schematic import MCSchematic
 
@@ -1962,7 +1963,7 @@ class LevelEditor(GLViewport):
         GL.glDisable(GL.GL_BLEND)
         GL.glDisable(GL.GL_DEPTH_TEST)
 
-    def loadFile(self, filename, starting_pos=None, starting_look=None):
+    def loadFile(self, filename, starting_pos=None, starting_look=None, dimension:Literal["overworld","nether"]=None):
         if self.level and self.unsavedEdits > 0:
             resp = ask("Save unsaved edits before loading?", ["Cancel", "Don't Save", "Save"], default=2, cancel=0)
             if resp == "Cancel":
@@ -1995,16 +1996,24 @@ class LevelEditor(GLViewport):
                 y, p = starting_look
             else:
                 y, p = level.getPlayerOrientation()
-                
+
             if p == -90.0:
                 p += 0.000000001
             if p == 90.0:
                 p -= 0.000000001
             self.mainViewport.yaw, self.mainViewport.pitch = y, p
 
-            pdim = level.getPlayerDimension()
-            if pdim and pdim in level.dimensions:
-                level = level.dimensions[pdim]
+            if dimension and dimension == "overworld":
+                # The overworld is dimension 0
+                p_dim = 0
+            elif dimension and dimension == "nether":
+                # The nether is dimension -1
+                p_dim = -1
+            else:
+                p_dim = level.getPlayerDimension()
+            
+            if p_dim and p_dim in level.dimensions:
+                level = level.dimensions[p_dim]
 
         except (KeyError, pymclevel.PlayerNotFound):  # TagNotFound
             # player tag not found, maybe
@@ -2054,6 +2063,7 @@ class LevelEditor(GLViewport):
         if self.netherPanel:
             self.remove(self.netherPanel)
             self.netherPanel = None
+        pass
 
     @mceutils.alertException
     def gotoEarth(self):
