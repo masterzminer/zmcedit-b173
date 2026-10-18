@@ -734,7 +734,9 @@ class MCEdit(GLViewport):
         self.removeGraphicOptions()
         if os.path.exists(filename):
             try:
-                self.editor.loadFile(filename, starting_pos, starting_look, dimension)
+                loaded = self.editor.loadFile(filename, starting_pos, starting_look, dimension)
+                if not loaded:
+                    return
             except Exception as e:
                 traceback.print_exc()
                 return None

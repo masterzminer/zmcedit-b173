@@ -1964,10 +1964,14 @@ class LevelEditor(GLViewport):
         GL.glDisable(GL.GL_DEPTH_TEST)
 
     def loadFile(self, filename, starting_pos=None, starting_look=None, dimension:Literal["overworld","nether"]=None):
+        """
+        returns: true if the level loaded, false otherwise
+        """
+
         if self.level and self.unsavedEdits > 0:
             resp = ask("Save unsaved edits before loading?", ["Cancel", "Don't Save", "Save"], default=2, cancel=0)
             if resp == "Cancel":
-                return
+                return False
             if resp == "Save":
                 self.saveFile()
 
@@ -1979,7 +1983,7 @@ class LevelEditor(GLViewport):
                 'Wasn\'t able to open a file {file => %s}' % filename
             )
             alert(u"I don't know how to open {0}:\n\n{1!r}".format(filename, e))
-            return
+            return False
 
         assert level
         self.mcedit.addRecentWorld(filename)
@@ -2028,6 +2032,8 @@ class LevelEditor(GLViewport):
         self.loadLevel(level)
         self.renderer.position = self.currentViewport.cameraPosition
         self.renderer.loadNearbyChunks()
+
+        return True
 
     def loadLevel(self, level: MCLevel):
         self.level = level

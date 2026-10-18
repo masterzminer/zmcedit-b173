@@ -24,7 +24,6 @@ brush
     make the last selected block or blocks for the brush save with the config, similar to the last brush size
 
 main menu
-    fix the screen going blank if it fails to load a world
     make buttons on the main menu to open the config and assets directories
 
 config
