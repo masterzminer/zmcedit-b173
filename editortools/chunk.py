@@ -342,7 +342,6 @@ def GeneratorPanel():
     panel.grass = True
     panel.simulate = False
 
-    # TODO probably add options for an all air chunk vs a flatland
     generatorChoice = ChoiceButton(["Flatland"])
     panel.generatorChoice = generatorChoice
     col = [Row((Label("Generator:"), generatorChoice))]
@@ -354,7 +353,6 @@ def GeneratorPanel():
     flatPanel = Column([height_input, grass_input], align="l")
 
     def generatorChoiceChanged():
-        # TODO add logic for selecting other generators
         flatPanel.visible = True
 
     generatorChoice.choose = generatorChoiceChanged

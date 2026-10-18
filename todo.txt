@@ -38,6 +38,4 @@ main menu
     make buttons on the main menu to open the config and assets directories
 
 config
-    standardize the config strings to constants, maybe replace it with json
-
-add other world generators for making new worlds and generating chunks
+    standardize the config strings to constants
