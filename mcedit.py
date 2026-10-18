@@ -725,11 +725,11 @@ class MCEdit(GLViewport):
             Settings.windowHeight.set(h)
             saveConfig()
 
-    def loadFile(self, filename):
+    def loadFile(self, filename, starting_pos=None, starting_look=None):
         self.removeGraphicOptions()
         if os.path.exists(filename):
             try:
-                self.editor.loadFile(filename)
+                self.editor.loadFile(filename, starting_pos, starting_look)
             except Exception as e:
                 traceback.print_exc()
                 return None
@@ -806,7 +806,7 @@ class MCEdit(GLViewport):
         # If a world was supplied, load it immediately
         start_world = arguments.LOAD_WORLD
         if start_world:
-            albow_schedule(lambda: mcedit.loadFile(str(start_world)))
+            albow_schedule(lambda: mcedit.loadFile(str(start_world), starting_pos=arguments.START_POS, starting_look=arguments.START_LOOK))
 
         while True:
             try:

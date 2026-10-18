@@ -1962,7 +1962,7 @@ class LevelEditor(GLViewport):
         GL.glDisable(GL.GL_BLEND)
         GL.glDisable(GL.GL_DEPTH_TEST)
 
-    def loadFile(self, filename):
+    def loadFile(self, filename, starting_pos=None, starting_look=None):
         if self.level and self.unsavedEdits > 0:
             resp = ask("Save unsaved edits before loading?", ["Cancel", "Don't Save", "Save"], default=2, cancel=0)
             if resp == "Cancel":
@@ -1983,10 +1983,19 @@ class LevelEditor(GLViewport):
         assert level
         self.mcedit.addRecentWorld(filename)
 
-        try:
-            self.currentViewport.cameraPosition = level.getPlayerPosition()
+        if starting_pos:
+            open_at = starting_pos
+        else:
+            open_at = level.getPlayerPosition()
 
-            y, p = level.getPlayerOrientation()
+        try:
+            self.currentViewport.cameraPosition = open_at
+
+            if starting_look:
+                y, p = starting_look
+            else:
+                y, p = level.getPlayerOrientation()
+                
             if p == -90.0:
                 p += 0.000000001
             if p == 90.0:
