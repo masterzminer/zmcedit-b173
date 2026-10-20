@@ -125,6 +125,7 @@ Settings.viewMode = Settings("View Mode", "Camera")
 Settings.classicMouse = Settings("classic mouse", False)
 Settings.useOldFileBrowser = Settings("old file browser", False)
 Settings.menuStars = Settings("hide menu stars", False)
+Settings.centerMouseFix = Settings("center mouse fix", False)
 
 ControlSettings = config.Settings("Controls")
 ControlSettings.mouseSpeed = ControlSettings("mouse speed", 5.0)

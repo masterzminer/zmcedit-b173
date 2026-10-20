@@ -1,3 +1,10 @@
+config
+    standardize the config strings to constants
+
+
+standardize logging, print statements, and traceback error logging calls
+
+
 filters
     make the last filter used, along with its settings, for the next time mc edit starts
     make the default filter something generally useful
@@ -7,19 +14,13 @@ filters
         figure out overflow error during subtraction
     Allow a new selection to be made or the existing selection modified with the mouse without changing out of the filters tool
     Allow stock filters to be hidden
+    Retest all stock filters
 
-level rendering
-    fix buttons and other non full blocks rendering weirdly
-
-input
-    change key handling to use a binding system, allowing shortcuts to be customized and to avoid hacky work arounds
-    fix the mouse issue when using mouse look and the sidebar of the os panel still being activated
-
-standardize logging, print statements, and traceback error logging calls
 
 brush
     make a max spacing feature so it can't skip long distances
     make the last selected block or blocks for the brush save with the config, similar to the last brush size
 
-config
-    standardize the config strings to constants
+
+level rendering
+    fix buttons and other non full blocks rendering weirdly

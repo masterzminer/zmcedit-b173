@@ -93,6 +93,8 @@ class RootWidget(Widget):
         self.is_gl = surface.get_flags() & OPENGL != 0
         self.idle_handlers = []
 
+        self.force_mouse_center = False
+
     def set_timer(self, ms):
         pygame.time.set_timer(USEREVENT, ms)
 
@@ -208,6 +210,11 @@ class RootWidget(Widget):
                                     mouse_widget = modal_widget
                                 last_mouse_event_handler = mouse_widget
                                 mouse_widget.handle_mouse('mouse_move', event)
+
+                            # Hack to force set the mouse back to the center when it moves during 3D movement
+                            if self.force_mouse_center and pygame.event.get_grab():
+                                pygame.mouse.set_pos(self.width * .5, self.height * .5)
+
                         elif type == MOUSEBUTTONUP:
                             add_modifiers(event)
                             self.do_draw = True

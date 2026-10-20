@@ -460,6 +460,14 @@ class OptionsPanel(Dialog):
             ref=Settings.classicMouse.propertyRef(),
             invert=True,
             tooltipText="Use the mouse pointer from the original version of MC Edit")
+           
+        centerMouseFixRow = mceutils.CheckBoxLabel("Center Mouse",
+            ref=Settings.centerMouseFix.propertyRef(),
+            on_change=self.mcedit.update_center_mouse_fix,
+            tooltipText="Keep the mouse hidden at the center of the window while in 3D look mode. " \
+            "This is a band aid fix for scenarios where the mouse being at the edge of a screen can cause unwanted os activations. " \
+            "This setting may or may not fix mouse behavior depending on how the os handles the mouse. " \
+            "With this disabled, no additional hack fix will be applied, and the mouse will move around the window while staying hidden.")
          
         menuStarsRow = mceutils.CheckBoxLabel("Menu Stars",
             ref=Settings.menuStars.propertyRef(),
@@ -507,6 +515,7 @@ class OptionsPanel(Dialog):
             swapAxesRow,
             invertRow,
             classicMouseRow,
+            centerMouseFixRow,
             menuStarsRow,
             oldFileBrowserRow,
             visibilityCheckRow
@@ -795,6 +804,9 @@ class MCEdit(GLViewport):
 
     closeMinecraftWarning = Settings.closeMinecraftWarning.configProperty()
 
+    def update_center_mouse_fix(self, enable):
+        self.root_widget.force_mouse_center = enable
+
     @classmethod
     def main(self):
         displayContext = GLDisplayContext()
@@ -810,12 +822,16 @@ class MCEdit(GLViewport):
         if 0 == len(materials.yamlDatas):
             albow.alert("Failed to load minecraft.yaml. Check the console window for details.")
 
+        self.root_widget = root_widget
+
         if mcedit.closeMinecraftWarning:
             answer = albow.ask("Warning: You must close Minecraft completely before editing. Save corruption may result", ["Don't remind me again.", "OK"], default=1, cancel=1)
             if answer == "Don't remind me again.":
                 mcedit.closeMinecraftWarning = False
 
         saveConfig()
+
+        mcedit.update_center_mouse_fix(config.center_mouse_fix())
 
 
         # If a world was supplied, load it immediately

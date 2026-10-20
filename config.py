@@ -196,6 +196,15 @@ def update_hide_menu_stars(use: bool):
     config.set("Settings", "hide menu stars", use)
 
 
+def center_mouse_fix():
+    if not config.has_option("Settings", "center mouse fix"):
+        return False
+    return config.getboolean("Settings", "center mouse fix")
+
+def update_center_mouse_fix(enable: bool):
+    config.set("Settings", "center mouse fix", enable)
+
+
 def _propertyRef(section, name, dtype=str, default=None):
     class PropRef(object):
         def get(self):
