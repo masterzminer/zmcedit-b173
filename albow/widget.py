@@ -7,6 +7,7 @@ from pygame.mouse import set_cursor
 from pygame.cursors import arrow as arrow_cursor
 from pygame import SYSTEM_CURSOR_ARROW as system_cursor
 from pygame.transform import rotozoom
+import pygame
 from .vectors import add, subtract
 from .utils import frame_rect
 from . import theme
@@ -21,6 +22,8 @@ debug_tab = True
 
 root_widget = None
 current_cursor = None
+
+invisible_cursor = None
 
 
 def overridable_property(name, doc=None):
@@ -370,7 +373,14 @@ class Widget(object):
         global current_cursor
         disabled = config.use_classic_mouse();
 
-        expected = system_cursor if disabled else self.get_cursor(event) or arrow_cursor
+        if config.center_mouse_fix() and pygame.event.get_grab():
+            global invisible_cursor
+            if invisible_cursor is None:
+                expected = invisible_cursor = init_invisible_cursor()
+            else:
+                expected = invisible_cursor
+        else:
+            expected = system_cursor if disabled else self.get_cursor(event) or arrow_cursor
         if expected == current_cursor: return
 
         set_cursor(expected)
@@ -762,3 +772,10 @@ class Widget(object):
 
     def gl_draw_self(self, root, offset):
         pass
+
+
+def init_invisible_cursor():
+    # Make up an invisible image for an "invisible" cursor because directly hiding the cursor creates other weird problems
+    image = pygame.Surface((1, 1), pygame.SRCALPHA)
+    image.fill((0, 0, 0, 0))
+    return pygame.cursors.Cursor((0, 0), image)

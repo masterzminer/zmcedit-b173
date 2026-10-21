@@ -463,8 +463,7 @@ class OptionsPanel(Dialog):
            
         centerMouseFixRow = mceutils.CheckBoxLabel("Center Mouse",
             ref=Settings.centerMouseFix.propertyRef(),
-            on_change=self.mcedit.update_center_mouse_fix,
-            tooltipText="Keep the mouse hidden at the center of the window while in 3D look mode. " \
+            tooltipText="While in 3D look mode, replace the mouse with an invisible cursor and force set the mouse to the center of the window during mouse movement. " \
             "This is a band aid fix for scenarios where the mouse being at the edge of a screen can cause unwanted os activations. " \
             "This setting may or may not fix mouse behavior depending on how the os handles the mouse. " \
             "With this disabled, no additional hack fix will be applied, and the mouse will move around the window while staying hidden.")
@@ -804,9 +803,6 @@ class MCEdit(GLViewport):
 
     closeMinecraftWarning = Settings.closeMinecraftWarning.configProperty()
 
-    def update_center_mouse_fix(self, enable):
-        self.root_widget.force_mouse_center = enable
-
     @classmethod
     def main(self):
         displayContext = GLDisplayContext()
@@ -830,9 +826,6 @@ class MCEdit(GLViewport):
                 mcedit.closeMinecraftWarning = False
 
         saveConfig()
-
-        mcedit.update_center_mouse_fix(config.center_mouse_fix())
-
 
         # If a world was supplied, load it immediately
         start_world = arguments.LOAD_WORLD
