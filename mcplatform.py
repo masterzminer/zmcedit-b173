@@ -19,7 +19,6 @@ Platform-specific functions, file io
 """
 
 import os
-from os.path import exists
 import sys
 import traceback
 import platform
@@ -27,6 +26,7 @@ import subprocess
 from pathlib import Path
 import config
 from config import LastDir
+from config_classes import DirectorySetting
 
 import crossfiledialog
 
@@ -35,16 +35,14 @@ enc = sys.getfilesystemencoding()
 from albow import request_new_filename, request_old_filename
 
 
-AppKit = None
-
 cmd_name = "Ctrl"
 option_name = "Alt"
 
-def askOpenFile(lastDir: LastDir, title: str):
+def askOpenFile(lastDir: DirectorySetting, title: str):
     """
-    dirType: String constant from config.LastDir representing the initial dir to open from
+    lastDir: setting to get the initial dir to open from
     """
-    initialDir = config.get_last_dir(lastDir)
+    initialDir = lastDir.directory
 
     file_types = ["mclevel", "dat", "mine", "mine.gz", "schematic"]
 
@@ -68,44 +66,47 @@ def askOpenFile(lastDir: LastDir, title: str):
     file_name = _ask_open()
 
     if file_name:
-        config.update_last_dir(lastDir, Path(file_name).parent)
+        lastDir.directory = Path(file_name).parent
 
     return file_name
 
 
 def askSaveSchematic(defaultName: str):
-    file_name = askSaveFile(LastDir.schematic,
+    lastDir = LastDir.schematic
+
+    file_name = askSaveFile(lastDir,
                 title='Save this schematic...',
                 defaultName=defaultName,
                 filetype="schematic"
             )
 
     if file_name:
-        config.update_last_dir(LastDir.schematic, Path(file_name).parent)
+        lastDir.directory = Path(file_name).parent
 
     return file_name
 
 
 def askCreateWorld():
-    initialDir = config.get_last_dir(LastDir.world)
+    lastDir = LastDir.world
+    initialDir = lastDir.directory
 
     # Find a valid name for a folder that doesn't already exist
     defaultName = name = "Untitled World"
     i = 0
-    while exists(initialDir / name):
+    while (initialDir / name).exists:
         i += 1
         name = defaultName + " " + str(i)
 
     # Select the directory
-    selected = askSaveFile(LastDir.world, title='Name this new world', defaultName=name)
+    selected = askSaveFile(lastDir, title='Name this new world', defaultName=name)
     
-    config.update_last_dir(LastDir.world, Path(selected).parent)
+    lastDir.directory = Path(selected).parent
 
     return selected
 
 
-def askSaveFolder(lastDir: LastDir, title):
-    initialDir = config.get_last_dir(lastDir)
+def askSaveFolder(lastDir: DirectorySetting, title):
+    initialDir = lastDir.directory
 
     if config.use_old_file_browser():
         selected = request_old_filename(directory=initialDir, selectDir=True)
@@ -118,13 +119,13 @@ def askSaveFolder(lastDir: LastDir, title):
     if selected is None or selected == "":
         return None
     
-    config.update_last_dir(lastDir, selected)
+    lastDir.directory = selected
 
     return selected
 
 
-def askSaveFile(lastDir: LastDir, title: str, defaultName, filetype: str=None):
-    initialDir = config.get_last_dir(lastDir);
+def askSaveFile(lastDir: DirectorySetting, title: str, defaultName, filetype: str=None):
+    initialDir = lastDir.directory;
 
     if config.use_old_file_browser():
         selected_path = request_new_filename(
@@ -146,7 +147,7 @@ def askSaveFile(lastDir: LastDir, title: str, defaultName, filetype: str=None):
             selected_path += "." + filetype
 
     if selected_path is not None:
-        config.update_last_dir(LastDir.data, Path(selected_path).parent)
+        lastDir.directory = Path(selected_path).parent
 
     return selected_path
 

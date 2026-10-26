@@ -18,7 +18,7 @@ from .toolbasics import *
 from .select import SelectionOperation
 
 from pymclevel.box import BoundingBox
-from config import LastDir
+from config import LastDir, Keys
 
 CloneSettings = config.Settings("Clone")
 CloneSettings.copyAir = CloneSettings("Copy Air", True)
@@ -214,19 +214,19 @@ class CloneToolPanel(Panel):
         self.tool = tool
 
         rotateRow = Row((
-            Label(config.config.get("Keys", "Rotate").upper()), Button("Rotate", width=80, action=tool.rotate, enable=self.transformEnable),
+            Label(Keys.rotate.upper()), Button("Rotate", width=80, action=tool.rotate, enable=self.transformEnable),
         ))
 
         rollRow = Row((
-            Label(config.config.get("Keys", "Roll").upper()), Button("Roll", width=80, action=tool.roll, enable=self.transformEnable),
+            Label(Keys.roll.upper()), Button("Roll", width=80, action=tool.roll, enable=self.transformEnable),
         ))
 
         flipRow = Row((
-            Label(config.config.get("Keys", "Flip").upper()), Button("Flip", width=80, action=tool.flip, enable=self.transformEnable),
+            Label(Keys.flip.upper()), Button("Flip", width=80, action=tool.flip, enable=self.transformEnable),
         ))
 
         mirrorRow = Row((
-            Label(config.config.get("Keys", "Mirror").upper()), Button("Mirror", width=80, action=tool.mirror, enable=self.transformEnable),
+            Label(Keys.mirror.upper()), Button("Mirror", width=80, action=tool.mirror, enable=self.transformEnable),
         ))
 
         alignRow = Row((

@@ -40,6 +40,7 @@ from pymclevel.mclevelbase import exhaust
 from albow.root import Cancel
 import numpy as np
 from OpenGL import GLU
+from config import Keys
 
 from pymclevel.box import BoundingBox
 from pymclevel.material import materials
@@ -59,9 +60,15 @@ class NudgeButton(GLBackground):
 
         # tooltipBacking = Panel()
         # tooltipBacking.bg_color = (0, 0, 0, 0.6)
-        keys = [config.config.get("Keys", k).upper() for k in ("Forward", "Back", "Left", "Right", "Up", "Down")]
 
-        nudgeLabel.tooltipText = "Click and hold.  While holding, use the movement keys ({0}{1}{2}{3}{4}{5}) to nudge. Hold SHIFT to nudge faster.".format(*keys)
+        nudgeLabel.tooltipText = "Click and hold.  While holding, use the movement keys ({0}{1}{2}{3}{4}{5}) to nudge. Hold SHIFT to nudge faster.".format(
+            Keys.forward,
+            Keys.back,
+            Keys.left,
+            Keys.right,
+            Keys.up,
+            Keys.down
+        )
         # tooltipBacking.shrink_wrap()
 
     def mouse_down(self, event):
@@ -72,10 +79,6 @@ class NudgeButton(GLBackground):
 
     def key_down(self, evt):
         keyname = key.name(evt.key)
-        if keyname == config.config.get("Keys", "Up"):
-            self.nudge((0, 1, 0))
-        if keyname == config.config.get("Keys", "Down"):
-            self.nudge((0, -1, 0))
 
         Z = self.get_root().mcedit.editor.mainViewport.cameraVector  # xxx mouthful
         absZ = list(map(abs, Z))
@@ -88,14 +91,12 @@ class NudgeButton(GLBackground):
         left = forward[2], forward[1], -forward[0]
         right = list(map(int.__neg__, left))
 
-        if keyname == config.config.get("Keys", "Forward"):
-            self.nudge(forward)
-        if keyname == config.config.get("Keys", "Back"):
-            self.nudge(back)
-        if keyname == config.config.get("Keys", "Left"):
-            self.nudge(left)
-        if keyname == config.config.get("Keys", "Right"):
-            self.nudge(right)
+        if keyname == Keys.up: self.nudge((0, 1, 0))
+        if keyname == Keys.down: self.nudge((0, -1, 0))
+        if keyname == Keys.forward: self.nudge(forward)
+        if keyname == Keys.back: self.nudge(back)
+        if keyname == Keys.left: self.nudge(left)
+        if keyname == Keys.right: self.nudge(right)
 
 
 class Operation(object):

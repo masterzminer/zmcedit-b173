@@ -17,6 +17,7 @@ from .toolbasics import *
 from albow.dialogs import wrapped_label
 from albow import *
 import importlib
+from config import LastDir
 
 from pymclevel.box import BoundingBox
 from pymclevel.material import materials

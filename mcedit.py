@@ -27,7 +27,7 @@ from albow.dialogs import Dialog
 from albow.openglwidgets import GLViewport
 from albow.root import RootWidget, schedule as albow_schedule
 import config
-from config import LastDir
+from config import LastDir, Keys
 import directories
 import functools
 from glbackground import Panel
@@ -73,14 +73,7 @@ class FileOpener(albow.Widget):
     def reset_content_row(self):
         helpColumn = []
 
-        label = albow.Label("{0} {1} {2} {3} {4} {5}".format(
-            config.config.get('Keys', 'Forward'),
-            config.config.get('Keys', 'Left'),
-            config.config.get('Keys', 'Back'),
-            config.config.get('Keys', 'Right'),
-            config.config.get('Keys', 'Up'),
-            config.config.get('Keys', 'Down'),
-        ).upper() + " to move")
+        label = albow.Label(f"{Keys.forward} {Keys.left} {Keys.back} {Keys.right} {Keys.up} {Keys.down}".upper() + " to move")
         label.anchor = 'whrt'
         label.align = 'r'
         helpColumn.append(label)
@@ -91,7 +84,7 @@ class FileOpener(albow.Widget):
             label.align = "r"
             helpColumn.append(label)
 
-        addHelp("{0}".format(config.config.get('Keys', 'Brake').upper()) + " to slow down")
+        addHelp(f"{Keys.brake.upper()} to slow down")
         addHelp("Right-click to toggle camera control")
         addHelp("Mousewheel to control tool distance")
         addHelp("Hold SHIFT to move along a major axis")
@@ -293,9 +286,9 @@ class KeyConfigPanel(Dialog):
         buttonRow = albow.Row(buttonRow)
 
         choiceButton = mceutils.ChoiceButton(["WASD", "Arrows", "Numpad"], choose=self.choosePreset)
-        if config.config.get("Keys", "Forward") == "up":
+        if Keys.forward == "up":
             choiceButton.selectedChoice = "Arrows"
-        if config.config.get("Keys", "Forward") == "[8]":
+        if Keys.forward == "[8]":
             choiceButton.selectedChoice = "Numpad"
 
         choiceRow = albow.Row((albow.Label("Presets: "), choiceButton))
@@ -309,12 +302,12 @@ class KeyConfigPanel(Dialog):
         preset = self.choiceButton.selectedChoice
         key_pairs = self.presets[preset]
         for configKey, key in key_pairs:
-            config.config.set("Keys", configKey, key)
+            Keys._set(configKey, key)
 
     def getRowData(self, i):
         configKey = self.keyConfigKeys[i]
         if self.isConfigKey(configKey):
-            key = config.config.get("Keys", configKey)
+            key = Keys._get(configKey)
         else:
             key = ""
         return configKey, key
@@ -358,16 +351,16 @@ class KeyConfigPanel(Dialog):
 
         keyname = panel.present()
         if keyname != "escape":
-            occupiedKeys = [(v, k) for (k, v) in config.config.items("Keys") if v == keyname]
-            old_key = config.config.get("Keys", configKey)
-            config.config.set("Keys", configKey, keyname)
+            occupiedKeys = [(v, k) for (k, v) in Keys.get_all() if v == keyname]
+            old_key = Keys._get(configKey)
+            Keys._set(configKey, keyname)
             for keyname, setting in occupiedKeys:
                 if self.askAssignKey(setting,
                                      "The key {0} is no longer bound to {1}.\n"
                                      "Press a new key for the action \"{1}\"\n\n"
                                      "Press ESC to cancel."
                                      .format(keyname, setting)):
-                    config.config.set("Keys", configKey, old_key)
+                    Keys._set(configKey, old_key)
                     return True
         else:
             return True

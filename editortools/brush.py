@@ -22,7 +22,7 @@ from .toolbasics import *
 from functools import reduce
 import numpy as np
 from pymclevel.material import materials
-from config import LastDir
+from config import LastDir, Keys
 
 from pymclevel.box import BoundingBox
 
@@ -804,11 +804,11 @@ class BrushTool(CloneTool):
     @property
     def statusText(self):
         return "Click and drag to place blocks. ALT-Click to use the block under the cursor. {R} to increase and {F} to decrease size. {E} to rotate, {G} to roll. Mousewheel to adjust distance.".format(
-            R=config.config.get("Keys", "Roll").upper(),
-            F=config.config.get("Keys", "Flip").upper(),
-            E=config.config.get("Keys", "Rotate").upper(),
-            G=config.config.get("Keys", "Mirror").upper(),
-            )
+            R=Keys.roll.upper(),
+            F=Keys.flip.upper(),
+            E=Keys.rotate.upper(),
+            G=Keys.mirror.upper(),
+        )
 
     @property
     def worldTooltipText(self):

@@ -32,7 +32,7 @@ import copy
 import time
 import numpy as np
 import config
-from config import LastDir
+from config import LastDir, Keys
 import frustum
 import logging
 import glutils
@@ -47,7 +47,6 @@ import pymclevel
 import renderer
 import traceback
 from typing import Literal
-from pathlib import Path
 from pymclevel.schematic import MCSchematic
 
 from math import isnan
@@ -267,7 +266,6 @@ class CameraViewport(GLViewport):
 
         self.brake = False
         self.lastTick = datetime.now()
-        # self.nearheight = near * tang
 
         self.cameraPosition = (16., 45., 16.)
         self.velocity = [0., 0., 0.]
@@ -286,7 +284,6 @@ class CameraViewport(GLViewport):
         Settings.drawSky.addObserver(self)
         Settings.drawFog.addObserver(self)
         Settings.showCeiling.addObserver(self)
-        ControlSettings.cameraAccel.addObserver(self, "accelFactor")
         ControlSettings.cameraMaxSpeed.addObserver(self, "maxSpeed")
         ControlSettings.cameraBrakingSpeed.addObserver(self, "brakeMaxSpeed")
         ControlSettings.invertMousePitch.addObserver(self)
@@ -297,7 +294,6 @@ class CameraViewport(GLViewport):
         Settings.fov.addObserver(self, "fovSetting", callback=self.updateFov)
 
         self.mouseVector = (0, 0, 0)
-        # self.add(DebugDisplay(self, "cameraPosition", "blockFaceUnderCursor", "mouseVector", "mouse3dPoint"))
 
     @property
     def pitch(self):
@@ -2443,36 +2439,22 @@ class LevelEditor(GLViewport):
         d = self.cameraInputs
         keyname = getattr(evt, 'keyname', None) or key.name(evt.key)
 
-        if keyname == config.config.get('Keys', 'Brake'):
+        if keyname == Keys.brake:
             self.mainViewport.brakeOff()
 
-        # if keyname == 'left ctrl' or keyname == 'right ctrl':
-        #    self.hideControls()
-
-        if keyname == config.config.get('Keys', 'Left'):
-            d[0] = 0.
-        if keyname == config.config.get('Keys', 'Right'):
-            d[0] = 0.
-        if keyname == config.config.get('Keys', 'Forward'):
-            d[2] = 0.
-        if keyname == config.config.get('Keys', 'Back'):
-            d[2] = 0.
-        if keyname == config.config.get('Keys', 'Up'):
-            d[1] = 0.
-        if keyname == config.config.get('Keys', 'Down'):
-            d[1] = 0.
-
         cp = self.cameraPanKeys
-        if keyname == config.config.get('Keys', 'Pan Left'):
-            cp[0] = 0.
-        if keyname == config.config.get('Keys', 'Pan Right'):
-            cp[0] = 0.
-        if keyname == config.config.get('Keys', 'Pan Up'):
-            cp[1] = 0.
-        if keyname == config.config.get('Keys', 'Pan Down'):
-            cp[1] = 0.
 
-        # if keyname in ("left alt", "right alt"):
+        if keyname == Keys.left: d[0] = 0.
+        if keyname == Keys.right: d[0] = 0.
+        if keyname == Keys.forward: d[2] = 0.
+        if keyname == Keys.back: d[2] = 0.
+        if keyname == Keys.up: d[1] = 0.
+        if keyname == Keys.down: d[1] = 0.
+
+        if keyname == Keys.pan_left: cp[0] = 0.
+        if keyname == Keys.pan_right: cp[0] = 0.
+        if keyname == Keys.pan_up: cp[1] = 0.
+        if keyname == Keys.pan_down: cp[1] = 0.
 
     def key_down(self, evt):
         """
@@ -2495,6 +2477,7 @@ class LevelEditor(GLViewport):
                 if hasattr(self.currentTool, name):
                     getattr(self.currentTool, name)()
 
+        # TODO make these configurable
         elif mods & KMOD_CTRL:
             if keyname == 'f':
                 self.swapViewDistance()
@@ -2567,32 +2550,24 @@ class LevelEditor(GLViewport):
                     causeError()
 
         else:
-            if keyname == 'g':
-                self.showGotoPanel()
-            if keyname == 'tab':
-                self.swapViewports()
+            cp = self.cameraPanKeys
 
-            if keyname == config.config.get('Keys', 'Brake'):
-                self.mainViewport.brakeOn()
+            if keyname == 'g': self.showGotoPanel()
+            if keyname == 'tab': self.swapViewports()
 
-            if keyname == config.config.get('Keys', 'Reset Reach'):
-                self.resetReach()
-            if keyname == config.config.get('Keys', 'Increase Reach'):
-                self.increaseReach()
-            if keyname == config.config.get('Keys', 'Decrease Reach'):
-                self.decreaseReach()
+            if keyname == Keys.brake: self.mainViewport.brakeOn()
 
-            if keyname == config.config.get('Keys', 'Flip'):
-                self.currentTool.flip()
-            if keyname == config.config.get('Keys', 'Roll'):
-                self.currentTool.roll()
-            if keyname == config.config.get('Keys', 'Rotate'):
-                self.currentTool.rotate()
-            if keyname == config.config.get('Keys', 'Mirror'):
-                self.currentTool.mirror()
-            if keyname == config.config.get('Keys', 'Swap'):
-                self.currentTool.swap()
+            if keyname == Keys.reset_reach: self.resetReach()
+            if keyname == Keys.increase_reach: self.increaseReach()
+            if keyname == Keys.decrease_reach: self.decreaseReach()
 
+            if keyname == Keys.flip: self.currentTool.flip()
+            if keyname == Keys.roll: self.currentTool.roll()
+            if keyname == Keys.rotate: self.currentTool.rotate()
+            if keyname == Keys.mirror: self.currentTool.mirror()
+            if keyname == Keys.swap: self.currentTool.swap()
+
+            # TODO make this a config?
             if keyname == 'escape':
                 if self.currentViewport == self.chunkViewport:
                     self.toolbar.selectTool(8)
@@ -2604,60 +2579,50 @@ class LevelEditor(GLViewport):
                 self.mouseLookOff()
 
             # movement
-            if keyname == config.config.get('Keys', 'Left'):
+            if keyname == Keys.left:
                 d[0] = -1.
                 im[0] = -1.
-            if keyname == config.config.get('Keys', 'Right'):
+            if keyname == Keys.right:
                 d[0] = 1.
                 im[0] = 1.
-            if keyname == config.config.get('Keys', 'Forward'):
+            if keyname == Keys.forward:
                 d[2] = 1.
                 im[2] = 1.
-            if keyname == config.config.get('Keys', 'Back'):
+            if keyname == Keys.back:
                 d[2] = -1.
                 im[2] = -1.
-            if keyname == config.config.get('Keys', 'Up'):
+            if keyname == Keys.up:
                 d[1] = 1.
                 im[1] = 1.
-            if keyname == config.config.get('Keys', 'Down'):
+            if keyname == Keys.down:
                 d[1] = -1.
                 im[1] = -1.
 
-            cp = self.cameraPanKeys
-            if keyname == config.config.get('Keys', 'Pan Left'):
-                cp[0] = -1.
-            if keyname == config.config.get('Keys', 'Pan Right'):
-                cp[0] = 1.
-            if keyname == config.config.get('Keys', 'Pan Up'):
-                cp[1] = -1.
-            if keyname == config.config.get('Keys', 'Pan Down'):
-                cp[1] = 1.
+            if keyname == Keys.pan_left: cp[0] = -1.
+            if keyname == Keys.pan_right: cp[0] = 1.
+            if keyname == Keys.pan_up: cp[1] = -1.
+            if keyname == Keys.pan_down: cp[1] = 1.
 
-            if keyname == config.config.get('Keys', 'Confirm Construction'):
+            if keyname == Keys.confirm_construction:
                 self.confirmConstruction()
 
-            # =======================================================================
-            # if keyname == config.config.get('Keys','Toggle Flat Shading'):
-            #    self.renderer.swapMipmapping()
-            # if keyname == config.config.get('Keys','Toggle Lighting'):
-            #    self.renderer.toggleLighting()
-            # =======================================================================
-
-            if keyname == config.config.get('Keys', 'Toggle FPS Counter'):
+            if keyname == Keys.toggle_fps_counter:
                 self.swapDebugLevels()
 
-            if keyname == config.config.get('Keys', 'Toggle Renderer'):
+            if keyname == Keys.toggle_renderer:
                 self.renderer.render = not self.renderer.render
 
-            if keyname == config.config.get('Keys', 'Delete Blocks'):
+            if keyname == Keys.delete_blocks:
                 self.deleteSelectedBlocks()
 
-            if keyname in "123456789":
+            # TODO make this configurable
+            elif keyname in "123456789":
                 self.toolbar.selectTool(int(keyname) - 1)
                 # Hack to ensure tools don't repeatedly get over selected
                 pygame.event.clear()
 
-            if keyname in ('f1', 'f2', 'f3', 'f4', 'f5'):
+            # TODO make this configurable
+            elif keyname in ('f1', 'f2', 'f3', 'f4', 'f5'):
                 self.mcedit.loadRecentWorldNumber(int(keyname[1]))
 
     def showGotoPanel(self):

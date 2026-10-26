@@ -622,15 +622,13 @@ class FilterControls(Column):
 
         controls = []
         controls.append(Button("Choose Filters Folder", action=self.choose_filter_folder))
-        if config.get_user_filters_dir():
+        if LastDir.filter:
             controls.append(Button("Open Filters Folder", action=self.open_filters_folder))
         Column.__init__(self, controls)
 
     def choose_filter_folder(self):
         folder = askSaveFolder(LastDir.filter, title="Choose folder for custom filters")
         if folder:
-            # Update the directory
-            config.update_user_filters_dir(folder)
             # Reload the menu to account for the updated directory
             self.reload()
 
@@ -639,7 +637,7 @@ class FilterControls(Column):
             reload_filters()
 
     def open_filters_folder(self):
-        os_ops.open_file(config.get_user_filters_dir())
+        os_ops.open_file(LastDir.filter.directory)
 
 
 

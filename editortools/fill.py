@@ -18,6 +18,7 @@ from .toolbasics import *
 
 from pymclevel.box import BoundingBox
 from pymclevel.material import materials
+from config import Keys
 
 FillSettings = config.Settings("Fill")
 FillSettings.chooseBlockImmediately = FillSettings("Choose Block Immediately", True)
@@ -75,7 +76,7 @@ class FillToolPanel(Panel):
         self.fillButton = Button("Fill", action=tool.confirm, width=self.blockButton.width)
         self.fillButton.tooltipText = "Shortcut: ENTER"
 
-        rollkey = config.config.get("Keys", "Roll").upper()
+        rollkey = Keys.roll.upper()
 
         self.replaceLabel = replaceLabel = Label("Replace", width=self.blockButton.width)
         replaceLabel.mouse_down = lambda a: self.tool.toggleReplacing()
@@ -102,7 +103,7 @@ class FillToolPanel(Panel):
             self.swapButton = Button("Swap", action=self.swapBlockTypes, width=self.blockButton.width)
             self.swapButton.fg_color = (255, 255, 255, 255)
             self.swapButton.highlight_color = (60, 255, 60, 255)
-            swapkey = config.config.get("Keys", "Swap").upper()
+            swapkey = Keys.swap.upper()
 
             self.swapButton.tooltipText = "Shortcut: {0}".format(swapkey)
 
@@ -332,7 +333,7 @@ class FillTool(EditorTool):
 
     @property
     def statusText(self):
-        return "Press {hotkey} to choose a block. Press {R} to enter replace mode. Click Fill or press ENTER to confirm.".format(hotkey=self.hotkey, R=config.config.get("Keys", "Roll").upper())
+        return "Press {hotkey} to choose a block. Press {R} to enter replace mode. Click Fill or press ENTER to confirm.".format(hotkey=self.hotkey, R=Keys.roll.upper())
 
     @property
     def worldTooltipText(self):
