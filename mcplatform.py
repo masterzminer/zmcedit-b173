@@ -42,7 +42,8 @@ def askOpenFile(lastDir: DirectorySetting, title: str):
     """
     lastDir: setting to get the initial dir to open from
     """
-    initialDir = lastDir.directory
+    # TODO make a method in DirectorySetting for auto updating a file path after a path or file is selected
+    initialDir = lastDir.v
 
     file_types = ["mclevel", "dat", "mine", "mine.gz", "schematic"]
 
@@ -66,7 +67,7 @@ def askOpenFile(lastDir: DirectorySetting, title: str):
     file_name = _ask_open()
 
     if file_name:
-        lastDir.directory = Path(file_name).parent
+        lastDir.set(Path(file_name).parent)
 
     return file_name
 
@@ -74,21 +75,21 @@ def askOpenFile(lastDir: DirectorySetting, title: str):
 def askSaveSchematic(defaultName: str):
     lastDir = LastDir.schematic
 
-    file_name = askSaveFile(lastDir,
+    file_name = askSaveFile(lastDir.v,
                 title='Save this schematic...',
                 defaultName=defaultName,
                 filetype="schematic"
             )
 
     if file_name:
-        lastDir.directory = Path(file_name).parent
+        lastDir.set(Path(file_name).parent)
 
     return file_name
 
 
 def askCreateWorld():
     lastDir = LastDir.world
-    initialDir = lastDir.directory
+    initialDir = lastDir.v
 
     # Find a valid name for a folder that doesn't already exist
     defaultName = name = "Untitled World"
@@ -98,15 +99,15 @@ def askCreateWorld():
         name = defaultName + " " + str(i)
 
     # Select the directory
-    selected = askSaveFile(lastDir, title='Name this new world', defaultName=name)
+    selected = askSaveFile(lastDir.v, title='Name this new world', defaultName=name)
     
-    lastDir.directory = Path(selected).parent
+    lastDir.set(Path(selected).parent)
 
     return selected
 
 
 def askSaveFolder(lastDir: DirectorySetting, title):
-    initialDir = lastDir.directory
+    initialDir = lastDir.v
 
     if config.use_old_file_browser():
         selected = request_old_filename(directory=initialDir, selectDir=True)
@@ -119,13 +120,13 @@ def askSaveFolder(lastDir: DirectorySetting, title):
     if selected is None or selected == "":
         return None
     
-    lastDir.directory = selected
+    lastDir.set(selected)
 
     return selected
 
 
 def askSaveFile(lastDir: DirectorySetting, title: str, defaultName, filetype: str=None):
-    initialDir = lastDir.directory;
+    initialDir = lastDir.v;
 
     if config.use_old_file_browser():
         selected_path = request_new_filename(
@@ -147,7 +148,7 @@ def askSaveFile(lastDir: DirectorySetting, title: str, defaultName, filetype: st
             selected_path += "." + filetype
 
     if selected_path is not None:
-        lastDir.directory = Path(selected_path).parent
+        lastDir.set(Path(selected_path).parent)
 
     return selected_path
 

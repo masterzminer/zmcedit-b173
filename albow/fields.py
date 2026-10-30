@@ -7,6 +7,7 @@ import pygame
 from pygame.locals import K_LEFT, K_RIGHT, K_TAB, K_c, K_v, SCRAP_TEXT
 from .widget import Widget, overridable_property
 from .controls import Control
+from config_classes import Setting
 
 #---------------------------------------------------------------------------
 
@@ -421,6 +422,11 @@ from pygame.locals import KMOD_SHIFT
 
 
 class FloatField(Field):
+    def __init__(self, width=None, setting=None, **kwds):
+        self.setting: Setting = setting
+        super().__init__(width, **kwds)
+    
+
     type = float
     _increment = 1.0
     _shift_increment = 16.0
@@ -459,4 +465,10 @@ class FloatField(Field):
 
         else:
             Field.mouse_down(self, evt)
+
+    def set_text(self, text):
+        if self.setting:
+            # TODO test that this works
+            self.setting.set(float(text))
+        return super().set_text(text)
 

@@ -9,6 +9,8 @@ from .theme import ThemeProperty
 from .utils import blit_in_rect, frame_rect
 from . import resource
 
+from config_classes import Setting
+
 #---------------------------------------------------------------------------
 
 
@@ -326,14 +328,17 @@ class ValueButton(ButtonBase, ValueDisplay):
 
 class CheckControl(Control):
 
-    def __init__(self, on_change=None, **kwds):
+    def __init__(self, on_change=None, setting=None, **kwds):
         self.on_change = on_change
+        self.setting: Setting = setting
         super().__init__(**kwds)
 
     def mouse_down(self, e):
         self.value = not self.value
         if self.on_change:
             self.on_change(self.value)
+        if self.observe:
+            self.observe.set(self.value)
 
 
     def get_highlighted(self):

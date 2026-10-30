@@ -87,35 +87,92 @@ class KeysSection(Section):
     toggle_fps_counter = S("0")
     toggle_renderer = S("m")
 
+Keys = KeysSection(config)
 
-class LastDir(Section):
+
+class SettingsSection(Section):
+    """Generic configurations"""
+
+    NAME="settings"
+    # TODO next, move all settings here and figure out the replacement for property refs, presumably using the add_observer function
+    fly_mode = S(False)
+    enable_mouse_lag = S(False)
+    long_distance_mode = S(False)
+
+    close_minecraft_warning = S(True)
+
+    fov = S(70.0)
+
+    space_height = S(64)
+    block_buffer = S(256 * 1048576)
+    double_buffer = S(True)
+
+    view_distance = S(16)
+    target_fps = S(60)
+
+    window_width = S(1024)
+    window_height = S(768)
+    window_x = S(0)
+    window_y = S(0)
+    window_show_cmd = S(1)
+    set_window_placement = S(True)
+
+    show_hidden_ores = S(False)
+    fast_leaves = S(False)
+    rough_graphics = S(False)
+    show_chunk_redraw = S(True)
+    draw_sky = S(True)
+    draw_fog = S(True)
+    show_ceiling = S(True)
+    draw_entities = S(True)
+    draw_monsters = S(True)
+    draw_items = S(True)
+    draw_tile_entities = S(True)
+    draw_tile_ticks = S(False)
+    draw_unpopulated_chunks = S(True)
+    vertex_buffer_limit = S(384)
+
+    vsync = S(0)
+    view_mode = S("Camera")
+    classic_mouse = S(False)
+    use_old_file_browser = S(False)
+    menu_stars = S(False)
+    center_mouse_fix = S(False)
+
+Settings = SettingsSection(config)
+
+class ControlsSection(Section):
+    """Settings related to controls"""
+
+    NAME = "controls"
+
+    mouse_speed = S(5.0)
+    camera_acceleration = S(125.0)
+    camera_drag = S(100.0)
+    camera_max_speed = S(60.0)
+    camera_breaking_speed = S(8.0)
+    invert_mouse_pitch = S(False)
+    auto_brake = S(True)
+    swap_axes = S(False)
+
+Controls = ControlsSection(config)
+
+
+class LastDirectoriesSection(Section):
     """Configs for the last directory accessed for specific categories"""
     
     NAME = "directories"
-    world = DS(Path.home())
-    data = DS(Path.home())
-    schematic = DS(Path.home())
-    filter = DS(Path.home())
+    world = DS()
+    data = DS()
+    schematic = DS()
+    filter = DS()
 
-
-# Setup all sections
-Keys = KeysSection(config)
-LastDirectories = LastDir(config)
+LastDir = LastDirectoriesSection(config)
 
 
 # Save the config after final init
 save_config()
 
-
-
-
-def use_classic_mouse():
-    if not config.has_option("Settings", "classic mouse"):
-        return False
-    return config.getboolean("Settings", "classic mouse")
-
-def update_classic_mouse(use: bool):
-    config.set("Settings", "classic mouse", use)
 
 
 def use_old_file_browser():

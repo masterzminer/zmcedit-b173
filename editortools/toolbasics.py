@@ -58,18 +58,15 @@ class NudgeButton(GLBackground):
         self.add(nudgeLabel)
         self.shrink_wrap()
 
-        # tooltipBacking = Panel()
-        # tooltipBacking.bg_color = (0, 0, 0, 0.6)
-
-        nudgeLabel.tooltipText = "Click and hold.  While holding, use the movement keys ({0}{1}{2}{3}{4}{5}) to nudge. Hold SHIFT to nudge faster.".format(
-            Keys.forward,
-            Keys.back,
-            Keys.left,
-            Keys.right,
-            Keys.up,
-            Keys.down
+        nudgeLabel.tooltipText = ("Click and hold.  While holding, use the movement keys ("
+            "{Keys.forward}"
+            "{Keys.back}"
+            "{Keys.left}"
+            "{Keys.right}"
+            "{Keys.up}"
+            "{Keys.down}"
+            ") to nudge. Hold SHIFT to nudge faster."
         )
-        # tooltipBacking.shrink_wrap()
 
     def mouse_down(self, event):
         self.focus()
@@ -91,12 +88,12 @@ class NudgeButton(GLBackground):
         left = forward[2], forward[1], -forward[0]
         right = list(map(int.__neg__, left))
 
-        if keyname == Keys.up: self.nudge((0, 1, 0))
-        if keyname == Keys.down: self.nudge((0, -1, 0))
-        if keyname == Keys.forward: self.nudge(forward)
-        if keyname == Keys.back: self.nudge(back)
-        if keyname == Keys.left: self.nudge(left)
-        if keyname == Keys.right: self.nudge(right)
+        if keyname == Keys.up.v: self.nudge((0, 1, 0))
+        if keyname == Keys.down.v: self.nudge((0, -1, 0))
+        if keyname == Keys.forward.v: self.nudge(forward)
+        if keyname == Keys.back.v: self.nudge(back)
+        if keyname == Keys.left.v: self.nudge(left)
+        if keyname == Keys.right.v: self.nudge(right)
 
 
 class Operation(object):

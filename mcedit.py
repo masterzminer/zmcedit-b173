@@ -27,13 +27,12 @@ from albow.dialogs import Dialog
 from albow.openglwidgets import GLViewport
 from albow.root import RootWidget, schedule as albow_schedule
 import config
-from config import LastDir, Keys
+from config import LastDir, Keys, Controls, Settings
 import directories
 import functools
 from glbackground import Panel
 import glutils
 import leveleditor
-from leveleditor import ControlSettings, Settings
 import logging
 import mceutils
 import mcplatform
@@ -286,9 +285,10 @@ class KeyConfigPanel(Dialog):
         buttonRow = albow.Row(buttonRow)
 
         choiceButton = mceutils.ChoiceButton(["WASD", "Arrows", "Numpad"], choose=self.choosePreset)
-        if Keys.forward == "up":
+        # TODO how is this meant to work?
+        if Keys.forward.v == "up":
             choiceButton.selectedChoice = "Arrows"
-        if Keys.forward == "[8]":
+        if Keys.forward.v == "[8]":
             choiceButton.selectedChoice = "Numpad"
 
         choiceRow = albow.Row((albow.Label("Presets: "), choiceButton))
@@ -302,12 +302,12 @@ class KeyConfigPanel(Dialog):
         preset = self.choiceButton.selectedChoice
         key_pairs = self.presets[preset]
         for configKey, key in key_pairs:
-            Keys._set(configKey, key)
+            Keys.set(configKey, key)
 
     def getRowData(self, i):
         configKey = self.keyConfigKeys[i]
         if self.isConfigKey(configKey):
-            key = Keys._get(configKey)
+            key = Keys.get(configKey)
         else:
             key = ""
         return configKey, key
@@ -352,15 +352,15 @@ class KeyConfigPanel(Dialog):
         keyname = panel.present()
         if keyname != "escape":
             occupiedKeys = [(v, k) for (k, v) in Keys.get_all() if v == keyname]
-            old_key = Keys._get(configKey)
-            Keys._set(configKey, keyname)
+            old_key = Keys.get(configKey)
+            Keys.set(configKey, keyname)
             for keyname, setting in occupiedKeys:
                 if self.askAssignKey(setting,
                                      "The key {0} is no longer bound to {1}.\n"
                                      "Press a new key for the action \"{1}\"\n\n"
                                      "Press ESC to cancel."
                                      .format(keyname, setting)):
-                    Keys._set(configKey, old_key)
+                    Keys.set(configKey, old_key)
                     return True
         else:
             return True
@@ -373,24 +373,24 @@ class GraphicsPanel(Panel):
         self.mcedit = mcedit
 
         fieldOfViewRow = mceutils.FloatInputRow("Field of View: ",
-            ref=Settings.fov.propertyRef(), width=100, min=25, max=120)
+            setting=Settings.fov, width=100, min=25, max=120)
 
         targetFPSRow = mceutils.IntInputRow("Target FPS: ",
-            ref=Settings.targetFPS.propertyRef(), width=100, min=1, max=600)
+            ref=SettingsChange.targetFPS.propertyRef(), width=100, min=1, max=600)
 
         bufferLimitRow = mceutils.IntInputRow("Vertex Buffer Limit (MB): ",
-            ref=Settings.vertexBufferLimit.propertyRef(), width=100, min=0)
+            ref=SettingsChange.vertexBufferLimit.propertyRef(), width=100, min=0)
 
         fastLeavesRow = mceutils.CheckBoxLabel("Fast Leaves",
-            ref=Settings.fastLeaves.propertyRef(),
+            setting=Settings.fast_leaves,
             tooltipText="Leaves are solid, like Minecraft's 'Fast' graphics")
 
         roughGraphicsRow = mceutils.CheckBoxLabel("Rough Graphics",
-            ref=Settings.roughGraphics.propertyRef(),
+            setting=Settings.rough_graphics,
             tooltipText="All blocks are drawn the same way (overrides 'Fast Leaves')")
 
         enableMouseLagRow = mceutils.CheckBoxLabel("Enable Mouse Lag",
-            ref=Settings.enableMouseLag.propertyRef(),
+            setting=Settings.enable_mouse_lag,
             tooltipText="Enable choppy mouse movement for faster loading.")
 
         settingsColumn = albow.Column((fastLeavesRow,
@@ -423,71 +423,66 @@ class OptionsPanel(Dialog):
         self.mcedit = mcedit
 
         autoBrakeRow = mceutils.CheckBoxLabel("Autobrake",
-            ref=ControlSettings.autobrake.propertyRef(),
+            setting=Controls.auto_brake,
             tooltipText="Apply brake when not pressing movement keys")
 
         swapAxesRow = mceutils.CheckBoxLabel("Swap Axes Looking Down",
-            ref=ControlSettings.swapAxes.propertyRef(),
+            setting=Controls.swap_axes,
             tooltipText="Change the direction of the Forward and Backward keys when looking down")
 
         cameraAccelRow = mceutils.FloatInputRow("Camera Acceleration: ",
-            ref=ControlSettings.cameraAccel.propertyRef(), width=100, min=5.0)
+            setting=Controls.camera_acceleration, width=100, min=5.0)
 
         cameraDragRow = mceutils.FloatInputRow("Camera Drag: ",
-            ref=ControlSettings.cameraDrag.propertyRef(), width=100, min=1.0)
+            setting=Controls.camera_drag, width=100, min=1.0)
 
         cameraMaxSpeedRow = mceutils.FloatInputRow("Camera Max Speed: ",
-            ref=ControlSettings.cameraMaxSpeed.propertyRef(), width=100, min=1.0)
+            setting=Controls.camera_max_speed, width=100, min=1.0)
 
         cameraBrakeSpeedRow = mceutils.FloatInputRow("Camera Braking Speed: ",
-            ref=ControlSettings.cameraBrakingSpeed.propertyRef(), width=100, min=1.0)
+            setting=Controls.camera_breaking_speed, width=100, min=1.0)
 
-        mouseSpeedRow = mceutils.FloatInputRow("Mouse Speed: ",
-            ref=ControlSettings.mouseSpeed.propertyRef(), width=100, min=0.1, max=20.0)
+        mouseSpeedRow = mceutils.FloatInputRow("Mouse Speed: ", setting=Controls.mouse_speed, width=100, min=0.1, max=20.0)
 
         invertRow = mceutils.CheckBoxLabel("Invert Mouse",
-            ref=ControlSettings.invertMousePitch.propertyRef(),
+            setting=Controls.invert_mouse_pitch,
             tooltipText="Reverse the up and down motion of the mouse.")
         
         classicMouseRow = mceutils.CheckBoxLabel("Classic Mouse",
-            ref=Settings.classicMouse.propertyRef(),
+            setting=Settingsef.classic_mouse,
             invert=True,
             tooltipText="Use the mouse pointer from the original version of MC Edit")
            
         centerMouseFixRow = mceutils.CheckBoxLabel("Center Mouse",
-            ref=Settings.centerMouseFix.propertyRef(),
+            ref=SettingsChange.centerMouseFix.propertyRef(),
             tooltipText="While in 3D look mode, replace the mouse with an invisible cursor and force set the mouse to the center of the window during mouse movement. " \
             "This is a band aid fix for scenarios where the mouse being at the edge of a screen can cause unwanted os activations. " \
             "This setting may or may not fix mouse behavior depending on how the os handles the mouse. " \
             "With this disabled, no additional hack fix will be applied, and the mouse will move around the window while staying hidden.")
          
         menuStarsRow = mceutils.CheckBoxLabel("Menu Stars",
-            ref=Settings.menuStars.propertyRef(),
+            ref=SettingsChange.menuStars.propertyRef(),
             invert=True,
             tooltipText="Show the stars in the main menu from older MC Edit versions")
         
         oldFileBrowserRow = mceutils.CheckBoxLabel("Old File Browser",
-            ref=Settings.useOldFileBrowser.propertyRef(),
+            ref=SettingsChange.useOldFileBrowser.propertyRef(),
             tooltipText="Use the built in file browser instead of an os native browser")
 
         spaceHeightRow = mceutils.IntInputRow("Low Detail Height",
-            ref=Settings.spaceHeight.propertyRef(),
+            ref=SettingsChange.spaceHeight.propertyRef(),
             tooltipText="When you are this far above the top of the world, move fast and use low-detail mode")
 
         blockBufferRow = mceutils.IntInputRow("Block Buffer",
-            ref=Settings.blockBuffer.propertyRef(), min=1,
+            ref=SettingsChange.blockBuffer.propertyRef(), min=1,
             tooltipText="Amount of memory used for temporary storage. When more than this is needed, the disk is used instead")
 
-        visibilityCheckRow = mceutils.CheckBoxLabel("Visibility Check",
-            ref=Settings.visibilityCheck.propertyRef(),
-            tooltipText="Do a visibility check on chunks while loading. May cause a crash")
-
         longDistanceRow = mceutils.CheckBoxLabel("Long-Distance Mode",
-            ref=Settings.longDistanceMode.propertyRef(),
+            setting=Settings.long_distance_mode,
             tooltipText="Always target the farthest block under the cursor, even in mouse look mode. Shortcut: ALT-Z")
 
         flyModeRow = mceutils.CheckBoxLabel("Fly Mode",
-            ref=Settings.flyMode.propertyRef(),
+            ref=SettingsChange.flyMode.propertyRef(),
             tooltipText="Moving forward and backward will not change your altitude in Fly Mode")
 
         inputs = (
@@ -510,7 +505,6 @@ class OptionsPanel(Dialog):
             centerMouseFixRow,
             menuStarsRow,
             oldFileBrowserRow,
-            visibilityCheckRow
         )
 
         right_col = albow.Column(options, align='r')
@@ -532,11 +526,11 @@ class OptionsPanel(Dialog):
 
     @property
     def blockBuffer(self):
-        return Settings.blockBuffer.get() / 1048576
+        return SettingsChange.blockBuffer.get() / 1048576
 
     @blockBuffer.setter
     def blockBuffer(self, val):
-        Settings.blockBuffer.set(int(val * 1048576))
+        SettingsChange.blockBuffer.set(int(val * 1048576))
 
 
 class MCEdit(GLViewport):
@@ -735,8 +729,8 @@ class MCEdit(GLViewport):
         dw, dh = surf.get_size()
 
         if w > 0 and h > 0:
-            Settings.windowWidth.set(w)
-            Settings.windowHeight.set(h)
+            Settings.window_width.set(w)
+            Settings.window_height.set(h)
             saveConfig()
 
     def loadFile(self, filename, starting_pos=None, starting_look=None, dimension:Literal["overworld","nether"]=None):
@@ -794,8 +788,6 @@ class MCEdit(GLViewport):
     def justQuit(self):
         raise SystemExit
 
-    closeMinecraftWarning = Settings.closeMinecraftWarning.configProperty()
-
     @classmethod
     def main(self):
         displayContext = GLDisplayContext()
@@ -813,10 +805,10 @@ class MCEdit(GLViewport):
 
         self.root_widget = root_widget
 
-        if mcedit.closeMinecraftWarning:
+        if Settings.close_minecraft_warning.v:
             answer = albow.ask("Warning: You must close Minecraft completely before editing. Save corruption may result", ["Don't remind me again.", "OK"], default=1, cancel=1)
             if answer == "Don't remind me again.":
-                mcedit.closeMinecraftWarning = False
+                Settings.close_minecraft_warning.set(False)
 
         saveConfig()
 
@@ -904,12 +896,12 @@ class GLDisplayContext(object):
         self.reset()
 
     def getWindowSize(self):
-        w, h = (Settings.windowWidth.get(), Settings.windowHeight.get())
+        w, h = (Settings.window_width.v, Settings.window_height.v)
         return max(20, w), max(20, h)
 
     def displayMode(self):
         displayMode = pygame.OPENGL | pygame.RESIZABLE
-        if Settings.doubleBuffer.get():
+        if Settings.double_buffer.v:
             displayMode |= pygame.DOUBLEBUF
         return displayMode
 
@@ -917,7 +909,7 @@ class GLDisplayContext(object):
         pygame.key.set_repeat(500, 100)
 
         try:
-            display.gl_set_attribute(pygame.GL_SWAP_CONTROL, Settings.vsync.get())
+            display.gl_set_attribute(pygame.GL_SWAP_CONTROL, Settings.vsync.v)
         except Exception as e:
             logging.warning('Unable to set vertical sync: {0!r}'.format(e))
 

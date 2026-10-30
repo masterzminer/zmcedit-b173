@@ -20,7 +20,6 @@ import importlib
 from config import LastDir
 
 from pymclevel.box import BoundingBox
-from pymclevel.material import materials
 import arguments
 
 ALL_FILTER_DIRS = []

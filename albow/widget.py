@@ -16,6 +16,7 @@ from .theme import ThemeProperty, FontProperty
 from numpy import frombuffer
 import sys
 import config
+from config import Settings
 
 debug_rect = False
 debug_tab = True
@@ -371,7 +372,8 @@ class Widget(object):
 
     def setup_cursor(self, event):
         global current_cursor
-        disabled = config.use_classic_mouse();
+        # TODO test make sure this is the correct boolean
+        disabled = Settings.classic_mouse.v;
 
         if config.center_mouse_fix() and pygame.event.get_grab():
             global invisible_cursor

@@ -1,8 +1,12 @@
 config
     standardize the config strings to constants
+    consolidate settings to one object per group, and rely on get and set functions
 
 
 standardize logging, print statements, and traceback error logging calls
+
+
+go through and remove all the unnecessary imports
 
 
 filters
@@ -24,3 +28,8 @@ brush
 
 level rendering
     fix buttons and other non full blocks rendering weirdly
+
+
+go through and clean up all the typos and general ide warnings
+
+go through and remove all the commented out code

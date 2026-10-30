@@ -76,13 +76,10 @@ class FillToolPanel(Panel):
         self.fillButton = Button("Fill", action=tool.confirm, width=self.blockButton.width)
         self.fillButton.tooltipText = "Shortcut: ENTER"
 
-        rollkey = Keys.roll.upper()
-
         self.replaceLabel = replaceLabel = Label("Replace", width=self.blockButton.width)
         replaceLabel.mouse_down = lambda a: self.tool.toggleReplacing()
         replaceLabel.fg_color = (177, 177, 255, 255)
-        # replaceLabelRow = Row( (Label(rollkey), replaceLabel) )
-        replaceLabel.tooltipText = "Shortcut: {0}".format(rollkey)
+        replaceLabel.tooltipText = f"Shortcut: {Keys.roll.upper()}"
         replaceLabel.align = "c"
 
         col = (self.fillWithLabel,
@@ -103,9 +100,8 @@ class FillToolPanel(Panel):
             self.swapButton = Button("Swap", action=self.swapBlockTypes, width=self.blockButton.width)
             self.swapButton.fg_color = (255, 255, 255, 255)
             self.swapButton.highlight_color = (60, 255, 60, 255)
-            swapkey = Keys.swap.upper()
 
-            self.swapButton.tooltipText = "Shortcut: {0}".format(swapkey)
+            self.swapButton.tooltipText = f"Shortcut: {Keys.swap.upper()}"
 
             self.fillButton = Button("Replace", action=tool.confirm, width=self.blockButton.width)
             self.fillButton.tooltipText = "Shortcut: ENTER"
@@ -333,7 +329,7 @@ class FillTool(EditorTool):
 
     @property
     def statusText(self):
-        return "Press {hotkey} to choose a block. Press {R} to enter replace mode. Click Fill or press ENTER to confirm.".format(hotkey=self.hotkey, R=Keys.roll.upper())
+        return f"Press {self.hotkey} to choose a block. Press {Keys.roll.upper()} to enter replace mode. Click Fill or press ENTER to confirm"
 
     @property
     def worldTooltipText(self):

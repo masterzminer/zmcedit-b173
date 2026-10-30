@@ -803,11 +803,12 @@ class BrushTool(CloneTool):
 
     @property
     def statusText(self):
-        return "Click and drag to place blocks. ALT-Click to use the block under the cursor. {R} to increase and {F} to decrease size. {E} to rotate, {G} to roll. Mousewheel to adjust distance.".format(
-            R=Keys.roll.upper(),
-            F=Keys.flip.upper(),
-            E=Keys.rotate.upper(),
-            G=Keys.mirror.upper(),
+        return (
+            f"Click and drag to place blocks. ALT-Click to use the block under the cursor."
+            f"{Keys.roll.upper()} to increase and"
+            f"{Keys.flip.upper()} to decrease size."
+            f"{Keys.rotate.upper()} to rotate,"
+            f"{Keys.mirror.upper()} to roll. Mousewheel to adjust distance."
         )
 
     @property
@@ -1075,19 +1076,19 @@ class BrushTool(CloneTool):
 
     def increaseToolReach(self):
         # self.reticleOffset = max(self.reticleOffset-1, 0)
-        if self.editor.mainViewport.mouseMovesCamera and not self.editor.longDistanceMode:
+        if self.editor.mainViewport.mouseMovesCamera and not Settings.long_distance_mode.v:
             return False
         self.reticleOffset = self.reticleOffset + 1
         return True
 
     def decreaseToolReach(self):
-        if self.editor.mainViewport.mouseMovesCamera and not self.editor.longDistanceMode:
+        if self.editor.mainViewport.mouseMovesCamera and not Settings.long_distance_mode.v:
             return False
         self.reticleOffset = max(self.reticleOffset - 1, 0)
         return True
 
     def resetToolReach(self):
-        if self.editor.mainViewport.mouseMovesCamera and not self.editor.longDistanceMode:
+        if self.editor.mainViewport.mouseMovesCamera and not Settings.long_distance_mode.v:
             self.resetToolDistance()
         else:
             self.reticleOffset = self.offsetMax()

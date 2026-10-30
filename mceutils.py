@@ -31,7 +31,6 @@ import traceback
 from PIL import Image
 import directories
 from albow import FloatField, IntField, TextField
-import config
 from mcplatform import os_ops, askSaveFolder, LastDir
 
 
@@ -465,10 +464,11 @@ class ChoiceButton(ValueButton):
         self.menu = Menu("", ((name, "pickMenu") for name in self._choices))
 
 
-def CheckBoxLabel(title, invert=False, on_change=None, **kw):
+def CheckBoxLabel(title, invert=False, on_change=None, setting=None, **kw):
+    """setting: An object with a set function that will have its value set when this check box changes"""
     tooltipText = kw.pop('tooltipText', None)
 
-    cb = CheckBox(invert, on_change, **kw)
+    cb = CheckBox(invert, on_change, setting, **kw)
     lab = Label(title, fg_color=cb.fg_color)
     lab.mouse_down = cb.mouse_down
 
@@ -492,8 +492,8 @@ def CheckBoxLabel(title, invert=False, on_change=None, **kw):
     return row
 
 
-def FloatInputRow(title, *args, **kw):
-    return Row((Label(title, tooltipText=kw.get('tooltipText')), FloatField(*args, **kw)))
+def FloatInputRow(title, setting=None, *args, **kw):
+    return Row((Label(title, tooltipText=kw.get('tooltipText')), FloatField(setting=setting, *args, **kw)))
 
 
 def IntInputRow(title, *args, **kw):

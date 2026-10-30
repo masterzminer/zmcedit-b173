@@ -7,18 +7,23 @@ import mcplatform
 
 def test_file(lastDir: DirectorySetting, new_path: str):
     
-    print("testing", lastDir.directory, type(lastDir.directory), new_path)
-    lastDir.directory = new_path
+    print("testing", lastDir.v, type(lastDir.v), new_path)
+    lastDir.set(new_path)
 
 config.LastDir.world.add_observer(lambda value: print("changed", value))
 
 print("-----", config.Keys.back)
-print("-----", config.LastDirectories)
-print("-----", type(config.LastDirectories))
-print("-----", config.LastDirectories.world)
-print("-----", type(config.LastDirectories.world))
-config.LastDirectories.world = "bbbbbb"
-print("-----", config.LastDirectories.world)
+print("-----", repr(config.Keys.back))
+print("-----", f"{config.Keys.back}")
+print("-----", f"{config.Settings.classic_mouse}")
+print("-----", config.LastDir)
+print("-----", type(config.LastDir))
+print("-----", config.LastDir.world)
+print("-----", type(config.LastDir.world))
+print("-----", type(config.LastDir.world.get()))
+print("-----", type(config.LastDir.world.v))
+config.LastDir.world.set("bbbbbb")
+print("-----", config.LastDir.world)
 print("-----")
 print("-----", config.LastDir)
 print("-----", type(config.LastDir))

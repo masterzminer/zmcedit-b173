@@ -1,6 +1,11 @@
 from configparser import RawConfigParser
 from pathlib import Path
 
+class Observer:
+    def __init__(self, func, name=None):
+        self.func = func
+        self.name = name
+
 class Setting:
     """Individual object for a setting"""
 
@@ -18,10 +23,7 @@ class Setting:
         # On the init for each setting, saving the setting's field name
         self.name = name
 
-    def __get__(self, instance, parent=None):
-        if instance is None:
-            return self
-        
+    def get(self):
         getters = self.section._getters
 
         # Get the getter based on the type of the option
@@ -29,14 +31,37 @@ class Setting:
         # Return the actual value from the config
         return getter(self.name)
 
-    def __set__(self, parent, value):
-        self.section._set(self.name, value)
+    @property
+    def v(self):
+        """shorthand for get"""
+        return self.get()
 
-        for func in self.observers:
-            func(value)
+    def __str__(self):
+        return str(self.get())
 
-    def add_observer(self, func):
-        self.observers.append(func)
+    def __repr__(self):
+        return f"name:{self.name}, section:{self.section.NAME}, value:{self.v}, default:{self.default_value}"
+
+    def set(self, value):
+        # TODO test that this only sends an update when the value changes
+        old = self.get()
+        if old == value:
+            return
+
+        self.section.set(self.name, value)
+
+        for obs in self.observers:
+            obs.func(value)
+
+    def add_observer(self, func, name=None):
+        # Skip if the observer already exists
+        if name is not None:
+            for obs in self.observers:
+                if obs.name == name:
+                    return
+        
+        # Add the observer
+        self.observers.append(Observer(func, name))
 
 
 class Section:
@@ -71,11 +96,11 @@ class Section:
                 if not self._config.has_option(self.NAME, name):
                     self._config.set(self.NAME, name, str(setting.default_value))
 
-    def _set(self, setting, value):
+    def set(self, setting, value):
         """Set the given value on the config"""
         self._config.set(self.NAME, setting, value)
 
-    def _get(self, setting):
+    def get(self, setting):
         """Get the given value on the config as a string"""
         return self._config.get(self.NAME, setting)
     
@@ -91,25 +116,12 @@ class Section:
 class DirectorySetting(Setting):
     """Setting for storing and retrieving a path"""
 
-    def __init__(self, default_value):
+    def __init__(self, default_value=Path.home()):
         # Store the path as a string
         super().__init__(str(default_value))
 
-    def __get__(self, instance, parent=None):
-        if instance is None:
-            return self
+    def get(self,):
+        return Path(super().get())
 
-        return Path(instance._get(self.name))
-
-    def __set__(self, parent, value):
-        return super().__set__(parent, value)
-
-    @property
-    def directory(self):
-        """Get the Path object for the directory of this config"""
-        return Path(super().__get__(self))
-
-    @directory.setter
-    def directory(self, new_path):
-        """Update the config with the new path"""
-        super().__set__(self.name, str(new_path))
+    def set(self, value):
+        super().set(str(value))
