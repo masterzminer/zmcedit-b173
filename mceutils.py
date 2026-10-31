@@ -31,7 +31,8 @@ import traceback
 from PIL import Image
 import directories
 from albow import FloatField, IntField, TextField
-from mcplatform import os_ops, askSaveFolder, LastDir
+from mcplatform import os_ops, askSaveFolder
+from config import LastDir, Settings
 
 
 def alertException(func):
@@ -499,6 +500,7 @@ def FloatInputRow(title, setting=None, *args, **kw):
 def IntInputRow(title, setting=None, *args, **kw):
     return Row((Label(title, tooltipText=kw.get('tooltipText')), IntField(setting=setting, *args, **kw)))
 
+
 def TextInputRow(title, setting=None, *args, **kw):
     return Row((Label(title, tooltipText=kw.get('tooltipText')), TextField(setting=setting, *args, **kw)))
 
@@ -632,8 +634,12 @@ class FilterControls(Column):
             # Reload the menu to account for the updated directory
             self.reload()
 
+            # Update the user folder
+            Settings.user_filters_dir = str(folder)
+
             # Reload all filters
             from editortools.filter import reload_filters
+
             reload_filters()
 
     def open_filters_folder(self):

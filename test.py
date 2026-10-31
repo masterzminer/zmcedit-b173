@@ -1,6 +1,5 @@
 import config
 from config_classes import DirectorySetting
-import mcplatform
 
 # TODO remove
 

@@ -378,8 +378,8 @@ class CheckWidget(Widget):
 
 class CheckBox(CheckControl, CheckWidget):
 
-    def __init__(self, invert=False, on_change=None, **kwargs):
-        super().__init__(invert=invert, on_change=on_change, **kwargs)
+    def __init__(self, invert=False, on_change=None, setting: Setting=None, **kwargs):
+        super().__init__(invert=invert, on_change=on_change, setting=setting, **kwargs)
 
     pass
 

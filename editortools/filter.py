@@ -17,7 +17,7 @@ from .toolbasics import *
 from albow.dialogs import wrapped_label
 from albow import *
 import importlib
-from config import LastDir
+from config import LastDir, Settings
 
 from pymclevel.box import BoundingBox
 import arguments
@@ -38,8 +38,8 @@ def reload_filter_dirs():
     filter_dirs.extend(arguments.FILTER_DIRS)
 
     # Add the directory from user configuration
-    user_dir = config.get_user_filters_dir()
-    if user_dir:
+    user_dir = Settings.user_filters_dir.v
+    if user_dir is not None and user_dir != "":
         filter_dirs.append(user_dir)
 
     # Replace the contents of the reference for the list of dirs

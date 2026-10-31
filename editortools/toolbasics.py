@@ -59,12 +59,12 @@ class NudgeButton(GLBackground):
         self.shrink_wrap()
 
         nudgeLabel.tooltipText = ("Click and hold.  While holding, use the movement keys ("
-            "{Keys.forward}"
-            "{Keys.back}"
-            "{Keys.left}"
-            "{Keys.right}"
-            "{Keys.up}"
-            "{Keys.down}"
+            f"{Keys.forward}"
+            f"{Keys.back}"
+            f"{Keys.left}"
+            f"{Keys.right}"
+            f"{Keys.up}"
+            f"{Keys.down}"
             ") to nudge. Hold SHIFT to nudge faster."
         )
 

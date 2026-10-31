@@ -50,7 +50,7 @@ def save_config():
 
 
 # Define sections and each individual setting and its default
-class KeysSection(Section):
+class _KeysSection(Section):
     """Configs for keybindings"""
 
     NAME = "Keys"
@@ -86,14 +86,13 @@ class KeysSection(Section):
     toggle_fps_counter = S("0")
     toggle_renderer = S("m")
 
-Keys = KeysSection(config)
+Keys = _KeysSection(config)
 
 
-class SettingsSection(Section):
+class _SettingsSection(Section):
     """Generic configurations"""
 
-    NAME="settings"
-    # TODO next, move all settings here and figure out the replacement for property refs, presumably using the add_observer function
+    NAME = "settings"
     fly_mode = S(False)
     enable_mouse_lag = S(False)
     long_distance_mode = S(False)
@@ -137,10 +136,11 @@ class SettingsSection(Section):
     use_old_file_browser = S(False)
     hide_menu_stars = S(False)
     center_mouse_fix = S(False)
+    user_filters_dir = S("")
 
-Settings = SettingsSection(config)
+Settings = _SettingsSection(config)
 
-class ControlsSection(Section):
+class _ControlsSection(Section):
     """Settings related to controls"""
 
     NAME = "controls"
@@ -154,10 +154,94 @@ class ControlsSection(Section):
     auto_brake = S(True)
     swap_axes = S(False)
 
-Controls = ControlsSection(config)
+Controls = _ControlsSection(config)
 
 
-class LastDirectoriesSection(Section):
+class _SelectToolSection(Section):
+    """Settings for the select tool"""
+
+    NAME = "select tool"
+
+    show_previous_selection = S(True)
+    color = S("teal")
+
+SelectToolSettings = _SelectToolSection(config)
+
+
+class _BrushToolSection(Section):
+    """Settings for the brush tool"""
+
+    NAME = "brush tool"
+
+    length = S(3)
+    height = S(3)
+    width = S(3)
+    update_offset = S(False)
+    choose_block_immediately = S(False)
+    alpha = S(0.66, min=0, max=1)
+
+
+BrushToolSettings = _BrushToolSection(Section)
+
+
+class _CloneToolSection(Section):
+    """Settings for the clone tool"""
+
+    NAME = "clone tool"
+
+    copy_air = S(True)
+    copy_water = S(True)
+    place_immediately = S(True)
+
+
+CloneToolSettings = _CloneToolSection(config)
+
+
+class _FillToolSection(Section):
+    """Settings for the fill tool"""
+
+    NAME = "fill tool"
+
+    chose_block_immediately = S(True)
+
+
+FillToolSettings = _FillToolSection(config)
+
+
+class _SpawnToolSection(Section):
+    """Settings related to the spawn tool"""
+
+    NAME = "spawn tool"
+
+    protection = S(True)
+
+
+SpawnToolSettings = _SpawnToolSection(config)
+
+
+class _ColorSettingsSection(Section):
+    """Settings for selectable colors, stored as a string of (r, g, b) where r, g, and b are floating point values for the color"""
+
+    NAME = "colors"
+
+    white = S("1.0, 1.0, 1.0")
+
+    blue = S("0.75, 0.75, 1.0")
+    green = S("0.75, 1.0, 0.75")
+    red = S("1.0, 0.75, 0.75")
+
+    teal = S("0.75, 1.0, 1.0")
+    pink = S("1.0, 0.75, 1.0")
+    yellow = S("1.0, 1.0, 0.75")
+
+    grey = S("0.6, 0.6, 0.6")
+    black = S("0.0, 0.0, 0.0")
+
+
+ColorSettings = _ColorSettingsSection(config)
+
+
+class _LastDirectoriesSection(Section):
     """Configs for the last directory accessed for specific categories"""
     
     NAME = "directories"
@@ -166,16 +250,16 @@ class LastDirectoriesSection(Section):
     schematic = DS()
     filter = DS()
 
-LastDir = LastDirectoriesSection(config)
+LastDir = _LastDirectoriesSection(config)
 
 
-class RecentWorldsSection(ListSection):
+class _RecentWorldsSection(ListSection):
     """Worlds that were opened recently"""
 
-    NAME = "recent_worlds"
+    NAME = "recent worlds"
 
 
-RecentWorlds = RecentWorldsSection(5, config)
+RecentWorlds = _RecentWorldsSection(5, config)
 
 
 # Save the config after final init

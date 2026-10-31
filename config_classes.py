@@ -9,12 +9,15 @@ class Observer:
 class Setting:
     """Individual object for a setting"""
 
-    def __init__(self, default_value):
+    def __init__(self, default_value, min=None, max=None):
         # Store the option type and default value
         self.option_type = type(default_value)
         self.default_value = default_value
         self.observers = []
         """List of functions to run when the value changes"""
+
+        self.min = min
+        self.max = max
 
         self.section: Section
         """Singleton section which holds this setting"""
@@ -48,10 +51,20 @@ class Setting:
         if old == value:
             return
 
+        # Update the value to be in range if applicable
+        if self.min is not None and self.min > value:
+            value = self.min
+        if self.max is not None and self.max < value:
+            value = self.max
+
         self.section.set(self.name, value)
 
         for obs in self.observers:
             obs.func(value)
+
+    def invert(self):
+        """used for boolean settings, sets this setting to the inverted boolean value"""
+        self.set(not self.get())
 
     def add_observer(self, func, name=None):
         # Skip if the observer already exists

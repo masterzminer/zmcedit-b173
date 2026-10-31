@@ -18,12 +18,7 @@ from .toolbasics import *
 from .select import SelectionOperation
 
 from pymclevel.box import BoundingBox
-from config import LastDir, Keys
-
-CloneSettings = config.Settings("Clone")
-CloneSettings.copyAir = CloneSettings("Copy Air", True)
-CloneSettings.copyWater = CloneSettings("Copy Water", True)
-CloneSettings.placeImmediately = CloneSettings("Place Immediately", True)
+from config import LastDir, Keys, CloneToolSettings
 
 
 class CoordsInput(Widget):
@@ -77,14 +72,12 @@ class CoordsInput(Widget):
 
 
 class BlockCopyOperation(Operation):
-    def __init__(self, editor, sourceLevel, sourceBox, destLevel, destPoint, copyAir, copyWater):
+    def __init__(self, editor, sourceLevel, sourceBox, destLevel, destPoint):
         self.editor = editor
         self.sourceLevel = sourceLevel
         self.sourceBox = sourceBox
         self.destLevel = destLevel
         self.destPoint = destPoint
-        self.copyAir = copyAir
-        self.copyWater = copyWater
         self.sourceBox, self.destPoint = self.destLevel.adjustCopyParameters(self.sourceLevel, self.sourceBox, self.destPoint)
 
     def dirtyBox(self):
@@ -105,13 +98,13 @@ class BlockCopyOperation(Operation):
             self.recordUndo()
 
         blocksToCopy = None
-        if not (self.copyAir and self.copyWater):
+        if not (CloneToolSettings.copy_air and CloneToolSettings.copy_water):
             blocksToCopy = list(range(256))
-            if not self.copyAir:
+            if not CloneToolSettings.copy_air:
                 blocksToCopy.remove(0)
-            if not self.copyWater:
+            if not CloneToolSettings.copy_water:
                 blocksToCopy.remove(8)
-            if not self.copyWater:
+            if not CloneToolSettings.copy_water:
                 blocksToCopy.remove(9)
 
         with setWindowCaption("Copying - "):
@@ -132,7 +125,7 @@ class BlockCopyOperation(Operation):
 
 
 class CloneOperation (Operation):
-    def __init__(self, editor, sourceLevel, sourceBox, originSourceBox, destLevel, destPoint, copyAir, copyWater, repeatCount):
+    def __init__(self, editor, sourceLevel, sourceBox, originSourceBox, destLevel, destPoint, repeatCount):
         self.blockCopyOps = []
         dirtyBoxes = []
         if repeatCount > 1:  # clone tool only
@@ -141,7 +134,7 @@ class CloneOperation (Operation):
             delta = (0, 0, 0)
 
         for i in range(repeatCount):
-            op = BlockCopyOperation(editor, sourceLevel, sourceBox, destLevel, destPoint, copyAir, copyWater)
+            op = BlockCopyOperation(editor, sourceLevel, sourceBox, destLevel, destPoint)
             dirty = op.dirtyBox()
 
             # bounds check - xxx move to BoundingBox
@@ -280,7 +273,7 @@ class CloneToolPanel(Panel):
 
         self.scaleField = scaleField
 
-        self.copyAirCheckBox = CheckBox(ref=AttrRef(self.tool, "copyAir"))
+        self.copyAirCheckBox = CheckBox(setting=CloneToolSettings.copy_air)
         self.copyAirLabel = Label("Copy Air")
         self.copyAirLabel.mouse_down = self.copyAirCheckBox.mouse_down
         self.copyAirLabel.tooltipText = "Shortcut: ALT-1"
@@ -288,7 +281,7 @@ class CloneToolPanel(Panel):
 
         copyAirRow = Row((self.copyAirCheckBox, self.copyAirLabel))
 
-        self.copyWaterCheckBox = CheckBox(ref=AttrRef(self.tool, "copyWater"))
+        self.copyWaterCheckBox = CheckBox(setting=CloneToolSettings.copy_water)
         self.copyWaterLabel = Label("Copy Water")
         self.copyWaterLabel.mouse_down = self.copyWaterCheckBox.mouse_down
         self.copyWaterLabel.tooltipText = "Shortcut: ALT-2"
@@ -315,7 +308,7 @@ class CloneToolOptions(ToolOptions):
     def __init__(self, tool):
         Panel.__init__(self)
         self.tool = tool
-        self.autoPlaceCheckBox = CheckBox(ref=AttrRef(tool, "placeImmediately"))
+        self.autoPlaceCheckBox = CheckBox(setting=CloneToolSettings.place_immediately)
         self.autoPlaceLabel = Label("Place Immediately")
         self.autoPlaceLabel.mouse_down = self.autoPlaceCheckBox.mouse_down
 
@@ -361,8 +354,6 @@ class CloneTool(EditorTool):
             x, y, z = self.destPoint
             self.destPoint = (x >> 4) << 4, y, (z >> 4) << 4
 
-    placeImmediately = CloneSettings.placeImmediately.configProperty()
-
     panelClass = CloneToolPanel
     # color = (0.89, 0.65, 0.35, 0.33)
     color = (0.3, 1.0, 0.3, 0.19)
@@ -389,9 +380,6 @@ class CloneTool(EditorTool):
 
     def quickNudge(self, nudge):
         return list(map(int.__mul__, nudge, self.selectionBox().size))
-
-    copyAir = CloneSettings.copyAir.configProperty()
-    copyWater = CloneSettings.copyWater.configProperty()
 
     def nudge(self, nudge):
         if self.destPoint is None:
@@ -467,7 +455,7 @@ class CloneTool(EditorTool):
         self.repeatCount = 1
         self._scaleFactor = 1.0
 
-        if self.placeImmediately:
+        if CloneToolSettings.place_immediately:
             self.destPoint = list(box.origin)
         else:
             self.destPoint = None
@@ -743,10 +731,10 @@ class CloneTool(EditorTool):
             self.previewRenderer.level = self.level
 
     def option1(self):
-        self.copyAir = not self.copyAir
+        CloneToolSettings.copy_air.invert()
 
     def option2(self):
-        self.copyWater = not self.copyWater
+        CloneToolSettings.copy_water.invert()
 
     draggingFace = None
     draggingStartPoint = None
@@ -896,8 +884,6 @@ class CloneTool(EditorTool):
                             originSourceBox=self.selectionBox(),
                             destLevel=destLevel,
                             destPoint=self.destPoint,
-                            copyAir=self.copyAir,
-                            copyWater=self.copyWater,
                             repeatCount=self.repeatCount)
 
         self.editor.toolbar.selectTool(-1)  # deselect tool so that the clone tool's selection change doesn't update its schematic
@@ -1023,8 +1009,6 @@ class ConstructionTool(CloneTool):
             print("No level selected.")
 
             self.editor.toolbar.selectTool(-1)
-
-        # CloneTool.toolSelected(self)
 
     originalLevelSize = (0, 0, 0)
 

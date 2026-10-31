@@ -22,25 +22,14 @@ from .toolbasics import *
 from functools import reduce
 import numpy as np
 from pymclevel.material import materials
-from config import LastDir, Keys
+from config import LastDir, Keys, BrushToolSettings
 
 from pymclevel.box import BoundingBox
-
-
-BrushSettings = config.Settings("Brush")
-BrushSettings.brushSizeL = BrushSettings("Brush Shape L", 3)
-BrushSettings.brushSizeH = BrushSettings("Brush Shape H", 3)
-BrushSettings.brushSizeW = BrushSettings("Brush Shape W", 3)
-BrushSettings.updateBrushOffset = BrushSettings("Update Brush Offset", False)
-BrushSettings.chooseBlockImmediately = BrushSettings("Choose Block Immediately", False)
-BrushSettings.alpha = BrushSettings("Alpha", 0.66)
 
 
 class BrushMode(object):
     options = []
 
-#    def undo(self, op):
-#        pass
     def dirtyBoxForPointAndOptions(self, point, options={}):
         # also used to position the preview reticle
         size = options['brushSize']
@@ -577,7 +566,7 @@ class BrushPanel(Panel):
 
         for d in ["L", "W", "H"]:
             l = Label(d)
-            f = IntField(ref=getattr(BrushSettings, "brushSize" + d).propertyRef(), min=1, max=tool.maxBrushSize)
+            f = IntField(ref=getattr(BrushToolSettings, "brushSize" + d).propertyRef(), min=1, max=tool.maxBrushSize)
             row = Row((l, f))
             shapeRows.append(row)
 
@@ -637,17 +626,17 @@ class BrushPanel(Panel):
 
 
 class BrushToolOptions(ToolOptions):
-    def __init__(self, tool):
+    def __init__(self):
         Panel.__init__(self)
-        alphaField = FloatField(ref=AttrRef(tool, 'brushAlpha'), min=0.0, max=1.0, width=60)
+        alphaField = FloatField(setting=BrushToolSettings.alpha, min=0.0, max=1.0, width=60)
         alphaField.increment = 0.1
         alphaRow = Row((Label("Alpha: "), alphaField))
         autoChooseCheckBox = CheckBoxLabel("Choose Block Immediately",
-                                            ref=AttrRef(tool, "chooseBlockImmediately"),
+                                            Setting=BrushToolSettings.choose_block_immediately,
                                             tooltipText="When the brush tool is chosen, prompt for a block type.")
 
         updateOffsetCheckBox = CheckBoxLabel("Reset Distance When Brush Size Changes",
-                                            ref=AttrRef(tool, "updateBrushOffset"),
+                                            Setting=BrushToolSettings.update_offset,
                                             tooltipText="Whenever the brush size changes, reset the distance to the brush blocks.")
 
         col = Column((Label("Brush Options"), alphaRow, autoChooseCheckBox, updateOffsetCheckBox, Button("OK", action=self.dismiss)))
@@ -665,7 +654,7 @@ class BrushTool(CloneTool):
 
     def __init__(self, *args):
         CloneTool.__init__(self, *args)
-        self.optionsPanel = BrushToolOptions(self)
+        self.optionsPanel = BrushToolOptions()
         self.recentFillBlocks = []
         self.recentReplaceBlocks = []
         self.draggedPositions = []
@@ -675,15 +664,15 @@ class BrushTool(CloneTool):
             self.options.extend(m.options)
 
         self._brushMode = self.brushModes[0]
-        BrushSettings.updateBrushOffset.addObserver(self)
-        BrushSettings.brushSizeW.addObserver(self, 'brushSizeW', callback=self._setBrushSize)
-        BrushSettings.brushSizeH.addObserver(self, 'brushSizeH', callback=self._setBrushSize)
-        BrushSettings.brushSizeL.addObserver(self, 'brushSizeL', callback=self._setBrushSize)
+        BrushToolSettings.length.add_observer(self._setBrushSize, "brush tool")
+        BrushToolSettings.width.add_observer(self._setBrushSize, "brush tool")
+        BrushToolSettings.height.add_observer(self._setBrushSize, "brush tool")
+        BrushToolSettings.alpha.add_observer(lambda v: self.setupPreview(), "brush tool")
 
     panel = None
 
     def _setBrushSize(self, brushSize):
-        if self.updateBrushOffset:
+        if BrushToolSettings.update_offset:
             self.reticleOffset = self.offsetMax()
             self.resetToolDistance()
         self.previewDirty = True
@@ -705,20 +694,18 @@ class BrushTool(CloneTool):
     def reticleOffset(self, val):
         self._reticleOffset = val
 
-    brushSizeW, brushSizeH, brushSizeL = 1, 1, 1
-
     @property
     def brushSize(self):
         if self.brushMode.name == "Flood Fill":
             return 1, 1, 1
-        return [self.brushSizeW, self.brushSizeH, self.brushSizeL]
+        return [BrushToolSettings.width, BrushToolSettings.height, BrushToolSettings.length]
 
     @brushSize.setter
     def brushSize(self, val):
         (w, h, l) = [max(1, min(i, self.maxBrushSize)) for i in val]
-        BrushSettings.brushSizeH.set(h)
-        BrushSettings.brushSizeL.set(l)
-        BrushSettings.brushSizeW.set(w)
+        BrushToolSettings.height.set(h)
+        BrushToolSettings.length.set(l)
+        BrushToolSettings.length.set(w)
 
     maxBrushSize = 4096
 
@@ -744,8 +731,6 @@ class BrushTool(CloneTool):
     brushHollow = False
     topsoilDepth = 1
 
-    chooseBlockImmediately = BrushSettings.chooseBlockImmediately.configProperty()
-
     _blockInfo = materials.Stone
 
     @property
@@ -766,16 +751,6 @@ class BrushTool(CloneTool):
     @replaceBlockInfo.setter
     def replaceBlockInfo(self, bi):
         self._replaceBlockInfo = bi
-        self.setupPreview()
-
-    @property
-    def brushAlpha(self):
-        return BrushSettings.alpha.get()
-
-    @brushAlpha.setter
-    def brushAlpha(self, f):
-        f = min(1.0, max(0.0, f))
-        BrushSettings.alpha.set(f)
         self.setupPreview()
 
     def importPaste(self):
@@ -1035,7 +1010,7 @@ class BrushTool(CloneTool):
 
         self.level = FakeLevel()
 
-        CloneTool.setupPreview(self, alpha=self.brushAlpha)
+        CloneTool.setupPreview(self, alpha=BrushToolSettings.alpha)
 
     def resetToolDistance(self):
         distance = max(self.editor.cameraToolDistance, 6 + max(self.brushSize) * 1.25)
@@ -1044,7 +1019,7 @@ class BrushTool(CloneTool):
 
     def toolSelected(self):
 
-        if self.chooseBlockImmediately:
+        if BrushToolSettings.choose_block_immediately:
             blockPicker = BlockPicker(
                 self.blockInfo,
                 allowWildcards=self.brushMode.name == "Replace")
@@ -1052,15 +1027,11 @@ class BrushTool(CloneTool):
             if blockPicker.present():
                 self.blockInfo = blockPicker.blockInfo
 
-        if self.updateBrushOffset:
+        if BrushToolSettings.update_offset:
             self.reticleOffset = self.offsetMax()
         self.resetToolDistance()
         self.setupPreview()
         self.showPanel()
-
-#    def cancel(self):
-#        self.hidePanel()
-#        super(BrushTool, self).cancel()
 
     def showPanel(self):
         if self.panel:

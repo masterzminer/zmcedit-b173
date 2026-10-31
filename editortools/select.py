@@ -22,27 +22,9 @@ from .toolbasics import *
 from pymclevel.box import BoundingBox, FloatBox
 from pymclevel.material import materials
 
-SelectSettings = config.Settings("Selection")
-SelectSettings.showPreviousSelection = SelectSettings("Show Previous Selection", True)
-SelectSettings.color = SelectSettings("Color", "teal")
+from config import SelectToolSettings, ColorSettings
 
-ColorSettings = config.Settings("Selection Colors")
-ColorSettings.defaultColors = {}
-
-
-class ColorSetting(config.Setting):
-    def __init__(self, section, name, dtype, default):
-        super(ColorSetting, self).__init__(section, name, dtype, default)
-        ColorSettings.defaultColors[name] = self
-
-    def set(self, val):
-        values = str(tuple(val))[1:-1]
-        super(ColorSetting, self).set(values)
-
-    def get(self):
-        colorValues = super(ColorSetting, self).get()
-        return parseValues(colorValues)
-ColorSettings.Setting = ColorSetting
+# TODO test that colors still show up properly for the select tool
 
 
 def parseValues(colorValues):
@@ -57,34 +39,21 @@ def parseValues(colorValues):
 
     return tuple(values)
 
-ColorSettings("white", (1.0, 1.0, 1.0))
-
-ColorSettings("blue", (0.75, 0.75, 1.0))
-ColorSettings("green", (0.75, 1.0, 0.75))
-ColorSettings("red", (1.0, 0.75, 0.75))
-
-ColorSettings("teal", (0.75, 1.0, 1.0))
-ColorSettings("pink", (1.0, 0.75, 1.0))
-ColorSettings("yellow", (1.0, 1.0, 0.75))
-
-ColorSettings("grey", (0.6, 0.6, 0.6))
-ColorSettings("black", (0.0, 0.0, 0.0))
-
 
 def GetSelectionColor(colorWord=None):
     if colorWord is None:
-        colorWord = SelectSettings.color.get()
+        colorWord = SelectToolSettings.color.v
 
-    colorValues = config.config.get("Selection Colors", colorWord)
+    colorValues = ColorSettings.get(colorWord)
     return parseValues(colorValues)
 
 
 class SelectionToolOptions(ToolOptions):
     def updateColors(self):
-        names = [name.lower() for (name, value) in config.config.items("Selection Colors")]
+        names = [entry[0].lower() for entry in ColorSettings.get_all()]
         self.colorPopupButton.choices = [name.capitalize() for name in names]
 
-        color = SelectSettings.color.get()
+        color = SelectToolSettings.color.v
 
         self.colorPopupButton.choiceIndex = names.index(color.lower())
 
@@ -97,7 +66,7 @@ class SelectionToolOptions(ToolOptions):
 
         colorRow = Row((Label("Color: ", align="r"), self.colorPopupButton))
         okButton = Button("OK", action=self.dismiss)
-        showPreviousRow = CheckBoxLabel("Show Previous Selection", ref=AttrRef(tool, 'showPreviousSelection'))
+        showPreviousRow = CheckBoxLabel("Show Previous Selection", setting=SelectToolSettings.show_previous_selection)
 
         def set_color_value(ch):
             i = "RGB".index(ch)
@@ -107,7 +76,7 @@ class SelectionToolOptions(ToolOptions):
                 values = GetSelectionColor(choice)
                 values = values[:i] + (val / 255.0,) + values[i + 1:]
                 setting = str(values)[1:-1]
-                config.config.set("Selection Colors", choice, setting)
+                ColorSettings.set("Selection Colors", choice, setting)
                 self.colorChanged()
 
             return _set
@@ -131,7 +100,7 @@ class SelectionToolOptions(ToolOptions):
         self.shrink_wrap()
 
     def colorChanged(self):
-        SelectSettings.color.set(self.colorPopupButton.selectedChoice)
+        SelectToolSettings.color.set(self.colorPopupButton.selectedChoice)
         self.tool.updateSelectionColor()
 
 
@@ -700,7 +669,6 @@ class SelectionTool(EditorTool):
     def selectOtherCorner(self):
         self.currentCorner = 1 - self.currentCorner
 
-    showPreviousSelection = SelectSettings.showPreviousSelection.configProperty()
     alpha = 0.25
 
     def drawToolMarkers(self):
@@ -774,7 +742,7 @@ class SelectionTool(EditorTool):
                     glColor(r, g, b, alpha)
                     drawCube(BoundingBox((sx, sy, sz), (1, 1, 1)), GL_LINE_STRIP)
 
-            if not (not self.showPreviousSelection and self.selectionInProgress):
+            if not (not SelectToolSettings.show_previous_selection.v and self.selectionInProgress):
                 # draw the current selection as a white box.  hangs around when you use other tools.
                 glPolygonOffset(DepthOffset.Selection, DepthOffset.Selection)
                 color = self.selectionColor + (self.alpha,)

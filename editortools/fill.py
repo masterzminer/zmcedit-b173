@@ -18,11 +18,7 @@ from .toolbasics import *
 
 from pymclevel.box import BoundingBox
 from pymclevel.material import materials
-from config import Keys
-
-FillSettings = config.Settings("Fill")
-FillSettings.chooseBlockImmediately = FillSettings("Choose Block Immediately", True)
-
+from config import Keys, FillToolSettings
 
 class BlockFillOperation(Operation):
     def __init__(self, editor, destLevel, destBox, blockInfo, blocksToReplace):
@@ -142,7 +138,7 @@ class FillToolOptions(ToolOptions):
         Panel.__init__(self)
         self.tool = tool
         self.autoChooseCheckBox = CheckBoxLabel("Choose Block Immediately",
-                                                ref=FillSettings.chooseBlockImmediately.propertyRef(),
+                                                setting=FillToolSettings.chose_block_immediately,
                                                 tooltipText="When the fill tool is chosen, prompt for a block type.")
 
         col = Column((Label("Fill Options"), self.autoChooseCheckBox, Button("OK", action=self.dismiss)))
@@ -198,7 +194,7 @@ class FillTool(EditorTool):
         self.replacing = False
         self.showPanel()
 
-        if self.chooseBlockImmediately:
+        if FillToolSettings.chose_block_immediately.v:
             blockPicker = BlockPicker(self.blockInfo, allowWildcards=True)
 
             if blockPicker.present():
@@ -207,8 +203,6 @@ class FillTool(EditorTool):
 
             else:
                 self.editor.toolbar.selectTool(-1)
-
-    chooseBlockImmediately = FillSettings.chooseBlockImmediately.configProperty()
 
     def toolReselected(self):
         self.showPanel()
