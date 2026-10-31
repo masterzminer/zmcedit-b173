@@ -19,6 +19,7 @@ from pygame import display, key, rect
 
 import OpenGL
 import sys
+# TODO move this to the formal arguments module
 if "-debug" not in sys.argv:
     OpenGL.ERROR_CHECKING = False
 
@@ -26,8 +27,7 @@ import albow
 from albow.dialogs import Dialog
 from albow.openglwidgets import GLViewport
 from albow.root import RootWidget, schedule as albow_schedule
-import config
-from config import LastDir, Keys, Controls, Settings
+from config import LastDir, Keys, Controls, Settings, RecentWorlds, save_config
 import directories
 import functools
 from glbackground import Panel
@@ -519,7 +519,7 @@ class OptionsPanel(Dialog):
         self.shrink_wrap()
 
     def closeSettings(self):
-        saveConfig()
+        save_config()
         self.dismiss()
 
 
@@ -533,12 +533,6 @@ class MCEdit(GLViewport):
         self.displayContext = displayContext
         self.bg_color = (0, 0, 0, 1)
         self.anchor = 'tlbr'
-
-        if not config.config.has_section("Recent Worlds"):
-            config.config.add_section("Recent Worlds")
-            self.setRecentWorlds([""] * 5)
-
-        config.initDefaultLastDirs()
 
         self.optionsPanel = OptionsPanel(self)
         self.graphicOptionsPanel = GraphicsPanel(self)
@@ -617,8 +611,6 @@ class MCEdit(GLViewport):
         if i - 1 < len(worlds):
             self.loadFile(worlds[i - 1])
 
-    numRecentWorlds = 5
-
     def removeLevelDat(self, filename):
         if filename.endswith("level.dat"):
             filename = os.path.dirname(filename)
@@ -626,30 +618,31 @@ class MCEdit(GLViewport):
 
     def recentWorlds(self):
         worlds = []
-        for i in range(self.numRecentWorlds):
-            if config.config.has_option("Recent Worlds", str(i)):
-                try:
-                    filename = config.config.get("Recent Worlds", str(i))
-                    if not isinstance(filename, str):
-                        filename = filename.decode("utf-8")
-                    worlds.append(self.removeLevelDat(filename))
-                except Exception as e:
-                    traceback.print_exc()
+        for recent_world in RecentWorlds.get():
+            try:
+                worlds.append(self.removeLevelDat(recent_world))
+            except Exception:
+                traceback.print_exc()
 
         return list((f for f in worlds if f and os.path.exists(f)))
 
     def addRecentWorld(self, filename):
         filename = self.removeLevelDat(filename)
-        rw = list(self.recentWorlds())
-        if filename in rw:
+        
+        # Get the existing worlds
+        new_recent_worlds = list(self.recentWorlds())
+
+        # It's already there, do nothing
+        if filename in new_recent_worlds:
             return
-        rw = [filename] + rw[:self.numRecentWorlds - 1]
-        self.setRecentWorlds(rw)
+
+        # Add the new world to the beginning of the list
+        new_recent_worlds.insert(0, filename)
+        self.setRecentWorlds(new_recent_worlds)
 
     def setRecentWorlds(self, worlds):
-        for i, filename in enumerate(worlds):
-            config.config.set("Recent Worlds", str(i), filename)
-            
+        RecentWorlds.set([str(s) for s in worlds]);
+    
     def makeSideColumn(self, reset_parent):
         items = (
             albow.Button("Keys", action=self.showKeyConfig),
@@ -721,7 +714,7 @@ class MCEdit(GLViewport):
         if w > 0 and h > 0:
             Settings.window_width.set(w)
             Settings.window_height.set(h)
-            saveConfig()
+            save_config()
 
     def loadFile(self, filename, starting_pos=None, starting_look=None, dimension:Literal["overworld","nether"]=None):
         self.removeGraphicOptions()
@@ -800,7 +793,7 @@ class MCEdit(GLViewport):
             if answer == "Don't remind me again.":
                 Settings.close_minecraft_warning.set(False)
 
-        saveConfig()
+        save_config()
 
         # If a world was supplied, load it immediately
         start_world = arguments.LOAD_WORLD
@@ -817,7 +810,7 @@ class MCEdit(GLViewport):
             try:
                 root_widget.run()
             except SystemExit:
-                saveConfig()
+                save_config()
                 mcedit.editor.renderer.discardAllChunks()
                 mcedit.editor.deleteAllCopiedSchematics()
                 raise
@@ -825,14 +818,6 @@ class MCEdit(GLViewport):
                 traceback.print_exc()
                 mcedit.editor.handleMemoryError()
 
-def saveConfig():
-    try:
-        config.saveConfig()
-    except Exception as e:
-        try:
-            albow.alert("Error saving configuration settings to mcedit.ini: {0}".format(e))
-        except:
-            pass
 
 def main():
     """

@@ -1,5 +1,4 @@
 import config
-from config import LastDir
 from config_classes import DirectorySetting
 import mcplatform
 
@@ -31,6 +30,16 @@ print("-----", config.LastDir.world)
 print("-----", type(config.LastDir.world))
 test_file(config.LastDir.world, "sssaaa")
 
-mcplatform.askOpenFile(LastDir.filter, "hhhhhhh")
+print("-----", config.RecentWorlds.get())
+config.RecentWorlds.set(["bb", "aaaa", "e", "fffff"])
+worlds = config.RecentWorlds.get()
+worlds.insert(0, "cccc")
+worlds.append("zzz")
+worlds.append("aaaaaaaa")
+worlds.insert(0, "mmm")
+config.RecentWorlds.set(worlds)
+print("-----", config.RecentWorlds.get())
+config.RecentWorlds.set(["aa"])
+print("-----", config.RecentWorlds.get())
 
 config.save_config()

@@ -19,7 +19,7 @@ Configuration settings and storage.
 
 import logging
 from configparser import RawConfigParser
-from config_classes import Section, Setting as S, DirectorySetting as DS
+from config_classes import Section, ListSection, Setting as S, DirectorySetting as DS
 
 from directories import INI_FILE
 
@@ -167,6 +167,15 @@ class LastDirectoriesSection(Section):
     filter = DS()
 
 LastDir = LastDirectoriesSection(config)
+
+
+class RecentWorldsSection(ListSection):
+    """Worlds that were opened recently"""
+
+    NAME = "recent_worlds"
+
+
+RecentWorlds = RecentWorldsSection(5, config)
 
 
 # Save the config after final init

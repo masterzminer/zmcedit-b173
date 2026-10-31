@@ -31,8 +31,7 @@ import csv
 import copy
 import time
 import numpy as np
-import config
-from config import LastDir, Keys, Settings, Controls
+from config import LastDir, Keys, Settings, Controls, save_config
 import frustum
 import logging
 import glutils
@@ -2048,7 +2047,7 @@ class LevelEditor(GLViewport):
         self.clearUnsavedEdits()
 
         # Also save the config, already doing file io, may as well keep the config updated in case mc edit doesn't shut down properly
-        config.saveConfig()
+        save_config()
 
     def addUnsavedEdit(self):
         if self.unsavedEdits:
@@ -3173,7 +3172,7 @@ class LevelEditor(GLViewport):
 
         logging.warning(f'Out of memory, decreasing view distance. (view => {Settings.view_distance})')
 
-        config.saveConfig()
+        save_config()
 
 
 class EditorToolbar(GLOrtho):

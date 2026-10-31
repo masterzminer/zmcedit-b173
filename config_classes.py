@@ -66,6 +66,8 @@ class Setting:
 
 class Section:
     def __init__(self, config: RawConfigParser):
+        self.NAME: str
+
         # Store the config for later
         self._config = config
 
@@ -120,8 +122,44 @@ class DirectorySetting(Setting):
         # Store the path as a string
         super().__init__(str(default_value))
 
-    def get(self,):
+    def get(self):
         return Path(super().get())
 
     def set(self, value):
         super().set(str(value))
+
+class ListSection(Section):
+    """Section that stores a list of values. Simple implementation for small lists. Can implement as something less brute force if this needs to work with huge lists"""
+
+    def __init__(self, max_size: int, config: RawConfigParser):
+        super().__init__(config)
+        
+        self.max_size = max_size
+
+
+    def get(self):
+        """All elements in the list"""
+
+        # Get all values for the section
+        values = self._config.items(self.NAME)
+        # Sort the values by their key ascending
+        values = sorted(values, key=lambda v: v[0])
+        # Get just the value itself, not the key
+        return [value[1] for value in values]
+
+    def set(self, value):
+        """Overwrite all elements in the list"""
+        
+        # Limit to the max size input
+        new_values = value[:self.max_size]
+
+        # Remove all existing values
+        old_keys = [entry[0] for entry in self._config.items(self.NAME)]
+        for k in old_keys:
+            self._config.remove_option(self.NAME, k)
+
+        # Update each value
+        for i, v in enumerate(new_values):
+            super().set(str(i), v)
+
+    
