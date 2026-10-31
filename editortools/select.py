@@ -605,7 +605,7 @@ class SelectionTool(EditorTool):
             self.dragResizeFace = None
             return
 
-        if self.editor.viewMode == "Chunk":
+        if Settings.view_mode.v == "Chunk":
             self.clickSelectionInProgress = True
 
         if self.dragStartPoint is None and not self.clickSelectionInProgress:
@@ -643,7 +643,7 @@ class SelectionTool(EditorTool):
 
     @property
     def chunkMode(self):
-        return self.editor.viewMode == "Chunk" or self.editor.currentTool is self.editor.toolbar.tools[8]
+        return Settings.view_mode.v == "Chunk" or self.editor.currentTool is self.editor.toolbar.tools[8]
 
     def selectionBoxInProgress(self):
         if self.editor.blockFaceUnderCursor is None:

@@ -296,12 +296,21 @@ class Field(Control, TextEditor):
 
 
 class TextField(Field):
+
+    def __init__(self, width=None, setting=None, **kwds):
+        self.setting: Setting = setting
+        super().__init__(width, **kwds)
+
     type = str
     _value = ""
 
 
 class IntField(Field):
     tooltipText = "Point here and use mousewheel to adjust"
+
+    def __init__(self, width=None, setting=None, **kwds):
+        self.setting: Setting = setting
+        super().__init__(width, **kwds)
 
     def type(self, i):
         try:

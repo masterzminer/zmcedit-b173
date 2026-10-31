@@ -890,7 +890,7 @@ class EditorTool(object):
     @property
     def maxBlocks(self):
         from leveleditor import Settings
-        return Settings.blockBuffer.get() / 2  # assume block buffer in megabytes
+        return Settings.block_buffer.v // 2  # assume block buffer in megabytes
 
     def showPanel(self):
         pass

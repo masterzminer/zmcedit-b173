@@ -25,7 +25,7 @@ import platform
 import subprocess
 from pathlib import Path
 import config
-from config import LastDir
+from config import LastDir, Settings
 from config_classes import DirectorySetting
 
 import crossfiledialog
@@ -48,7 +48,7 @@ def askOpenFile(lastDir: DirectorySetting, title: str):
     file_types = ["mclevel", "dat", "mine", "mine.gz", "schematic"]
 
     def _ask_open():
-        if config.use_old_file_browser():
+        if Settings.use_old_file_browser.v:
             return request_old_filename(file_types, initialDir)
 
         try:
@@ -109,7 +109,7 @@ def askCreateWorld():
 def askSaveFolder(lastDir: DirectorySetting, title):
     initialDir = lastDir.v
 
-    if config.use_old_file_browser():
+    if Settings.use_old_file_browser.v:
         selected = request_old_filename(directory=initialDir, selectDir=True)
     else:
         selected = crossfiledialog.choose_folder(
@@ -128,7 +128,7 @@ def askSaveFolder(lastDir: DirectorySetting, title):
 def askSaveFile(lastDir: DirectorySetting, title: str, defaultName, filetype: str=None):
     initialDir = lastDir.v;
 
-    if config.use_old_file_browser():
+    if Settings.use_old_file_browser.v:
         selected_path = request_new_filename(
             prompt=title,
             suffix=("" if filetype is None else ("." + filetype)),

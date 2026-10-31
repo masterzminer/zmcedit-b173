@@ -153,9 +153,7 @@ class ChunkRenderer(object):
 
         lists = defaultdict(list)
 
-        showRedraw = self.renderer.showRedraw
-
-        if not (showRedraw and self.needsBlockRedraw):
+        if not (Settings.show_chunk_redraw.v and self.needsBlockRedraw):
             GL.glEnableClientState(GL.GL_COLOR_ARRAY)
 
         renderers = self.blockRenderers
@@ -166,10 +164,10 @@ class ChunkRenderer(object):
             if blockRenderer.layer not in self.visibleLayers:
                 continue
 
-            l = blockRenderer.makeArrayList(self.chunkPosition, self.needsBlockRedraw and showRedraw)
+            l = blockRenderer.makeArrayList(self.chunkPosition, self.needsBlockRedraw and Settings.show_chunk_redraw.v)
             lists[blockRenderer.renderstate].append(l)
 
-        if not (showRedraw and self.needsBlockRedraw):
+        if not (Settings.show_chunk_redraw.v and self.needsBlockRedraw):
             GL.glDisableClientState(GL.GL_COLOR_ARRAY)
 
         self.needsRedisplay = False
@@ -193,7 +191,7 @@ class ChunkRenderer(object):
                 self.forgetDisplayLists()
             self.blockRenderers = blockRenderers
 
-            if self.renderer.showRedraw and Layer.Blocks in layers:
+            if Settings.show_chunk_redraw and Layer.Blocks in layers:
                 self.needsRedisplay = True
 
     def calcFaces(self):
@@ -2111,11 +2109,6 @@ class MCRenderer(object):
         layer_observer(Settings.draw_unpopulated_chunks, Layer.TerrainPopulated)
 
         Settings.show_hidden_ores.addObserver(self, self.discardAllChunks)
-        SettingsChange.vertexBufferLimit.addObserver(self)
-
-        SettingsChange.showChunkRedraw.addObserver(self, "showRedraw")
-        SettingsChange.spaceHeight.addObserver(self)
-        SettingsChange.targetFPS.addObserver(self, "targetFPS")
 
         # TODO test that these observers work
         Settings.view_distance.add_observer(self.setViewDistance, "renderer")
@@ -2149,8 +2142,8 @@ class MCRenderer(object):
         if self.level is None:
             return True
         h = self.position[1]
-        return ((h > self.level.Height + self.spaceHeight) or
-                (h <= -self.spaceHeight))
+        return ((h > self.level.Height + Settings.space_height.v) or
+                (h <= -Settings.space_height.v))
 
     def chunkDistance(self, cpos):
         camx, camy, camz = self.position
@@ -2758,8 +2751,8 @@ class MCRenderer(object):
                     except StopIteration:
                         # No more iterations to do, no more work, the iterator is complete
                         return
-                    if self.vertexBufferLimit:
-                        while self.bufferUsage > (0.9 * (self.vertexBufferLimit << 20)):
+                    if Settings.vertex_buffer_limit.v:
+                        while self.bufferUsage > (0.9 * (Settings.vertex_buffer_limit.v << 20)):
                             deadChunk = None
                             deadDistance = self.chunkDistance(c)
                             for cr in self.chunkRenderers.values():
@@ -2789,7 +2782,6 @@ class MCRenderer(object):
             if self.chunkIterator:
                 self.chunkIterator = None
 
-    vertexBufferLimit = 384
 
     def getChunkRenderer(self, c):
         if not (c in self.chunkRenderers):

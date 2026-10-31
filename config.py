@@ -20,7 +20,6 @@ Configuration settings and storage.
 import logging
 from configparser import RawConfigParser
 from config_classes import Section, Setting as S, DirectorySetting as DS
-from pathlib import Path
 
 from directories import INI_FILE
 
@@ -136,7 +135,7 @@ class SettingsSection(Section):
     view_mode = S("Camera")
     classic_mouse = S(False)
     use_old_file_browser = S(False)
-    menu_stars = S(False)
+    hide_menu_stars = S(False)
     center_mouse_fix = S(False)
 
 Settings = SettingsSection(config)
@@ -172,32 +171,3 @@ LastDir = LastDirectoriesSection(config)
 
 # Save the config after final init
 save_config()
-
-
-
-def use_old_file_browser():
-    if not config.has_option("Settings", "old file browser"):
-        return False
-    return config.getboolean("Settings", "old file browser")
-
-def update_old_file_browser(use: bool):
-    config.set("Settings", "old file browser", use)
-
-
-def hide_menu_stars():
-    if not config.has_option("Settings", "hide menu stars"):
-        return False
-    return config.getboolean("Settings", "hide menu stars")
-
-def update_hide_menu_stars(use: bool):
-    config.set("Settings", "hide menu stars", use)
-
-
-def center_mouse_fix():
-    if not config.has_option("Settings", "center mouse fix"):
-        return False
-    return config.getboolean("Settings", "center mouse fix")
-
-def update_center_mouse_fix(enable: bool):
-    config.set("Settings", "center mouse fix", enable)
-

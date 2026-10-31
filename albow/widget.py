@@ -15,7 +15,6 @@ from .theme import ThemeProperty, FontProperty
 
 from numpy import frombuffer
 import sys
-import config
 from config import Settings
 
 debug_rect = False
@@ -375,7 +374,7 @@ class Widget(object):
         # TODO test make sure this is the correct boolean
         disabled = Settings.classic_mouse.v;
 
-        if config.center_mouse_fix() and pygame.event.get_grab():
+        if Settings.center_mouse_fix.v and pygame.event.get_grab():
             global invisible_cursor
             if invisible_cursor is None:
                 expected = invisible_cursor = init_invisible_cursor()

@@ -19,7 +19,8 @@ from .controls import Label
 
 from datetime import datetime, timedelta
 from albow.dialogs import wrapped_label
-import config
+from config import Settings
+
 start_time = datetime.now()
 
 mod_cmd = KMOD_LCTRL | KMOD_RCTRL | KMOD_LMETA | KMOD_RMETA
@@ -106,7 +107,7 @@ class RootWidget(Widget):
         #put the mouse in "virtual mode" and pass mouse moved events to the
         #specified widget
         if widget:
-            if not config.center_mouse_fix():
+            if not Settings.center_mouse_fix.v:
                 pygame.mouse.set_visible(False)
             pygame.event.set_grab(True)
             get_root().captured_widget = widget
@@ -212,7 +213,7 @@ class RootWidget(Widget):
                                 mouse_widget.handle_mouse('mouse_move', event)
 
                             # Hack to force set the mouse back to the center when it moves during 3D movement
-                            if config.center_mouse_fix() and pygame.event.get_grab():
+                            if Settings.center_mouse_fix.v and pygame.event.get_grab():
                                 pygame.mouse.set_pos(self.width * .5, self.height * .5)
 
                         elif type == MOUSEBUTTONUP:

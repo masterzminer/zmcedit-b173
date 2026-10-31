@@ -496,11 +496,11 @@ def FloatInputRow(title, setting=None, *args, **kw):
     return Row((Label(title, tooltipText=kw.get('tooltipText')), FloatField(setting=setting, *args, **kw)))
 
 
-def IntInputRow(title, *args, **kw):
-    return Row((Label(title, tooltipText=kw.get('tooltipText')), IntField(*args, **kw)))
+def IntInputRow(title, setting=None, *args, **kw):
+    return Row((Label(title, tooltipText=kw.get('tooltipText')), IntField(setting=setting, *args, **kw)))
 
-def TextInputRow(title, *args, **kw):
-    return Row((Label(title, tooltipText=kw.get('tooltipText')), TextField(*args, **kw)))
+def TextInputRow(title, setting=None, *args, **kw):
+    return Row((Label(title, tooltipText=kw.get('tooltipText')), TextField(setting=setting, *args, **kw)))
 
 from albow.dialogs import Dialog
 from datetime import timedelta

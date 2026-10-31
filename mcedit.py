@@ -376,10 +376,9 @@ class GraphicsPanel(Panel):
             setting=Settings.fov, width=100, min=25, max=120)
 
         targetFPSRow = mceutils.IntInputRow("Target FPS: ",
-            ref=SettingsChange.targetFPS.propertyRef(), width=100, min=1, max=600)
+            setting=Settings.target_fps, width=100, min=1, max=600)
 
-        bufferLimitRow = mceutils.IntInputRow("Vertex Buffer Limit (MB): ",
-            ref=SettingsChange.vertexBufferLimit.propertyRef(), width=100, min=0)
+        bufferLimitRow = mceutils.IntInputRow("Vertex Buffer Limit (MB): ", setting=Settings.vertex_buffer_limit, width=100, min=0)
 
         fastLeavesRow = mceutils.CheckBoxLabel("Fast Leaves",
             setting=Settings.fast_leaves,
@@ -449,40 +448,39 @@ class OptionsPanel(Dialog):
             tooltipText="Reverse the up and down motion of the mouse.")
         
         classicMouseRow = mceutils.CheckBoxLabel("Classic Mouse",
-            setting=Settingsef.classic_mouse,
+            setting=Settings.classic_mouse,
             invert=True,
             tooltipText="Use the mouse pointer from the original version of MC Edit")
            
         centerMouseFixRow = mceutils.CheckBoxLabel("Center Mouse",
-            ref=SettingsChange.centerMouseFix.propertyRef(),
+            setting=Settings.center_mouse_fix,
             tooltipText="While in 3D look mode, replace the mouse with an invisible cursor and force set the mouse to the center of the window during mouse movement. " \
             "This is a band aid fix for scenarios where the mouse being at the edge of a screen can cause unwanted os activations. " \
             "This setting may or may not fix mouse behavior depending on how the os handles the mouse. " \
             "With this disabled, no additional hack fix will be applied, and the mouse will move around the window while staying hidden.")
          
         menuStarsRow = mceutils.CheckBoxLabel("Menu Stars",
-            ref=SettingsChange.menuStars.propertyRef(),
+            setting=Settings.menu_stars,
             invert=True,
             tooltipText="Show the stars in the main menu from older MC Edit versions")
         
-        oldFileBrowserRow = mceutils.CheckBoxLabel("Old File Browser",
-            ref=SettingsChange.useOldFileBrowser.propertyRef(),
+        oldFileBrowserRow = mceutils.CheckBoxLabel("Old File Browser", setting=Settings.use_old_file_browser,
             tooltipText="Use the built in file browser instead of an os native browser")
 
-        spaceHeightRow = mceutils.IntInputRow("Low Detail Height",
-            ref=SettingsChange.spaceHeight.propertyRef(),
+        spaceHeightRow = mceutils.IntInputRow("Low Detail Height", setting=Settings.space_height,
             tooltipText="When you are this far above the top of the world, move fast and use low-detail mode")
 
         blockBufferRow = mceutils.IntInputRow("Block Buffer",
-            ref=SettingsChange.blockBuffer.propertyRef(), min=1,
+            setting=Settings.block_buffer, min=1,
             tooltipText="Amount of memory used for temporary storage. When more than this is needed, the disk is used instead")
 
         longDistanceRow = mceutils.CheckBoxLabel("Long-Distance Mode",
             setting=Settings.long_distance_mode,
             tooltipText="Always target the farthest block under the cursor, even in mouse look mode. Shortcut: ALT-Z")
 
+        # TODO make sure fly mode is implemented, seems to nto be
         flyModeRow = mceutils.CheckBoxLabel("Fly Mode",
-            ref=SettingsChange.flyMode.propertyRef(),
+            setting=Settings.fly_mode,
             tooltipText="Moving forward and backward will not change your altitude in Fly Mode")
 
         inputs = (
@@ -523,14 +521,6 @@ class OptionsPanel(Dialog):
     def closeSettings(self):
         saveConfig()
         self.dismiss()
-
-    @property
-    def blockBuffer(self):
-        return SettingsChange.blockBuffer.get() / 1048576
-
-    @blockBuffer.setter
-    def blockBuffer(self, val):
-        SettingsChange.blockBuffer.set(int(val * 1048576))
 
 
 class MCEdit(GLViewport):

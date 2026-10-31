@@ -1440,11 +1440,9 @@ class LevelEditor(GLViewport):
             col.append(mceutils.CheckBoxLabel("Fog", setting=Settings.draw_fog))
             col.append(mceutils.CheckBoxLabel("Ceiling", setting=Settings.show_ceiling))
 
-            col.append(mceutils.CheckBoxLabel("Hidden Ores",
-                setting=Settings.show_hidden_ores))
+            col.append(mceutils.CheckBoxLabel("Hidden Ores", setting=Settings.show_hidden_ores))
 
-            col.append(mceutils.CheckBoxLabel("Chunk Redraw", fg_color=(0xff, 0x99, 0x99),
-                ref=SettingsChange.showChunkRedraw.propertyRef()))
+            col.append(mceutils.CheckBoxLabel("Chunk Redraw", fg_color=(0xff, 0x99, 0x99), setting=Settings.show_chunk_redraw))
 
             col = Column(col, align="r")
 
@@ -1488,7 +1486,8 @@ class LevelEditor(GLViewport):
         self.viewportContainer.top = row.bottom
         self.viewportContainer.size = self.mainViewport.size
         self.add(self.viewportContainer)
-        SettingsChange.viewMode.addObserver(self)
+
+        Settings.view_mode.add_observer(self.on_view_mode_change, "level editor");
 
         self.reloadToolbar()
 
@@ -1502,22 +1501,12 @@ class LevelEditor(GLViewport):
     def __del__(self):
         self.deleteAllCopiedSchematics()
 
-    _viewMode = None
-
-    @property
-    def viewMode(self):
-        return self._viewMode
-
-    @viewMode.setter
-    def viewMode(self, val):
-        if val == self._viewMode:
-            return
+    def on_view_mode_change(self, val):
         ports = {"Chunk": self.chunkViewport, "Camera": self.mainViewport}
         for p in ports.values():
             p.set_parent(None)
         port = ports.get(val, self.mainViewport)
         self.mainViewport.mouseLookOff()
-        self._viewMode = val
 
         if val == "Camera":
             x, y, z = self.chunkViewport.cameraPosition
@@ -1527,8 +1516,6 @@ class LevelEditor(GLViewport):
                 h = 0
             y = max(self.mainViewport.cameraPosition[1], h + 2)
             self.mainViewport.cameraPosition = x, y, z
-            # self.mainViewport.yaw = 180.0
-            # self.mainViewport.pitch = 90.0
             self.mainViewport.cameraVector = self.mainViewport._cameraVector()
             self.renderer.overheadMode = False
             self.viewportButton.text = "Chunk View"
@@ -1544,10 +1531,10 @@ class LevelEditor(GLViewport):
         self.renderer.loadNearbyChunks()
 
     def swapViewports(self):
-        if SettingsChange.viewMode.get() == "Chunk":
-            SettingsChange.viewMode = "Camera"
+        if Settings.view_mode.v == "Chunk":
+            Settings.view_mode.set("Camera")
         else:
-            SettingsChange.viewMode = "Chunk"
+            Settings.view_mode.set("Chunk")
 
     maxCopies = 10
 
@@ -2118,7 +2105,7 @@ class LevelEditor(GLViewport):
             self.workers.remove(chunkWorker)
 
     def getFrameDuration(self):
-        frameDuration = timedelta(0, 1, 0) / self.renderer.targetFPS
+        frameDuration = timedelta(0, 1, 0) / Settings.target_fps.v
         return frameDuration
 
     lastRendererDraw = datetime.now()
@@ -2303,7 +2290,7 @@ class LevelEditor(GLViewport):
         self.starVertices = vertexBuffer.ravel() / 1000
 
     def drawStars(self):
-        if config.hide_menu_stars():
+        if Settings.hide_menu_stars.v:
             return
 
         pos = self.mainViewport.cameraPosition
@@ -2980,11 +2967,6 @@ class LevelEditor(GLViewport):
             if isinstance(w, MCRenderer):
                 label = Label("Rendering chunks" + ((datetime.now().second / 3) % 3) * ".")
                 progress = Label("{0} chunks ({1} pending updates)".format(len(w.chunkRenderers), len(w.invalidChunkQueue)))
-                col = Column((label, progress), align="l", width=200)
-                infos.append(col)
-            elif isinstance(w, RunningOperation):  # **FIXME** Where is RunningOperation supposed to come from?  -David Sowder 20120311
-                label = Label(w.description)
-                progress = Label(w.progress)
                 col = Column((label, progress), align="l", width=200)
                 infos.append(col)
 
