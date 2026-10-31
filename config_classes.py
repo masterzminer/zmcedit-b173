@@ -46,7 +46,6 @@ class Setting:
         return f"name:{self.name}, section:{self.section.NAME}, value:{self.v}, default:{self.default_value}"
 
     def set(self, value):
-        # TODO test that this only sends an update when the value changes
         old = self.get()
         if old == value:
             return
@@ -113,7 +112,7 @@ class Section:
 
     def set(self, setting, value):
         """Set the given value on the config"""
-        self._config.set(self.NAME, setting, value)
+        self._config.set(self.NAME, setting, str(value))
 
     def get(self, setting):
         """Get the given value on the config as a string"""

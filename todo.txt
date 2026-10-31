@@ -1,3 +1,7 @@
+finish testing the new config system
+    Check all todos
+
+
 standardize logging, print statements, and traceback error logging calls
 
 
