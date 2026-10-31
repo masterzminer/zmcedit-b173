@@ -477,7 +477,6 @@ class OptionsPanel(Dialog):
             setting=Settings.long_distance_mode,
             tooltipText="Always target the farthest block under the cursor, even in mouse look mode. Shortcut: ALT-Z")
 
-        # TODO make sure fly mode is implemented, seems to nto be
         flyModeRow = mceutils.CheckBoxLabel("Fly Mode",
             setting=Settings.fly_mode,
             tooltipText="Moving forward and backward will not change your altitude in Fly Mode")

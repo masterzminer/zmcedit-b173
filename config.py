@@ -163,7 +163,7 @@ class _SelectToolSection(Section):
     NAME = "select tool"
 
     show_previous_selection = S(True)
-    color = S("teal")
+    color = S("white")
 
 SelectToolSettings = _SelectToolSection(config)
 

@@ -1388,7 +1388,6 @@ class LevelEditor(GLViewport):
         self.optionsBar = Widget()
         viewDistanceDown = Button("<", action=self.decreaseViewDistance)
         viewDistanceUp = Button(">", action=self.increaseViewDistance)
-        # TODO test, make sure the view distance display updates when the setting changes
         viewDistanceReadout = ValueDisplay(width=40, ref=Settings.view_distance)
 
         chunksReadout = SmallValueDisplay(width=140,

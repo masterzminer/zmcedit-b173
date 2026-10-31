@@ -22,6 +22,7 @@ class Control(object):
 
     enable = None
     ref = None
+    """An object with get() and set() functions that are called when the value of this object needs to be obtained or updated """
     _highlighted = False
     _enabled = True
     _value = None

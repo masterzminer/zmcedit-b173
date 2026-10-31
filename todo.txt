@@ -24,6 +24,7 @@ brush
 
 level rendering
     fix buttons and other non full blocks rendering weirdly
+    fix the fire rendering with a dumb texture
 
 
 

@@ -2178,11 +2178,9 @@ class MCRenderer(object):
     def getViewDistance(self):
         return Settings.view_distance.v
 
-    # TODO does this need to be called when the renderer inits?
     def update_view_distance(self, value):
-        # TODO test make sure that this works and doesn't infinite loop
-
         # Keep the view distance as an even number
+        vd = Settings.view_distance.v
         vd = vd - (vd % 2)
         vd = min(max(vd, self.minViewDistance), self.maxViewDistance)
         if vd != Settings.view_distance.v:

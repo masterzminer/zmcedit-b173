@@ -42,7 +42,6 @@ def askOpenFile(lastDir: DirectorySetting, title: str):
     """
     lastDir: setting to get the initial dir to open from
     """
-    # TODO make a method in DirectorySetting for auto updating a file path after a path or file is selected
     initialDir = lastDir.v
 
     file_types = ["mclevel", "dat", "mine", "mine.gz", "schematic"]

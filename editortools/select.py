@@ -24,8 +24,6 @@ from pymclevel.material import materials
 
 from config import SelectToolSettings, ColorSettings
 
-# TODO test that colors still show up properly for the select tool
-
 
 def parseValues(colorValues):
     if colorValues is None:
