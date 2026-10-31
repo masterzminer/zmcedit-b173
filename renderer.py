@@ -42,7 +42,7 @@ MCRenderer:
 """
 
 
-
+import arguments
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
 from depths import DepthOffset
@@ -2609,7 +2609,7 @@ class MCRenderer(object):
 
     needsImmediateRedraw = False
     viewingFrustum = None
-    if "-debuglists" in sys.argv:
+    if arguments.DEBUG_RENDER:
         def createMasterLists(self):
             pass
 

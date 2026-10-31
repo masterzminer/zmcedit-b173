@@ -2,14 +2,14 @@ import argparse
 from pathlib import Path
 
 
-def validate_dir(dir: str):
+def _validate_dir(dir: str):
     path = Path(dir)
     if not path.is_dir():
         raise argparse.ArgumentTypeError(f"Directory does not exist: {dir}")
     return path
 
 
-def validate_dat_file(file: str):
+def _validate_dat_file(file: str):
     path = Path(file)
     if not path.is_file():
         raise argparse.ArgumentTypeError(f"Value is not a file or does not exist: {file}")
@@ -19,14 +19,14 @@ def validate_dat_file(file: str):
         
     return path
 
-def validate_position(pos_str: str):
+def _validate_position(pos_str: str):
     try:
         return tuple(map(float, pos_str.split(',')))
     except:
         raise argparse.ArgumentTypeError(f"Position '{pos_str}' invalid must be 3 comma separated numbers as x,y,z")
 
 
-def validate_look(look_str: str):
+def _validate_look(look_str: str):
     try:
         return tuple(map(float, look_str.split(',')))
     except:
@@ -34,7 +34,7 @@ def validate_look(look_str: str):
 
 
 # Parse arguments
-def init():
+def _init():
     """
     Initialize all values for all arguments
     """
@@ -45,39 +45,51 @@ def init():
     )
 
     parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="True to enable debug logging"
+    )
+
+    parser.add_argument(
+        "--debugrender",
+        action="store_true",
+        help="True to enable additional debug rendering"
+    )
+
+    parser.add_argument(
         "--config",
-        type=validate_dir,
+        type=_validate_dir,
         help="Path to custom configuration directory, stores config file, logs, etc"
     )
 
     parser.add_argument(
         "--installed",
-        type=validate_dir,
+        type=_validate_dir,
         help="Path to custom install directory, used to access assets directory, readme, etc"
     )
 
     parser.add_argument(
         "--filters",
-        type=validate_dir,
+        type=_validate_dir,
         help="Additional path to custom filters",
         action="append"
     )
 
     parser.add_argument(
         "--world",
-        type=validate_dat_file,
+        type=_validate_dat_file,
         help="A world to load immediately on start up",
     )
 
     parser.add_argument(
         "--pos",
-        type=validate_position,
+        type=_validate_position,
         help="When loading a world immediately, the position in the world to load into as x,y,z",
     )
 
     parser.add_argument(
         "--look",
-        type=validate_look,
+        type=_validate_look,
         help="When loading a world immediately, the direction in degrees for the player to look at as yaw,pitch",
     )
 
@@ -115,23 +127,27 @@ def init():
     # Return final parsed values
     return parsed
 
-parsed_args = init()
+_parsed_args = _init()
 
 
 # Values from command line arguments
-CONFIG_OVERRIDE = parsed_args.config
+DEBUG = _parsed_args.debug or False
+"""True if debug logging is enabled"""
+DEBUG_RENDER = _parsed_args.debugrender or False
+"""True if debug logging is enabled"""
+CONFIG_OVERRIDE = _parsed_args.config
 """Path override for config directory"""
-INSTALLED_OVERRIDE = parsed_args.installed
+INSTALLED_OVERRIDE = _parsed_args.installed
 """Path override for install directory"""
-FILTER_DIRS = parsed_args.filters or []
+FILTER_DIRS = _parsed_args.filters or []
 """Additional paths for custom filters"""
-LOAD_WORLD = parsed_args.world
+LOAD_WORLD = _parsed_args.world
 """Path to a world to load on startup"""
-START_POS = parsed_args.pos
+START_POS = _parsed_args.pos
 """Tuple of (x,y,z) position to load into the world on startup"""
-START_LOOK = parsed_args.look
+START_LOOK = _parsed_args.look
 """Tuple of (yaw,pitch) direction to load into the world on startup"""
-START_NETHER = parsed_args.nether
+START_NETHER = _parsed_args.nether
 """True to load the nether instead of the overworld when loading into the world on startup"""
-START_OVERWORLD = parsed_args.overworld
+START_OVERWORLD = _parsed_args.overworld
 """True to load the overworld instead of the nether when loading into the world on startup"""

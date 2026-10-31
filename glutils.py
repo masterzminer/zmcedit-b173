@@ -18,7 +18,7 @@ glutils.py
 Pythonesque wrappers around certain OpenGL functions.
 """
 
-
+import arguments
 
 from OpenGL import GL
 from OpenGL.GL.ARB import window_pos
@@ -142,7 +142,7 @@ class DisplayList(object):
         self.makeList(drawFunc)
         return self._list
 
-    if "-debuglists" in sys.argv:
+    if arguments.DEBUG_RENDER:
         def call(self, drawFunc=None):
             drawFunc = (drawFunc or self.drawFunc)
             if drawFunc is None:

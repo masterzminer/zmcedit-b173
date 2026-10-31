@@ -19,8 +19,7 @@ from pygame import display, key, rect
 
 import OpenGL
 import sys
-# TODO move this to the formal arguments module
-if "-debug" not in sys.argv:
+if arguments.DEBUG:
     OpenGL.ERROR_CHECKING = False
 
 import albow
