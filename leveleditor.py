@@ -243,7 +243,6 @@ class CameraViewport(GLViewport):
         h_fov = Settings.fov.v
         fov = np.degrees(2.0 * np.arctan(self.size[0] / self.size[1] * np.tan(np.radians(h_fov) * 0.5)))
 
-        self.fov = fov
         self.tang = np.tan(np.radians(fov))
 
     def stopMoving(self):
@@ -293,7 +292,7 @@ class CameraViewport(GLViewport):
 
         if Settings.fly_mode.v:
             (dx, dy, dz) = self._anglesToVector(self.yaw, 0)
-        elif self.swapAxesLookingDown or alignMovementToAxes:
+        elif Controls.swap_axes or alignMovementToAxes:
             p = self.pitch
             if p > 80 or alignMovementToAxes:
                 p = 0
@@ -1203,7 +1202,7 @@ class CameraViewport(GLViewport):
         distance = 1.0
         if self.editor.renderer.inSpace():
             distance = 8.0
-        GLU.gluPerspective(max(self.fov, 25.0), self.ratio, self.near * distance, self.far * distance)
+        GLU.gluPerspective(max(Settings.fov.v, 25.0), self.ratio, self.near * distance, self.far * distance)
 
     def setup_modelview(self):
         self.setModelview()
@@ -1486,7 +1485,7 @@ class LevelEditor(GLViewport):
         self.viewportContainer.size = self.mainViewport.size
         self.add(self.viewportContainer)
 
-        Settings.view_mode.add_observer(self.on_view_mode_change, "level editor");
+        Settings.view_mode.add_observer(self.on_view_mode_change, "level editor")
 
         self.reloadToolbar()
 
@@ -1496,6 +1495,10 @@ class LevelEditor(GLViewport):
         self.controlPanel = controlPanel = ControlPanel(self)
         controlPanel.anchor = "tlbr"
         controlPanel.rect = self.rect
+
+        # Init view mode after initializing everything else
+        self.on_view_mode_change(Settings.view_mode.v)
+
 
     def __del__(self):
         self.deleteAllCopiedSchematics()
@@ -2467,9 +2470,9 @@ class LevelEditor(GLViewport):
 
             if keyname == Keys.brake.v: self.mainViewport.brakeOn()
 
-            if keyname == Keys.reset_reach.v: self.resetReach()
-            if keyname == Keys.increase_reach.v: self.increaseReach()
-            if keyname == Keys.decrease_reach.v: self.decreaseReach()
+            if keyname == Keys.reach_reset.v: self.resetReach()
+            if keyname == Keys.reach_increase.v: self.increaseReach()
+            if keyname == Keys.reach_decrease.v: self.decreaseReach()
 
             if keyname == Keys.flip.v: self.currentTool.flip()
             if keyname == Keys.roll.v: self.currentTool.roll()

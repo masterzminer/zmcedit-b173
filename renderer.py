@@ -2108,10 +2108,10 @@ class MCRenderer(object):
         layer_observer(Settings.draw_items, Layer.Items)
         layer_observer(Settings.draw_unpopulated_chunks, Layer.TerrainPopulated)
 
-        Settings.show_hidden_ores.addObserver(self, self.discardAllChunks)
+        Settings.show_hidden_ores.add_observer(lambda v: self.discardAllChunks)
 
         # TODO test that these observers work
-        Settings.view_distance.add_observer(self.setViewDistance, "renderer")
+        Settings.view_distance.add_observer(self.update_view_distance, "renderer")
         Settings.fast_leaves.add_observer(lambda v: self.discardAllChunks(), "renderer")
         Settings.rough_graphics.add_observer(lambda v: self.discardAllChunks(), "renderer")
 
@@ -2179,7 +2179,7 @@ class MCRenderer(object):
         return Settings.view_distance.v
 
     # TODO does this need to be called when the renderer inits?
-    def setViewDistance(self, value):
+    def update_view_distance(self, value):
         # TODO test make sure that this works and doesn't infinite loop
 
         # Keep the view distance as an even number

@@ -106,7 +106,8 @@ class Widget(object):
     def set(self, **kwds):
         for name, value in kwds.items():
             if not hasattr(self, name):
-                raise TypeError("Unexpected keyword argument '%s'" % name)
+                # For now just silently fail, probably want to remove reliance on **kwds in favor of explicit fields
+                return
             setattr(self, name, value)
 
     def get_rect(self):
@@ -371,8 +372,7 @@ class Widget(object):
 
     def setup_cursor(self, event):
         global current_cursor
-        # TODO test make sure this is the correct boolean
-        disabled = Settings.classic_mouse.v;
+        enabled = Settings.classic_mouse.v;
 
         if Settings.center_mouse_fix.v and pygame.event.get_grab():
             global invisible_cursor
@@ -381,7 +381,7 @@ class Widget(object):
             else:
                 expected = invisible_cursor
         else:
-            expected = system_cursor if disabled else self.get_cursor(event) or arrow_cursor
+            expected = self.get_cursor(event) or arrow_cursor if enabled else system_cursor
         if expected == current_cursor: return
 
         set_cursor(expected)

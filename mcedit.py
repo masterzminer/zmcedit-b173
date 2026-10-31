@@ -83,7 +83,7 @@ class FileOpener(albow.Widget):
             label.align = "r"
             helpColumn.append(label)
 
-        addHelp(f"{Keys.brake.upper()} to slow down")
+        addHelp(f"{Keys.brake.v.upper()} to slow down")
         addHelp("Right-click to toggle camera control")
         addHelp("Mousewheel to control tool distance")
         addHelp("Hold SHIFT to move along a major axis")
@@ -459,10 +459,10 @@ class OptionsPanel(Dialog):
             "This setting may or may not fix mouse behavior depending on how the os handles the mouse. " \
             "With this disabled, no additional hack fix will be applied, and the mouse will move around the window while staying hidden.")
          
-        menuStarsRow = mceutils.CheckBoxLabel("Menu Stars",
-            setting=Settings.menu_stars,
+        menuStarsRow = mceutils.CheckBoxLabel("Hide Menu Stars",
+            setting=Settings.hide_menu_stars,
             invert=True,
-            tooltipText="Show the stars in the main menu from older MC Edit versions")
+            tooltipText="Hide the stars in the main menu")
         
         oldFileBrowserRow = mceutils.CheckBoxLabel("Old File Browser", setting=Settings.use_old_file_browser,
             tooltipText="Use the built in file browser instead of an os native browser")

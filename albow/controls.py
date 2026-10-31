@@ -337,8 +337,6 @@ class CheckControl(Control):
         self.value = not self.value
         if self.on_change:
             self.on_change(self.value)
-        if self.observe:
-            self.observe.set(self.value)
 
 
     def get_highlighted(self):

@@ -53,7 +53,7 @@ def save_config():
 class _KeysSection(Section):
     """Configs for keybindings"""
 
-    NAME = "Keys"
+    NAME = "keys"
     forward = S("w")
     back = S("s")
     left = S("a")
@@ -181,7 +181,7 @@ class _BrushToolSection(Section):
     alpha = S(0.66, min=0, max=1)
 
 
-BrushToolSettings = _BrushToolSection(Section)
+BrushToolSettings = _BrushToolSection(config)
 
 
 class _CloneToolSection(Section):
@@ -220,7 +220,7 @@ SpawnToolSettings = _SpawnToolSection(config)
 
 
 class _ColorSettingsSection(Section):
-    """Settings for selectable colors, stored as a string of (r, g, b) where r, g, and b are floating point values for the color"""
+    """Settings for selectable colors, stored as a string of "r, g, b" where r, g, and b are floating point values for the color"""
 
     NAME = "colors"
 
