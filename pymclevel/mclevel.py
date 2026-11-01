@@ -8,10 +8,9 @@ import mclevel
 
 # Call mclevel.fromFile to identify and open any of these four file formats:
 #
-# Schematics - gzipped NBT data in a single file.  Returns an MCSchematic.  
+# Schematics - NBT data in a single file.  Returns an MCSchematic.  
 #   MCSchematics have the special method rotateLeft which will reorient torches, stairs, and other tiles appropriately.
-# levels - world folder structure containing level.dat and chunk folders.  Single or Multiplayer.
-#   Can accept a path to the world folder or a path to the level.dat.  Returns an MCLevel
+# levels - world folder structure containing level.dat and chunk folders
 
 # Sand to glass.
 blocks[blocks == materials.Sand.ID] = materials.Glass.ID
@@ -133,16 +132,6 @@ world.saveInPlace();
 # the point tuple is ordered (x,y,z) in accordance with the tuples used to initialize a bounding box
 # however, the slices tuple is ordered (x,z,y) for easy indexing into the arrays.
 
-# Here is an old version of MCInfdevOldLevel.fillBlocks in its entirety:
-
-def fillBlocks(self, box, blockType, blockData = 0):
-    chunkIterator = self.getChunkSlices(box)
-    
-    for (chunk, slices, point) in chunkIterator:
-        chunk.Blocks[slices] = blockType
-        chunk.Data[slices] = blockData
-        chunk.chunkChanged();
-
 
 Copyright 2010 David Rio Vierra
 """
@@ -178,12 +167,6 @@ def fromFile(filename) -> MCLevel:
 
     if not file_path.exists():
         raise IOError("File not found: " + filename)
-
-    if ZipSchematic._isLevel(filename):
-        info("Zipfile found, attempting zipped infinite level")
-        lev = ZipSchematic(filename)
-        info("Detected zipped level")
-        return lev
 
     # If it's a directory, try to load the level.dat
     if file_path.is_dir():

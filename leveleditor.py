@@ -2623,8 +2623,6 @@ class LevelEditor(GLViewport):
             t = functools.partial(isinstance, self.level)
             if t(pymclevel.MCSchematic):
                 levelFormat = "MCEdit Schematic"
-            elif t(pymclevel.ZipSchematic):
-                levelFormat = "MCEdit Schematic (Zipped Format)"
             else:
                 levelFormat = "Unknown"
             formatLabel = Label(levelFormat)

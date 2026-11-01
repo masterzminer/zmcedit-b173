@@ -13,6 +13,7 @@ from pymclevel import blockrotation
 from pymclevel.box import BoundingBox
 from pymclevel.material import materials
 from pymclevel import nbt
+import sys
 
 log = logging.getLogger(__name__)
 warn, error, info, debug = log.warn, log.error, log.info, log.debug
@@ -142,8 +143,8 @@ class MCSchematic (EntityLevel):
     @Blocks.setter
     @decompress_first
     @unpack_first
-    def Blocks(self, newval):
-        self.root_tag[Blocks].value = newval
+    def Blocks(self, new_val):
+        self.root_tag[Blocks].value = new_val
 
     @property
     @decompress_first
@@ -227,10 +228,10 @@ class MCSchematic (EntityLevel):
             entity["Rotation"][0].value -= 90.0
             if entity["id"].value == "Painting":
                 x, z = entity["TileX"].value, entity["TileZ"].value
-                newx = z
-                newz = self.Length - x - 1
+                new_x = z
+                new_z = self.Length - x - 1
 
-                entity["TileX"].value, entity["TileZ"].value = newx, newz
+                entity["TileX"].value, entity["TileZ"].value = new_x, new_z
                 entity["Dir"].value = (entity["Dir"].value + 1) % 4
 
         for tileEntity in self.TileEntities:
@@ -476,80 +477,13 @@ MCLevel.extractSchematic = extractSchematicFrom
 MCLevel.extractSchematicIter = extractSchematicFromIter
 MCLevel.adjustExtractionParameters = adjustExtractionParameters
 
-import tempfile
-def extractZipSchematicFrom(sourceLevel, box, zipfilename=None, entities=True):
-    return exhaust(extractZipSchematicFromIter(sourceLevel, box, zipfilename, entities))
-
-def extractZipSchematicFromIter(sourceLevel, box, zipfilename=None, entities=True):
-    #converts classic blocks to alpha
-    #probably should only apply to alpha levels
-
-    if zipfilename is None:
-        zipfilename = tempfile.mktemp("zipschematic")
-
-    p = sourceLevel.adjustExtractionParameters(box)
-    if p is None: return
-    sourceBox, destPoint = p
-
-    destPoint = (0, 0, 0)
-
-    tempfolder = tempfile.mktemp("schematic")
-    try:
-        done = False
-        tempSchematic = MCBetaLevel(tempfolder, create=True)
-    
-        destBox = BoundingBox(destPoint, sourceBox.size)
-
-        for i in tempSchematic.copyBlocksFromIter(sourceLevel, sourceBox, destPoint, entities=entities, create=True):
-            yield i
-        tempSchematic.saveInPlace() #lights not needed for this format - crashes minecraft though
-        
-        schematicDat = TAG_Compound()
-        schematicDat.name = "Mega Schematic"
-    
-        schematicDat["Width"] = TAG_Int(sourceBox.size[0])
-        schematicDat["Height"] = TAG_Int(sourceBox.size[1])
-        schematicDat["Length"] = TAG_Int(sourceBox.size[2])
-        schematicDat.save(os.path.join(tempfolder, "schematic.dat"))
-    
-        zipdir(tempfolder, zipfilename)
-    
-        from . import mclevel
-        yield mclevel.fromFile(zipfilename)
-    finally:
-        #We get here if the generator is GCed also
-        if os.path.exists(tempfolder): shutil.rmtree(tempfolder, False)
             
-            
-MCLevel.extractZipSchematic = extractZipSchematicFrom
-MCLevel.extractZipSchematicIter = extractZipSchematicFromIter
-
 def extractAnySchematic(level, box):
     return exhaust(level.extractAnySchematicIter(box))
     
 def extractAnySchematicIter(level, box):
-    try:
-        if box.chunkCount > MCBetaLevel.decompressedChunkLimit:
-            raise MemoryError
-            
-        for i in level.extractSchematicIter(box):
-            yield i
-    except MemoryError:
-        for i in level.extractZipSchematicIter(box):
-            yield i
+    for i in level.extractSchematicIter(box):
+        yield i
             
 MCLevel.extractAnySchematic = extractAnySchematic
 MCLevel.extractAnySchematicIter = extractAnySchematicIter
-
-from zipfile import ZipFile, ZIP_STORED
-def zipdir(basedir, archivename):
-    assert os.path.isdir(basedir)
-    with closing(ZipFile(archivename, "w", ZIP_STORED)) as z:
-        for root, dirs, files in os.walk(basedir):
-            #NOTE: ignore empty directories
-            for fn in files:
-                absfn = os.path.join(root, fn)
-                zfn = absfn[len(basedir) + len(os.sep):] #XXX: relative path
-                z.write(absfn, zfn)
-
-from .infiniteworld import MCBetaLevel

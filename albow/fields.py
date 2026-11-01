@@ -463,9 +463,4 @@ class FloatField(Field):
         else:
             Field.mouse_down(self, evt)
 
-    def set_text(self, text):
-        if self.setting:
-            # TODO test that this works
-            self.setting.set(float(text))
-        return super().set_text(text)
 

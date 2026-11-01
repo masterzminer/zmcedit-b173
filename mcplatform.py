@@ -74,7 +74,7 @@ def askOpenFile(lastDir: DirectorySetting, title: str):
 def askSaveSchematic(defaultName: str):
     lastDir = LastDir.schematic
 
-    file_name = askSaveFile(lastDir.v,
+    file_name = askSaveFile(lastDir,
                 title='Save this schematic...',
                 defaultName=defaultName,
                 filetype="schematic"
@@ -98,7 +98,7 @@ def askCreateWorld():
         name = defaultName + " " + str(i)
 
     # Select the directory
-    selected = askSaveFile(lastDir.v, title='Name this new world', defaultName=name)
+    selected = askSaveFile(lastDir, title='Name this new world', defaultName=name)
     
     lastDir.set(Path(selected).parent)
 

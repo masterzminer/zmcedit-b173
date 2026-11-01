@@ -1,8 +1,8 @@
 finish testing the new config system
     Check all todos
 
-
 standardize logging, print statements, and traceback error logging calls
+
 
 
 filters
@@ -16,11 +16,10 @@ filters
     Allow stock filters to be hidden
     Retest all stock filters
 
-
 brush
     make a max spacing feature so it can't skip long distances
     make the last selected block or blocks for the brush save with the config, similar to the last brush size
-
+    fix the brush forcing you to select a block every time you select it
 
 level rendering
     fix buttons and other non full blocks rendering weirdly

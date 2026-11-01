@@ -9,9 +9,7 @@ from collections import deque
 import time
 import zlib
 import struct
-import shutil
 import sys
-import tempfile
 from datetime import datetime
 import itertools
 from pymclevel.box import BoundingBox
@@ -52,7 +50,7 @@ Player = 'Player'
 DIM_NETHER = -1
 DIM_END = 1
 
-__all__ = ["ZeroChunk", "MCChunk", "ChunkedLevelMixin", "MCBetaLevel", "McDimension", "ZipSchematic"]
+__all__ = ["ZeroChunk", "MCChunk", "ChunkedLevelMixin", "MCBetaLevel", "McDimension"]
 
 
 import re
@@ -1122,8 +1120,6 @@ class ChunkedLevelMixin(object):
         def shouldCreateFunc(slices, point):
             box = subbox(slices, point)
             b = any(list(sourceLevel.containsChunk(*c) for c in box.chunkPositions)) #any() won't take a generator-expression :(
-            #if b == False:
-            #    print 'Skipped ', list(box.chunkPositions)
             return b
             
         for cPos, slices, point in self._getSlices(destBox):
@@ -1137,22 +1133,24 @@ class ChunkedLevelMixin(object):
             i += 1
             yield (i, chunkCount)
             if i % 100 == 0:
-                info("Chunk {0}...".format(i))
+                info(f"Chunk {i}...")
 
-            dstblocks = chunk.Blocks[slices]
-            dstdata = chunk.Data[slices]
+            dest_blocks = chunk.Blocks[slices]
+            dest_data = chunk.Data[slices]
             sourceSubBox = subbox(slices, point)
-            for srcchunk, srcslices, srcpoint in sourceLevel.getChunkSlices(sourceSubBox):
-                srcpoint = srcpoint[0], srcpoint[2], srcpoint[1]
-                sourceBlocks = srcchunk.Blocks[srcslices]
-                sourceData = srcchunk.Data[srcslices]
+            for source_chunk, source_slices, source_point in sourceLevel.getChunkSlices(sourceSubBox):
+                source_point = source_point[0], source_point[2], source_point[1]
+                sourceBlocks = source_chunk.Blocks[source_slices]
+                sourceData = source_chunk.Data[source_slices]
                 mask = sourceMask(sourceBlocks)
                 convertedSourceBlocks, convertedSourceData = self.convertBlocksFromLevel(sourceLevel, sourceBlocks, sourceData)
 
-                dstslices = [slice(p, p + (s.stop - s.start)) for p, s in zip(srcpoint, srcslices)]
-                dstblocks[dstslices][mask] = convertedSourceBlocks[mask]
+
+                dest_slices = tuple([slice(p, p + (s.stop - s.start)) for p, s in zip(source_point, source_slices)])
+                dest_blocks[dest_slices][mask] = convertedSourceBlocks[mask]
                 if convertedSourceData is not None:
-                    dstdata[dstslices][mask] = convertedSourceData[mask]
+                    dest_data[dest_slices][mask] = convertedSourceData[mask]
+                    
 
             chunk.chunkChanged()
 
@@ -1162,9 +1160,7 @@ class ChunkedLevelMixin(object):
         return exhaust(self.copyBlocksFromIter(sourceLevel, sourceBox, destinationPoint, blocksToCopy, entities, create))
 
     def copyBlocksFromIter(self, sourceLevel, sourceBox, destinationPoint, blocksToCopy=None, entities=True, create=False):
-        (x, y, z) = destinationPoint
         (lx, ly, lz) = sourceBox.size
-        #sourcePoint, sourcePoint1 = sourceBox
 
         sourceBox, destinationPoint = self.adjustCopyParameters(sourceLevel, sourceBox, destinationPoint)
         #needs work xxx
@@ -1196,9 +1192,6 @@ class ChunkedLevelMixin(object):
         else:
             chunkIterator = self.getChunkSlices(box)
 
-        #shouldRetainData = (not blockInfo.hasVariants and not any([b.hasVariants for b in blocksToReplace]))
-        #if shouldRetainData:
-        #    info( "Preserving data bytes" )
         shouldRetainData = False #xxx old behavior overwrote blockdata with 0 when e.g. replacing water with lava
        
         info("Replacing {0} with {1}".format(blocksToReplace, blockInfo))
@@ -2519,117 +2512,3 @@ class McDimension (MCBetaLevel):
             MCBetaLevel.saveInPlace(self)
         else:
             self.parentWorld.saveInPlace()
-
-
-from zipfile import ZipFile, is_zipfile
-import tempfile
-
-class ZipSchematic (MCBetaLevel):
-    def __init__(self, filename):
-        tempdir = tempfile.mktemp("schematic")
-        zf = ZipFile(filename)
-        self.zipfile = zf
-        zf.extract("level.dat", tempdir)
-
-        MCBetaLevel.__init__(self, tempdir)
-
-        self.filename = filename
-
-        try:
-            schematicDat = os.path.join(tempdir, "schematic.dat")
-            with closing(self.zipfile.open("schematic.dat")) as f:
-                schematicDat = nbt.load(buf=gunzip(f.read()))
-
-                self.Width = schematicDat['Width'].value
-                self.Height = schematicDat['Height'].value
-                self.Length = schematicDat['Length'].value
-        except Exception as e:
-            print("Exception reading schematic.dat, skipping: {0!r}".format(e))
-            self.Width = 0
-            self.Height = 128
-            self.Length = 0
-
-    def close(self):
-        MCBetaLevel.close(self)
-        self.zipfile.close()
-        shutil.rmtree(self.worldDir, True)
-        
-    def getWorldBounds(self):
-        return BoundingBox((0, 0, 0), (self.Width, self.Height, self.Length))
-
-    @classmethod
-    def _isLevel(cls, filename):
-        return is_zipfile(filename)
-
-    def _loadChunk(self, chunk):
-        if self.version:
-            return MCBetaLevel._loadChunk(self, chunk)
-        else:
-            cdata = self.zipfile.read(chunk.chunkFilename)
-            chunk.compressedTag = cdata
-            chunk.decompress()
-
-    def _saveChunk(self, chunk):
-        if self.version:
-            return MCBetaLevel._saveChunk(self, chunk)
-        else:
-            raise NotImplementedError("Cannot save chunk-format zipfiles!")
-
-    def saveInPlace(self):
-        self.saveToFile(self.filename)
-        
-    def saveToFile(self, filename):
-        tempfile = filename + ".new"
-        from .schematic import zipdir
-        zipdir(self.worldDir, tempfile)
-        
-        if os.path.exists(filename):
-            os.remove(filename)
-        shutil.copy(tempfile, filename)
-
-    def containsChunk(self, cx, cz):
-        return (cx, cz) in self.allChunks
-
-    def preloadRegions(self):
-        self.zipfile.extractall(self.worldDir)
-        self.regionFiles = {}
-
-        MCBetaLevel.preloadRegions(self)
-
-    def preloadChunkPaths(self):
-        info(u"Scanning for chunks...")
-        self._allChunks = set()
-
-        infos = self.zipfile.infolist()
-        names = [i.filename.split('/') for i in infos]
-        goodnames = [n for n in names if len(n) == 3 and n[0] in self.dirhashes and n[1] in self.dirhashes]
-
-        for name in goodnames:
-            c = name[2].split('.')
-            if len(c) == 4 and c[0].lower() == 'c' and c[3].lower() == 'dat':
-                try:
-                    cx, cz = (decbase36(c[1]), decbase36(c[2]))
-                except Exception as e:
-                    info('Skipped file {0} ({1})'.format('.'.join(c), e))
-                    continue
-                #self._loadedChunks[ (cx, cz) ] = MCChunk(self, (cx, cz));
-                self._allChunks.add((cx, cz))
-
-        info(u"Found {0} chunks.".format(len(self._allChunks)))
-
-
-    def preloadDimensions(self):
-        pass
-
-    def loadLevelDat(self, create=False, random_seed=None, last_played=None):
-        if create:
-            raise NotImplementedError("Cannot save zipfiles yet!")
-
-        with closing(self.zipfile.open("level.dat")) as f:
-            with closing(gzip.GzipFile(fileobj=BytesIO(f.read()))) as g:
-                self.root_tag = nbt.load(buf=g.read())
-
-    def chunkFilename(self, x, z):
-        s = "/".join((self.dirhash(x), self.dirhash(z),
-                                     "c.%s.%s.dat" % (base36(x), base36(z))))
-        return s

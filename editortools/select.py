@@ -1002,28 +1002,12 @@ class SelectionTool(EditorTool):
         print("Clipping: ", shape)
 
         fileFormat = "schematic"
-        if box.volume > Settings.block_buffer.v:
-            fileFormat = "schematic.zip"
-
-        if fileFormat == "schematic.zip":
-            missingChunks = [x for x in box.chunkPositions if not self.editor.level.containsChunk(*x)]
-            if len(missingChunks):
-                if not ((box.origin[0] & 0xf == 0) and (box.origin[2] & 0xf == 0)):
-                    if ask("This is an uneven selection with missing chunks. Expand the selection to chunk edges, or copy air within the missing chunks?", ["Expand Selection", "Copy Air"]) == "Expand Selection":
-                        self.selectChunks()
-                        box = self.selectionBox()
 
         with setWindowCaption("Copying - "):
-            filename = tempfile.mkdtemp(".zip", "mceditcopy")
-            os.rmdir(filename)
-
             status = "Copying {0:n} blocks...".format(box.volume)
             if fileFormat == "schematic":
                 schematic = showProgress(status,
                             self.editor.level.extractSchematicIter(box), cancel=True)
-            else:
-                schematic = showProgress(status,
-                            self.editor.level.extractZipSchematicIter(box, filename), cancel=True)
             if schematic == "Canceled":
                 return None
 

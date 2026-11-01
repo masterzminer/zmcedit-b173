@@ -110,7 +110,9 @@ class Operation(object):
         if sch is None:
             sch = MCSchematic((0, 0, 0))
 
-        sch.compress()
+        # Hack for checking the type because sch is sometimes an int for some reason
+        if isinstance(sch, MCSchematic):
+            sch.compress()
         return sch
 
     # represents a single undoable operation

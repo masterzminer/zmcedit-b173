@@ -102,7 +102,6 @@ class _SettingsSection(Section):
     fov = S(70.0)
 
     space_height = S(64)
-    block_buffer = S(256 * 1048576)
     double_buffer = S(True)
 
     view_distance = S(16)
