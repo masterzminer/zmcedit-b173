@@ -285,15 +285,6 @@ class Field(Control, TextEditor):
         else:
             self.insertion_point = None
 
-#    def get_value(self):
-#        self.commit()
-#        return Control.get_value(self)
-#
-#    def set_value(self, x):
-#        Control.set_value(self, x)
-#        self.editing = False
-
-
 
 class TextField(Field):
 

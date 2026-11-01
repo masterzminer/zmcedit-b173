@@ -207,19 +207,19 @@ class CloneToolPanel(Panel):
         self.tool = tool
 
         rotateRow = Row((
-            Label(Keys.rotate.upper()), Button("Rotate", width=80, action=tool.rotate, enable=self.transformEnable),
+            Label(Keys.rotate.v.upper()), Button("Rotate", width=80, action=tool.rotate, enable=self.transformEnable),
         ))
 
         rollRow = Row((
-            Label(Keys.roll.upper()), Button("Roll", width=80, action=tool.roll, enable=self.transformEnable),
+            Label(Keys.roll.v.upper()), Button("Roll", width=80, action=tool.roll, enable=self.transformEnable),
         ))
 
         flipRow = Row((
-            Label(Keys.flip.upper()), Button("Flip", width=80, action=tool.flip, enable=self.transformEnable),
+            Label(Keys.flip.v.upper()), Button("Flip", width=80, action=tool.flip, enable=self.transformEnable),
         ))
 
         mirrorRow = Row((
-            Label(Keys.mirror.upper()), Button("Mirror", width=80, action=tool.mirror, enable=self.transformEnable),
+            Label(Keys.mirror.v.upper()), Button("Mirror", width=80, action=tool.mirror, enable=self.transformEnable),
         ))
 
         alignRow = Row((
@@ -442,12 +442,6 @@ class CloneTool(EditorTool):
     def toolSelected(self):
         box = self.selectionBox()
         if box is None:
-            self.editor.toolbar.selectTool(-1)
-            return
-
-        if box.volume > self.maxBlocks:
-            self.editor.mouseLookOff()
-            alert("Selection exceeds {0:n} blocks. Increase the block buffer setting and try again.".format(self.maxBlocks))
             self.editor.toolbar.selectTool(-1)
             return
 

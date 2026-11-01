@@ -887,11 +887,6 @@ class EditorTool(object):
             return None
         return c.size
 
-    @property
-    def maxBlocks(self):
-        from leveleditor import Settings
-        return Settings.block_buffer.v // 2  # assume block buffer in megabytes
-
     def showPanel(self):
         pass
 
@@ -906,6 +901,3 @@ class EditorTool(object):
         except MemoryError:
             self.editor.invalidateAllChunks()
             op.perform(recordUndo)
-
-
-Operation.maxBlocks = EditorTool.maxBlocks

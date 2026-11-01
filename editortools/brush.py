@@ -564,9 +564,13 @@ class BrushPanel(Panel):
 
         shapeRows = []
 
-        for d in ["L", "W", "H"]:
-            l = Label(d)
-            f = IntField(ref=getattr(BrushToolSettings, "brushSize" + d).propertyRef(), min=1, max=tool.maxBrushSize)
+        for d in [
+            (BrushToolSettings.length, "L"),
+            (BrushToolSettings.width, "W"),
+            (BrushToolSettings.height, "H")
+        ]:
+            l = Label(d[1])
+            f = IntField(ref=d[0], min=1, max=tool.maxBrushSize)
             row = Row((l, f))
             shapeRows.append(row)
 
@@ -696,14 +700,14 @@ class BrushTool(CloneTool):
     def brushSize(self):
         if self.brushMode.name == "Flood Fill":
             return 1, 1, 1
-        return [BrushToolSettings.width, BrushToolSettings.height, BrushToolSettings.length]
+        return [BrushToolSettings.width.v, BrushToolSettings.height.v, BrushToolSettings.length.v]
 
     @brushSize.setter
     def brushSize(self, val):
         (w, h, l) = [max(1, min(i, self.maxBrushSize)) for i in val]
         BrushToolSettings.height.set(h)
         BrushToolSettings.length.set(l)
-        BrushToolSettings.length.set(w)
+        BrushToolSettings.width.set(w)
 
     maxBrushSize = 4096
 
@@ -1008,7 +1012,7 @@ class BrushTool(CloneTool):
 
         self.level = FakeLevel()
 
-        CloneTool.setupPreview(self, alpha=BrushToolSettings.alpha)
+        CloneTool.setupPreview(self, alpha=BrushToolSettings.alpha.v)
 
     def resetToolDistance(self):
         distance = max(self.editor.cameraToolDistance, 6 + max(self.brushSize) * 1.25)

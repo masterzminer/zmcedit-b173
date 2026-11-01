@@ -1002,7 +1002,7 @@ class SelectionTool(EditorTool):
         print("Clipping: ", shape)
 
         fileFormat = "schematic"
-        if box.volume > self.maxBlocks:
+        if box.volume > Settings.block_buffer.v:
             fileFormat = "schematic.zip"
 
         if fileFormat == "schematic.zip":

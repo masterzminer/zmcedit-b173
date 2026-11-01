@@ -349,7 +349,6 @@ class FilterToolPanel(Panel):
 
         self.input_columns = None
 
-        # TODO test that this works
         class ShowControlsUpdate:
             def __init__(self):
                 self.value = None

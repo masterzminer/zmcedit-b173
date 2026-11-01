@@ -452,7 +452,7 @@ class OptionsPanel(Dialog):
         spaceHeightRow = mceutils.IntInputRow("Low Detail Height", ref=Settings.space_height,
             tooltipText="When you are this far above the top of the world, move fast and use low-detail mode")
 
-        blockBufferRow = mceutils.IntInputRow("Block Buffer", ref=Settings.block_buffer, min=1,
+        blockBufferRow = mceutils.FloatInputRow("Block Buffer", ref=Settings.block_buffer, min=1,
             tooltipText="Amount of memory used for temporary storage. When more than this is needed, the disk is used instead")
 
         longDistanceRow = mceutils.CheckBoxLabel("Long-Distance Mode", ref=Settings.long_distance_mode,

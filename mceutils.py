@@ -494,15 +494,15 @@ def CheckBoxLabel(title, invert=False, ref:ControlRef=None, **kw):
 
 
 def FloatInputRow(title, ref:ControlRef=None, *args, **kw):
-    return Row((Label(title, ref=ref, tooltipText=kw.get('tooltipText')), FloatField(*args, **kw)))
+    return Row((Label(title, tooltipText=kw.get('tooltipText')), FloatField(ref=ref, *args, **kw)))
 
 
 def IntInputRow(title, ref:ControlRef=None, *args, **kw):
-    return Row((Label(title, ref=ref, tooltipText=kw.get('tooltipText')), IntField(*args, **kw)))
+    return Row((Label(title, ref=ref, tooltipText=kw.get('tooltipText')), IntField(ref=ref, *args, **kw)))
 
 
 def TextInputRow(title, ref:ControlRef=None, *args, **kw):
-    return Row((Label(title, ref=ref, tooltipText=kw.get('tooltipText')), TextField(*args, **kw)))
+    return Row((Label(title, tooltipText=kw.get('tooltipText')), TextField(ref=ref, *args, **kw)))
 
 from albow.dialogs import Dialog
 from datetime import timedelta
