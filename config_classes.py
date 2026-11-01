@@ -61,6 +61,10 @@ class Setting:
         for obs in self.observers:
             obs.func(value)
 
+    def add(self, num):
+        """used for numeric settings, sets this setting to the current amount plus the given amount"""
+        self.set(self.v + num)
+
     def invert(self):
         """used for boolean settings, sets this setting to the inverted boolean value"""
         self.set(not self.get())
@@ -122,6 +126,14 @@ class Section:
         """Return a list of tuples as (key, value) for all settings"""
         return [
             (name, str(getattr(self, name)))
+            for name, setting in vars(type(self)).items()
+            if isinstance(setting, Setting)
+        ]
+        
+    def get_settings(self):
+        """Return a list of tuples as (key, settings object) for all settings"""
+        return [
+            (name, getattr(self, name))
             for name, setting in vars(type(self)).items()
             if isinstance(setting, Setting)
         ]

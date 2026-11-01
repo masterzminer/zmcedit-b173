@@ -2702,9 +2702,9 @@ class LevelEditor(GLViewport):
 
     def swapViewDistance(self):
         if Settings.view_distance.v >= self.renderer.maxViewDistance:
-            Settings.view_distance.v = self.renderer.minViewDistance
+            Settings.view_distance.set(self.renderer.minViewDistance)
         else:
-            Settings.view_distance.v += 2
+            Settings.view_distance.add(2)
 
         self.addWorker(self.renderer)
 

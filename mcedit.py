@@ -27,6 +27,7 @@ from albow.dialogs import Dialog
 from albow.openglwidgets import GLViewport
 from albow.root import RootWidget, schedule as albow_schedule
 from config import LastDir, Keys, Controls, Settings, RecentWorlds, save_config
+from config_classes import Setting
 import directories
 import functools
 from glbackground import Panel
@@ -180,89 +181,112 @@ class FileOpener(albow.Widget):
         return lambda: self.mcedit.loadFile(filename)
 
 
-# TODO fix key presets to use settings objects
 class KeyConfigPanel(Dialog):
+    display_names = {
+        Keys.forward.name: "Forward",
+        Keys.back.name: "Back",
+        Keys.left.name: "Left",
+        Keys.right.name: "Right",
+        Keys.up.name: "Up",
+        Keys.down.name: "Down",
+        Keys.brake.name: "Brake",
+        Keys.pan_left.name: "Pan Left",
+        Keys.pan_right.name: "Pan Right",
+        Keys.pan_up.name: "Pan Up",
+        Keys.pan_down.name: "Pan Down",
+        Keys.rotate.name: "Rotate",
+        Keys.roll.name: "Roll",
+        Keys.flip.name: "Flip",
+        Keys.mirror.name: "Mirror",
+        Keys.swap.name: "Swap",
+        Keys.reach_increase.name: "Increase Reach",
+        Keys.reach_decrease.name: "Decrease Reach",
+        Keys.reach_reset.name: "Reset Reach",
+    }
+
     keyConfigKeys = [
         "<Movement Controls>",
-        "Forward",
-        "Back",
-        "Left",
-        "Right",
-        "Up",
-        "Down",
-        "Brake",
+        Keys.forward,
+        Keys.back,
+        Keys.left,
+        Keys.right,
+        Keys.up,
+        Keys.down,
+        Keys.brake,
         "",
         "<Camera Controls>",
-        "Pan Left",
-        "Pan Right",
-        "Pan Up",
-        "Pan Down",
+        Keys.pan_left,
+        Keys.pan_right,
+        Keys.pan_up,
+        Keys.pan_down,
         "",
         "<Tool Controls>",
-        "Rotate",
-        "Roll",
-        "Flip",
-        "Mirror",
-        "Swap",
-        "Increase Reach",
-        "Decrease Reach",
-        "Reset Reach",
+        Keys.rotate,
+        Keys.roll,
+        Keys.flip,
+        Keys.mirror,
+        Keys.swap,
+        Keys.reach_increase,
+        Keys.reach_decrease,
+        Keys.reach_reset,
     ]
 
-    presets = {"WASD": [
-        ("Forward", "w"),
-        ("Back", "s"),
-        ("Left", "a"),
-        ("Right", "d"),
-        ("Up", "q"),
-        ("Down", "z"),
-        ("Brake", "space"),
+    presets = {
+        "WASD": [
+            (Keys.forward, "w"),
+            (Keys.back, "s"),
+            (Keys.left, "a"),
+            (Keys.right, "d"),
+            (Keys.up, "q"),
+            (Keys.down, "z"),
+            (Keys.brake, "space"),
 
-        ("Rotate", "e"),
-        ("Roll", "r"),
-        ("Flip", "f"),
-        ("Mirror", "g"),
-        ("Swap", "x"),
-        ("Increase Reach", "mouse4"),
-        ("Decrease Reach", "mouse5"),
-        ("Reset Reach", "mouse3"),
-    ],
-    "Arrows": [
-        ("Forward", "up"),
-        ("Back", "down"),
-        ("Left", "left"),
-        ("Right", "right"),
-        ("Up", "page up"),
-        ("Down", "page down"),
-        ("Brake", "space"),
+            (Keys.rotate, "e"),
+            (Keys.roll, "r"),
+            (Keys.flip, "f"),
+            (Keys.mirror, "g"),
+            (Keys.swap, "x"),
+            (Keys.reach_increase, "mouse4"),
+            (Keys.reach_decrease, "mouse5"),
+            (Keys.reach_reset, "mouse3"),
+        ],
+        "Arrows": [
+            (Keys.forward, "up"),
+            (Keys.back, "down"),
+            (Keys.left, "left"),
+            (Keys.right, "right"),
+            (Keys.up, "page up"),
+            (Keys.down, "page down"),
+            (Keys.brake, "space"),
 
-        ("Rotate", "home"),
-        ("Roll", "end"),
-        ("Flip", "insert"),
-        ("Mirror", "delete"),
-        ("Swap", "\\"),
-        ("Increase Reach", "mouse4"),
-        ("Decrease Reach", "mouse5"),
-        ("Reset Reach", "mouse3"),
-    ],
-    "Numpad": [
-        ("Forward", "[8]"),
-        ("Back", "[5]"),
-        ("Left", "[4]"),
-        ("Right", "[6]"),
-        ("Up", "[9]"),
-        ("Down", "[3]"),
-        ("Brake", "[0]"),
+            (Keys.rotate, "home"),
+            (Keys.roll, "end"),
+            (Keys.flip, "insert"),
+            (Keys.mirror, "delete"),
+            (Keys.swap, "\\"),
+            (Keys.reach_increase, "mouse4"),
+            (Keys.reach_decrease, "mouse5"),
+            (Keys.reach_reset, "mouse3"),
+        ],
+        "Numpad": [
+            (Keys.forward, "[8]"),
+            (Keys.back, "[5]"),
+            (Keys.left, "[4]"),
+            (Keys.right, "[6]"),
+            (Keys.up, "[9]"),
+            (Keys.down, "[3]"),
+            (Keys.brake, "[0]"),
 
-        ("Rotate", "[-]"),
-        ("Roll", "[+]"),
-        ("Flip", "[/]"),
-        ("Mirror", "[*]"),
-        ("Swap", "[.]"),
-        ("Increase Reach", "mouse4"),
-        ("Decrease Reach", "mouse5"),
-        ("Reset Reach", "mouse3"),
-    ]}
+            (Keys.rotate, "[-]"),
+            (Keys.roll, "[+]"),
+            (Keys.flip, "[/]"),
+            (Keys.mirror, "[*]"),
+            (Keys.swap, "[.]"),
+            (Keys.reach_increase, "mouse4"),
+            (Keys.reach_decrease, "mouse5"),
+            (Keys.reach_reset, "mouse3"),
+        ]
+    }
 
     selectedKeyIndex = 0
 
@@ -284,12 +308,7 @@ class KeyConfigPanel(Dialog):
 
         buttonRow = albow.Row(buttonRow)
 
-        choiceButton = mceutils.ChoiceButton(["WASD", "Arrows", "Numpad"], choose=self.choosePreset)
-        # TODO how is this meant to work?
-        if Keys.forward.v == "up":
-            choiceButton.selectedChoice = "Arrows"
-        if Keys.forward.v == "[8]":
-            choiceButton.selectedChoice = "Numpad"
+        choiceButton = mceutils.ChoiceButton(list(self.presets.keys()), choose=self.choosePreset)
 
         choiceRow = albow.Row((albow.Label("Presets: "), choiceButton))
         self.choiceButton = choiceButton
@@ -301,19 +320,20 @@ class KeyConfigPanel(Dialog):
     def choosePreset(self):
         preset = self.choiceButton.selectedChoice
         key_pairs = self.presets[preset]
-        for configKey, key in key_pairs:
-            Keys.set(configKey, key)
+        for setting, value in key_pairs:
+            setting.set(value)
+        save_config()
 
     def getRowData(self, i):
-        configKey = self.keyConfigKeys[i]
-        if self.isConfigKey(configKey):
-            key = Keys.get(configKey)
-        else:
+        configKeyData = self.keyConfigKeys[i]
+        if isinstance(configKeyData, str):
+            display = configKeyData
             key = ""
-        return configKey, key
-
-    def isConfigKey(self, configKey):
-        return not (len(configKey) == 0 or configKey[0] == "<")
+        else:
+            display = self.display_names[configKeyData.name]
+            name = configKeyData.v
+            key = name.upper() if len(name) == 1 else name
+        return display, key
 
     def selectTableRow(self, i, evt):
         self.selectedKeyIndex = i
@@ -323,15 +343,16 @@ class KeyConfigPanel(Dialog):
     def askAssignSelectedKey(self):
         self.askAssignKey(self.keyConfigKeys[self.selectedKeyIndex])
 
-    def askAssignKey(self, configKey, labelString=None):
-        if not self.isConfigKey(configKey):
+    def askAssignKey(self, keyConfig, labelString=None):
+        if not isinstance(keyConfig, Setting):
             return
+        keySetting = keyConfig
 
         panel = Panel()
         panel.bg_color = (0.5, 0.5, 0.6, 1.0)
 
         if labelString is None:
-            labelString = "Press a key to assign to the action \"{0}\"\n\nPress ESC to cancel.".format(configKey)
+            labelString = f"Press a key to assign to the action \"{keySetting}\"\n\nPress ESC to cancel."
         label = albow.Label(labelString)
         panel.add(label)
         panel.shrink_wrap()
@@ -343,7 +364,7 @@ class KeyConfigPanel(Dialog):
         def panelMouseDown(evt):
             button = leveleditor.remapMouseButton(evt.button)
             if button > 2:
-                keyname = "mouse{0}".format(button)
+                keyname = f"mouse{button}"
                 panel.dismiss(keyname)
 
         panel.key_down = panelKeyDown
@@ -351,18 +372,20 @@ class KeyConfigPanel(Dialog):
 
         keyname = panel.present()
         if keyname != "escape":
-            occupiedKeys = [(v, k) for (k, v) in Keys.get_all() if v == keyname]
-            old_key = Keys.get(configKey)
-            Keys.set(configKey, keyname)
+            occupiedKeys = [entry for entry in Keys.get_settings() if entry[1].v == keyname]
+            old_key = keySetting.get()
+            keySetting.set(keyname)
             for keyname, setting in occupiedKeys:
-                if self.askAssignKey(setting,
-                                     "The key {0} is no longer bound to {1}.\n"
-                                     "Press a new key for the action \"{1}\"\n\n"
-                                     "Press ESC to cancel."
-                                     .format(keyname, setting)):
-                    Keys.set(configKey, old_key)
+                # Skip if it's the same setting as the one being set
+                if setting.name == keySetting.name:
+                    continue
+
+                display_key = self.display_names[setting.name]
+                if self.askAssignKey(setting, f'The key "{display_key}" is no longer bound to "{setting}".\nPress a new key for the action "{display_key}"\n\n Press ESC to cancel.'):
+                    keySetting.set(old_key)
                     return True
         else:
+            save_config()
             return True
 
 
