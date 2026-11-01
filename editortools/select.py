@@ -64,7 +64,7 @@ class SelectionToolOptions(ToolOptions):
 
         colorRow = Row((Label("Color: ", align="r"), self.colorPopupButton))
         okButton = Button("OK", action=self.dismiss)
-        showPreviousRow = CheckBoxLabel("Show Previous Selection", setting=SelectToolSettings.show_previous_selection)
+        showPreviousRow = CheckBoxLabel("Show Previous Selection", ref=SelectToolSettings.show_previous_selection)
 
         def set_color_value(ch):
             i = "RGB".index(ch)

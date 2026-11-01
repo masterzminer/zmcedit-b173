@@ -371,24 +371,19 @@ class GraphicsPanel(Panel):
 
         self.mcedit = mcedit
 
-        fieldOfViewRow = mceutils.FloatInputRow("Field of View: ",
-            setting=Settings.fov, width=100, min=25, max=120)
+        fieldOfViewRow = mceutils.FloatInputRow("Field of View: ", ref=Settings.fov, width=100, min=25, max=120)
 
-        targetFPSRow = mceutils.IntInputRow("Target FPS: ",
-            setting=Settings.target_fps, width=100, min=1, max=600)
+        targetFPSRow = mceutils.IntInputRow("Target FPS: ", ref=Settings.target_fps, width=100, min=1, max=600)
 
-        bufferLimitRow = mceutils.IntInputRow("Vertex Buffer Limit (MB): ", setting=Settings.vertex_buffer_limit, width=100, min=0)
+        bufferLimitRow = mceutils.IntInputRow("Vertex Buffer Limit (MB): ", ref=Settings.vertex_buffer_limit, width=100, min=0)
 
-        fastLeavesRow = mceutils.CheckBoxLabel("Fast Leaves",
-            setting=Settings.fast_leaves,
+        fastLeavesRow = mceutils.CheckBoxLabel("Fast Leaves", ref=Settings.fast_leaves,
             tooltipText="Leaves are solid, like Minecraft's 'Fast' graphics")
 
-        roughGraphicsRow = mceutils.CheckBoxLabel("Rough Graphics",
-            setting=Settings.rough_graphics,
+        roughGraphicsRow = mceutils.CheckBoxLabel("Rough Graphics", ref=Settings.rough_graphics,
             tooltipText="All blocks are drawn the same way (overrides 'Fast Leaves')")
 
-        enableMouseLagRow = mceutils.CheckBoxLabel("Enable Mouse Lag",
-            setting=Settings.enable_mouse_lag,
+        enableMouseLagRow = mceutils.CheckBoxLabel("Enable Mouse Lag", ref=Settings.enable_mouse_lag,
             tooltipText="Enable choppy mouse movement for faster loading.")
 
         settingsColumn = albow.Column((fastLeavesRow,
@@ -420,65 +415,50 @@ class OptionsPanel(Dialog):
 
         self.mcedit = mcedit
 
-        autoBrakeRow = mceutils.CheckBoxLabel("Autobrake",
-            setting=Controls.auto_brake,
+        autoBrakeRow = mceutils.CheckBoxLabel("Autobrake", ref=Controls.auto_brake,
             tooltipText="Apply brake when not pressing movement keys")
 
-        swapAxesRow = mceutils.CheckBoxLabel("Swap Axes Looking Down",
-            setting=Controls.swap_axes,
+        swapAxesRow = mceutils.CheckBoxLabel("Swap Axes Looking Down", ref=Controls.swap_axes,
             tooltipText="Change the direction of the Forward and Backward keys when looking down")
 
-        cameraAccelRow = mceutils.FloatInputRow("Camera Acceleration: ",
-            setting=Controls.camera_acceleration, width=100, min=5.0)
+        cameraAccelRow = mceutils.FloatInputRow("Camera Acceleration: ", ref=Controls.camera_acceleration, width=100, min=5.0)
 
-        cameraDragRow = mceutils.FloatInputRow("Camera Drag: ",
-            setting=Controls.camera_drag, width=100, min=1.0)
+        cameraDragRow = mceutils.FloatInputRow("Camera Drag: ", ref=Controls.camera_drag, width=100, min=1.0)
 
-        cameraMaxSpeedRow = mceutils.FloatInputRow("Camera Max Speed: ",
-            setting=Controls.camera_max_speed, width=100, min=1.0)
+        cameraMaxSpeedRow = mceutils.FloatInputRow("Camera Max Speed: ", ref=Controls.camera_max_speed, width=100, min=1.0)
 
-        cameraBrakeSpeedRow = mceutils.FloatInputRow("Camera Braking Speed: ",
-            setting=Controls.camera_breaking_speed, width=100, min=1.0)
+        cameraBrakeSpeedRow = mceutils.FloatInputRow("Camera Braking Speed: ", ref=Controls.camera_breaking_speed, width=100, min=1.0)
 
-        mouseSpeedRow = mceutils.FloatInputRow("Mouse Speed: ", setting=Controls.mouse_speed, width=100, min=0.1, max=20.0)
+        mouseSpeedRow = mceutils.FloatInputRow("Mouse Speed: ", ref=Controls.mouse_speed, width=100, min=0.1, max=20.0)
 
-        invertRow = mceutils.CheckBoxLabel("Invert Mouse",
-            setting=Controls.invert_mouse_pitch,
+        invertRow = mceutils.CheckBoxLabel("Invert Mouse", ref=Controls.invert_mouse_pitch,
             tooltipText="Reverse the up and down motion of the mouse.")
         
-        classicMouseRow = mceutils.CheckBoxLabel("Classic Mouse",
-            setting=Settings.classic_mouse,
-            invert=True,
+        classicMouseRow = mceutils.CheckBoxLabel("Classic Mouse", ref=Settings.classic_mouse, invert=True,
             tooltipText="Use the mouse pointer from the original version of MC Edit")
            
-        centerMouseFixRow = mceutils.CheckBoxLabel("Center Mouse",
-            setting=Settings.center_mouse_fix,
+        centerMouseFixRow = mceutils.CheckBoxLabel("Center Mouse", ref=Settings.center_mouse_fix,
             tooltipText="While in 3D look mode, replace the mouse with an invisible cursor and force set the mouse to the center of the window during mouse movement. " \
             "This is a band aid fix for scenarios where the mouse being at the edge of a screen can cause unwanted os activations. " \
             "This setting may or may not fix mouse behavior depending on how the os handles the mouse. " \
             "With this disabled, no additional hack fix will be applied, and the mouse will move around the window while staying hidden.")
          
-        menuStarsRow = mceutils.CheckBoxLabel("Hide Menu Stars",
-            setting=Settings.hide_menu_stars,
-            invert=True,
+        menuStarsRow = mceutils.CheckBoxLabel("Hide Menu Stars", ref=Settings.hide_menu_stars, invert=True,
             tooltipText="Hide the stars in the main menu")
         
-        oldFileBrowserRow = mceutils.CheckBoxLabel("Old File Browser", setting=Settings.use_old_file_browser,
+        oldFileBrowserRow = mceutils.CheckBoxLabel("Old File Browser", ref=Settings.use_old_file_browser,
             tooltipText="Use the built in file browser instead of an os native browser")
 
-        spaceHeightRow = mceutils.IntInputRow("Low Detail Height", setting=Settings.space_height,
+        spaceHeightRow = mceutils.IntInputRow("Low Detail Height", ref=Settings.space_height,
             tooltipText="When you are this far above the top of the world, move fast and use low-detail mode")
 
-        blockBufferRow = mceutils.IntInputRow("Block Buffer",
-            setting=Settings.block_buffer, min=1,
+        blockBufferRow = mceutils.IntInputRow("Block Buffer", ref=Settings.block_buffer, min=1,
             tooltipText="Amount of memory used for temporary storage. When more than this is needed, the disk is used instead")
 
-        longDistanceRow = mceutils.CheckBoxLabel("Long-Distance Mode",
-            setting=Settings.long_distance_mode,
+        longDistanceRow = mceutils.CheckBoxLabel("Long-Distance Mode", ref=Settings.long_distance_mode,
             tooltipText="Always target the farthest block under the cursor, even in mouse look mode. Shortcut: ALT-Z")
 
-        flyModeRow = mceutils.CheckBoxLabel("Fly Mode",
-            setting=Settings.fly_mode,
+        flyModeRow = mceutils.CheckBoxLabel("Fly Mode", ref=Settings.fly_mode,
             tooltipText="Moving forward and backward will not change your altitude in Fly Mode")
 
         inputs = (

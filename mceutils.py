@@ -33,6 +33,7 @@ import directories
 from albow import FloatField, IntField, TextField
 from mcplatform import os_ops, askSaveFolder
 from config import LastDir, Settings
+from albow.controls import ControlRef
 
 
 def alertException(func):
@@ -465,11 +466,10 @@ class ChoiceButton(ValueButton):
         self.menu = Menu("", ((name, "pickMenu") for name in self._choices))
 
 
-def CheckBoxLabel(title, invert=False, on_change=None, setting=None, **kw):
-    """setting: An object with a set function that will have its value set when this check box changes"""
+def CheckBoxLabel(title, invert=False, ref:ControlRef=None, **kw):
     tooltipText = kw.pop('tooltipText', None)
 
-    cb = CheckBox(invert, on_change, setting, **kw)
+    cb = CheckBox(invert=invert, ref=ref, **kw)
     lab = Label(title, fg_color=cb.fg_color)
     lab.mouse_down = cb.mouse_down
 
@@ -493,16 +493,16 @@ def CheckBoxLabel(title, invert=False, on_change=None, setting=None, **kw):
     return row
 
 
-def FloatInputRow(title, setting=None, *args, **kw):
-    return Row((Label(title, tooltipText=kw.get('tooltipText')), FloatField(setting=setting, *args, **kw)))
+def FloatInputRow(title, ref:ControlRef=None, *args, **kw):
+    return Row((Label(title, ref=ref, tooltipText=kw.get('tooltipText')), FloatField(*args, **kw)))
 
 
-def IntInputRow(title, setting=None, *args, **kw):
-    return Row((Label(title, tooltipText=kw.get('tooltipText')), IntField(setting=setting, *args, **kw)))
+def IntInputRow(title, ref:ControlRef=None, *args, **kw):
+    return Row((Label(title, ref=ref, tooltipText=kw.get('tooltipText')), IntField(*args, **kw)))
 
 
-def TextInputRow(title, setting=None, *args, **kw):
-    return Row((Label(title, tooltipText=kw.get('tooltipText')), TextField(setting=setting, *args, **kw)))
+def TextInputRow(title, ref:ControlRef=None, *args, **kw):
+    return Row((Label(title, ref=ref, tooltipText=kw.get('tooltipText')), TextField(*args, **kw)))
 
 from albow.dialogs import Dialog
 from datetime import timedelta

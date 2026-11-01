@@ -138,7 +138,7 @@ class FillToolOptions(ToolOptions):
         Panel.__init__(self)
         self.tool = tool
         self.autoChooseCheckBox = CheckBoxLabel("Choose Block Immediately",
-                                                setting=FillToolSettings.chose_block_immediately,
+                                                ref=FillToolSettings.chose_block_immediately,
                                                 tooltipText="When the fill tool is chosen, prompt for a block type.")
 
         col = Column((Label("Fill Options"), self.autoChooseCheckBox, Button("OK", action=self.dismiss)))

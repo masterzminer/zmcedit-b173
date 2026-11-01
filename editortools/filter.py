@@ -347,7 +347,20 @@ class FilterToolPanel(Panel):
         filterLabel = Label("Filter:", fg_color=(177, 177, 255, 255))
         filterSelectRow = Row((filterLabel, self.filterSelect))
 
-        show_controls_button = CheckBoxLabel("Show File Controls", on_change=self.update_file_controls)
+        self.input_columns = None
+
+        # TODO test that this works
+        class ShowControlsUpdate:
+            def __init__(self):
+                self.value = None
+
+            def set(control_self, value):
+                self.value = value
+                self.update_file_controls(value)
+            def get(control_Self):
+                return self.value
+
+        show_controls_button = CheckBoxLabel("Show File Controls", ref=ShowControlsUpdate())
         show_controls_button.value = self.show_file_controls
 
         input_columns = Column((
@@ -377,6 +390,11 @@ class FilterToolPanel(Panel):
 
     def update_file_controls(self, show):
         c = self.file_controls
+        if c is None:
+            return
+        if self.input_columns is None:
+            return
+
         showing = c.parent is self
     
         if show:

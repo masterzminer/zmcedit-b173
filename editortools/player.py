@@ -377,7 +377,7 @@ class PlayerSpawnPositionOptions(ToolOptions):
     def __init__(self, tool):
         Panel.__init__(self)
         self.tool = tool
-        self.spawnProtectionCheckBox = CheckBox(setting=SpawnToolSettings.protection)
+        self.spawnProtectionCheckBox = CheckBox(ref=SpawnToolSettings.protection)
         self.spawnProtectionLabel = Label("Spawn Position Safety")
         self.spawnProtectionLabel.mouse_down = self.spawnProtectionCheckBox.mouse_down
 

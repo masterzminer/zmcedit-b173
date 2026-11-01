@@ -1345,8 +1345,6 @@ class ChunkViewport(CameraViewport):
 
     def drawCeiling(self):
         pass
-#        if self.defaultScale >= 0.5:
-#            return super(ChunkViewport, self).drawCeiling()
 
 
 class LevelEditor(GLViewport):
@@ -1427,19 +1425,19 @@ class LevelEditor(GLViewport):
 
         def showViewOptions():
             col = []
-            col.append(mceutils.CheckBoxLabel("Entities", fg_color=(0xff, 0x22, 0x22), setting=Settings.draw_entities))
-            col.append(mceutils.CheckBoxLabel("Items", fg_color=(0x22, 0xff, 0x22), setting=Settings.draw_items))
-            col.append(mceutils.CheckBoxLabel("TileEntities", fg_color=(0xff, 0xff, 0x22), setting=Settings.draw_tile_entities))
-            col.append(mceutils.CheckBoxLabel("TileTicks", setting=Settings.draw_tile_ticks))
-            col.append(mceutils.CheckBoxLabel("Unpopulated Chunks", fg_color=renderer.TerrainPopulatedRenderer.color, setting=Settings.draw_unpopulated_chunks))
+            col.append(mceutils.CheckBoxLabel("Entities", fg_color=(0xff, 0x22, 0x22), ref=Settings.draw_entities))
+            col.append(mceutils.CheckBoxLabel("Items", fg_color=(0x22, 0xff, 0x22), ref=Settings.draw_items))
+            col.append(mceutils.CheckBoxLabel("TileEntities", fg_color=(0xff, 0xff, 0x22), ref=Settings.draw_tile_entities))
+            col.append(mceutils.CheckBoxLabel("TileTicks", ref=Settings.draw_tile_ticks))
+            col.append(mceutils.CheckBoxLabel("Unpopulated Chunks", fg_color=renderer.TerrainPopulatedRenderer.color, ref=Settings.draw_unpopulated_chunks))
 
-            col.append(mceutils.CheckBoxLabel("Sky", setting=Settings.draw_sky))
-            col.append(mceutils.CheckBoxLabel("Fog", setting=Settings.draw_fog))
-            col.append(mceutils.CheckBoxLabel("Ceiling", setting=Settings.show_ceiling))
+            col.append(mceutils.CheckBoxLabel("Sky", ref=Settings.draw_sky))
+            col.append(mceutils.CheckBoxLabel("Fog", ref=Settings.draw_fog))
+            col.append(mceutils.CheckBoxLabel("Ceiling", ref=Settings.show_ceiling))
 
-            col.append(mceutils.CheckBoxLabel("Hidden Ores", setting=Settings.show_hidden_ores))
+            col.append(mceutils.CheckBoxLabel("Hidden Ores", ref=Settings.show_hidden_ores))
 
-            col.append(mceutils.CheckBoxLabel("Chunk Redraw", fg_color=(0xff, 0x99, 0x99), setting=Settings.show_chunk_redraw))
+            col.append(mceutils.CheckBoxLabel("Chunk Redraw", fg_color=(0xff, 0x99, 0x99), ref=Settings.show_chunk_redraw))
 
             col = Column(col, align="r")
 

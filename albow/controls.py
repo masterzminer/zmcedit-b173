@@ -9,12 +9,20 @@ from .theme import ThemeProperty
 from .utils import blit_in_rect, frame_rect
 from . import resource
 
-from config_classes import Setting
+from typing import Protocol
 
 #---------------------------------------------------------------------------
 
+class ControlRef(Protocol):
+    def get(self) -> any: ...
+    def set(self, newValue: any) -> None: ...
+
 
 class Control(object):
+
+    def __init__(self, ref:ControlRef=None, **kwargs):
+        super().__init__(**kwargs)
+        self.ref: ControlRef = ref
 
     highlighted = overridable_property('highlighted')
     enabled = overridable_property('enabled')
@@ -296,13 +304,6 @@ class ValueDisplay(Control, Label):
         Label.__init__(self, "", **kwds)
         self.set_size_for_text(width)
 
-#    def draw(self, surf):
-#        value = self.value
-#        text = self.format_value(value)
-#        buf = self.font.render(text, True, self.fg_color)
-#        frame = surf.get_rect()
-#        blit_in_rect(surf, buf, frame, self.align, self.margin)
-
     def get_text(self):
         return self.format_value(self.value)
 
@@ -329,16 +330,11 @@ class ValueButton(ButtonBase, ValueDisplay):
 
 class CheckControl(Control):
 
-    def __init__(self, on_change=None, setting=None, **kwds):
-        self.on_change = on_change
-        self.setting: Setting = setting
-        super().__init__(**kwds)
+    def __init__(self, ref:ControlRef=None, **kwds):
+        super().__init__(ref=ref, **kwds)
 
     def mouse_down(self, e):
         self.value = not self.value
-        if self.on_change:
-            self.on_change(self.value)
-
 
     def get_highlighted(self):
         return self.value
@@ -356,8 +352,8 @@ class CheckWidget(Widget):
     smooth = ThemeProperty('smooth')
 
     def __init__(self, invert=False, **kwds):
-        Widget.__init__(self, Rect((0, 0), self.default_size), **kwds)
         self.invert = invert
+        Widget.__init__(self, Rect((0, 0), self.default_size), **kwds)
 
     def draw(self, surf):
         if self.highlighted != self.invert:
@@ -377,8 +373,8 @@ class CheckWidget(Widget):
 
 class CheckBox(CheckControl, CheckWidget):
 
-    def __init__(self, invert=False, on_change=None, setting: Setting=None, **kwargs):
-        super().__init__(invert=invert, on_change=on_change, setting=setting, **kwargs)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     pass
 

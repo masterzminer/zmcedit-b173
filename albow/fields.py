@@ -297,8 +297,7 @@ class Field(Control, TextEditor):
 
 class TextField(Field):
 
-    def __init__(self, width=None, setting=None, **kwds):
-        self.setting: Setting = setting
+    def __init__(self, width=None, **kwds):
         super().__init__(width, **kwds)
 
     type = str
@@ -308,8 +307,7 @@ class TextField(Field):
 class IntField(Field):
     tooltipText = "Point here and use mousewheel to adjust"
 
-    def __init__(self, width=None, setting=None, **kwds):
-        self.setting: Setting = setting
+    def __init__(self, width=None, **kwds):
         super().__init__(width, **kwds)
 
     def type(self, i):
@@ -431,8 +429,7 @@ from pygame.locals import KMOD_SHIFT
 
 
 class FloatField(Field):
-    def __init__(self, width=None, setting=None, **kwds):
-        self.setting: Setting = setting
+    def __init__(self, width=None, **kwds):
         super().__init__(width, **kwds)
     
 

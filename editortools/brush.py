@@ -628,15 +628,13 @@ class BrushPanel(Panel):
 class BrushToolOptions(ToolOptions):
     def __init__(self):
         Panel.__init__(self)
-        alphaField = FloatField(setting=BrushToolSettings.alpha, min=0.0, max=1.0, width=60)
+        alphaField = FloatField(ref=BrushToolSettings.alpha, min=0.0, max=1.0, width=60)
         alphaField.increment = 0.1
         alphaRow = Row((Label("Alpha: "), alphaField))
-        autoChooseCheckBox = CheckBoxLabel("Choose Block Immediately",
-                                            Setting=BrushToolSettings.choose_block_immediately,
+        autoChooseCheckBox = CheckBoxLabel("Choose Block Immediately", ref=BrushToolSettings.choose_block_immediately,
                                             tooltipText="When the brush tool is chosen, prompt for a block type.")
 
-        updateOffsetCheckBox = CheckBoxLabel("Reset Distance When Brush Size Changes",
-                                            Setting=BrushToolSettings.update_offset,
+        updateOffsetCheckBox = CheckBoxLabel("Reset Distance When Brush Size Changes", ref=BrushToolSettings.update_offset,
                                             tooltipText="Whenever the brush size changes, reset the distance to the brush blocks.")
 
         col = Column((Label("Brush Options"), alphaRow, autoChooseCheckBox, updateOffsetCheckBox, Button("OK", action=self.dismiss)))
