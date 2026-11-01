@@ -239,7 +239,6 @@ class CameraViewport(GLViewport):
         self._pitch = min(89.999, max(-89.999, val))
 
     def update_fov(self, value=None):
-        # TODO test
         h_fov = Settings.fov.v
         fov = np.degrees(2.0 * np.arctan(self.size[0] / self.size[1] * np.tan(np.radians(h_fov) * 0.5)))
 

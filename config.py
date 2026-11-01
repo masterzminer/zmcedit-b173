@@ -122,7 +122,6 @@ class _SettingsSection(Section):
     draw_fog = S(True)
     show_ceiling = S(True)
     draw_entities = S(True)
-    draw_monsters = S(True)
     draw_items = S(True)
     draw_tile_entities = S(True)
     draw_tile_ticks = S(False)

@@ -840,12 +840,11 @@ class ChunkCalculator (object):
 class Layer:
     Blocks = "Blocks"
     Entities = "Entities"
-    Monsters = "Monsters"
     Items = "Items"
     TileEntities = "TileEntities"
     TileTicks = "TileTicks"
     TerrainPopulated = "TerrainPopulated"
-    AllLayers = (Blocks, Entities, Monsters, Items, TileEntities, TileTicks, TerrainPopulated)
+    AllLayers = (Blocks, Entities, Items, TileEntities, TileTicks, TerrainPopulated)
 
 
 class BlockRenderer(object):
@@ -1016,7 +1015,7 @@ class BaseEntityRenderer(EntityRendererGeneric):
 
 
 class MonsterRenderer(BaseEntityRenderer):
-    layer = Layer.Entities  # xxx Monsters
+    layer = Layer.Entities
     notMonsters = set(["Item", "XPOrb", "Painting"])
 
     def makeChunkVertices(self, chunk: pymclevel.EntityLevel):
@@ -2097,20 +2096,17 @@ class MCRenderer(object):
 
         self.chunkIterator = None
         
-        # TODO test that these observers work
         def layer_observer(setting: Setting, layer: Layer):
             setting.add_observer(lambda v: self.toggleLayer(v, layer), "renderer")
 
         layer_observer(Settings.draw_entities, Layer.Entities)
         layer_observer(Settings.draw_tile_entities, Layer.TileEntities)
         layer_observer(Settings.draw_tile_ticks, Layer.TileTicks)
-        layer_observer(Settings.draw_monsters, Layer.Monsters)
         layer_observer(Settings.draw_items, Layer.Items)
         layer_observer(Settings.draw_unpopulated_chunks, Layer.TerrainPopulated)
 
         Settings.show_hidden_ores.add_observer(lambda v: self.discardAllChunks)
 
-        # TODO test that these observers work
         Settings.view_distance.add_observer(self.update_view_distance, "renderer")
         Settings.fast_leaves.add_observer(lambda v: self.discardAllChunks(), "renderer")
         Settings.rough_graphics.add_observer(lambda v: self.discardAllChunks(), "renderer")

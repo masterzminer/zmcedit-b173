@@ -180,6 +180,7 @@ class FileOpener(albow.Widget):
         return lambda: self.mcedit.loadFile(filename)
 
 
+# TODO fix key presets to use settings objects
 class KeyConfigPanel(Dialog):
     keyConfigKeys = [
         "<Movement Controls>",
