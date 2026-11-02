@@ -1,5 +1,6 @@
 finish testing the new config system
     Check all todos
+    Add the new key bindings to the key config menu
 
 standardize logging, print statements, and traceback error logging calls
 

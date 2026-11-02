@@ -26,7 +26,7 @@ import albow
 from albow.dialogs import Dialog
 from albow.openglwidgets import GLViewport
 from albow.root import RootWidget, schedule as albow_schedule
-from config import LastDir, Keys, Controls, Settings, RecentWorlds, save_config
+from config import LastDir, Keys, WorldKeys, Controls, Settings, RecentWorlds, save_config
 from config_classes import Setting
 import directories
 import functools
@@ -151,10 +151,10 @@ class FileOpener(albow.Widget):
 
     def key_down(self, evt):
         keyname = key.name(evt.key)
-        if keyname == 'f4' and (key.get_mods() & (pygame.KMOD_ALT | pygame.KMOD_LALT | pygame.KMOD_RALT)):
-            raise SystemExit
-        if keyname in ('f1', 'f2', 'f3', 'f4', 'f5'):
-            self.mcedit.loadRecentWorldNumber(int(keyname[1]))
+        world_hotkey = WorldKeys.get_from_value(keyname)
+        if world_hotkey:
+            self.mcedit.loadRecentWorldIndex(world_hotkey.index)
+        # TODO make these configs
         if keyname == "o":
             return self.promptOpenAndLoad()
         if keyname == "n":
@@ -604,10 +604,10 @@ class MCEdit(GLViewport):
     def showKeyConfig(self):
         self.keyConfigPanel.present()
 
-    def loadRecentWorldNumber(self, i):
+    def loadRecentWorldIndex(self, i):
         worlds = list(self.recentWorlds())
-        if i - 1 < len(worlds):
-            self.loadFile(worlds[i - 1])
+        if i < len(worlds):
+            self.loadFile(worlds[i])
 
     def removeLevelDat(self, filename):
         if filename.endswith("level.dat"):

@@ -31,7 +31,7 @@ import csv
 import copy
 import time
 import numpy as np
-from config import LastDir, Keys, Settings, Controls, save_config
+from config import LastDir, Keys, ToolKeys, WorldKeys, Settings, Controls, save_config
 import frustum
 import logging
 import glutils
@@ -2476,17 +2476,6 @@ class LevelEditor(GLViewport):
             if keyname == Keys.mirror.v: self.currentTool.mirror()
             if keyname == Keys.swap.v: self.currentTool.swap()
 
-            # TODO make this a config?
-            if keyname == 'escape':
-                if self.currentViewport == self.chunkViewport:
-                    self.toolbar.selectTool(8)
-                else:
-                    if self.currentTool != self.toolbar.tools[0]:
-                        self.toolbar.selectTool(-1)
-                    else:
-                        self.toolbar.tools[0].endSelection()
-                self.mouseLookOff()
-
             # movement
             if keyname == Keys.left.v:
                 d[0] = -1.
@@ -2524,15 +2513,19 @@ class LevelEditor(GLViewport):
             if keyname == Keys.delete_blocks.v:
                 self.deleteSelectedBlocks()
 
-            # TODO make this configurable
-            elif keyname in "123456789":
-                self.toolbar.selectTool(int(keyname) - 1)
+            # Check if a tool hotkey is pressed
+            tool_hotkey = ToolKeys.get_from_value(keyname)
+            if tool_hotkey:
+                # Select the tool
+                self.toolbar.selectTool(tool_hotkey.index)
+
                 # Hack to ensure tools don't repeatedly get over selected
                 pygame.event.clear()
 
-            # TODO make this configurable
-            elif keyname in ('f1', 'f2', 'f3', 'f4', 'f5'):
-                self.mcedit.loadRecentWorldNumber(int(keyname[1]))
+            # Check if a recent world hotkey is pressed
+            world_hotkey = WorldKeys.get_from_value(keyname)
+            if world_hotkey:
+                self.mcedit.loadRecentWorldIndex(world_hotkey.index)
 
     def showGotoPanel(self):
 

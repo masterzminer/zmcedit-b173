@@ -19,7 +19,7 @@ Configuration settings and storage.
 
 import logging
 from configparser import RawConfigParser
-from config_classes import Section, ListSection, Setting as S, DirectorySetting as DS
+from config_classes import Section, ListSection, Setting as S, DirectorySetting as DS, IndexSetting as IS
 
 from directories import INI_FILE
 
@@ -88,6 +88,38 @@ class _KeysSection(Section):
 
 Keys = _KeysSection(config)
 
+
+class _ToolKeysSection(Section):
+    """Key bindings for selecting tools"""
+
+    NAME = "tool keys"
+
+    tool_select = IS("1", 0)
+    tool_brush = IS("2", 1)
+    tool_clone = IS("3", 2)
+    tool_fill = IS("4", 3)
+    tool_filter = IS("5", 4)
+    tool_import = IS("6", 5)
+    tool_player = IS("7", 6)
+    tool_spawn = IS("8", 7)
+    tool_chunk = IS("9", 8)
+
+
+ToolKeys = _ToolKeysSection(config)
+
+class _WorldKeysSection(Section):
+    """Key bindings for selecting tools"""
+
+    NAME = "recent world keys"
+
+    world_1 = IS("f1", 0)
+    world_2 = IS("f2", 1)
+    world_3 = IS("f3", 2)
+    world_4 = IS("f4", 3)
+    world_5 = IS("f5", 4)
+
+
+WorldKeys = _WorldKeysSection(config)
 
 class _SettingsSection(Section):
     """Generic configurations"""

@@ -138,6 +138,13 @@ class Section:
             if isinstance(setting, Setting)
         ]
 
+    def get_from_value(self, value):
+        """get a setting that has the given value, returns an arbitrary element if more than one setting has the value, or None if none match"""
+        entries = [entry[1] for entry in self.get_settings() if entry[1].v == value]
+        if len(entries) == 0:
+            return None
+        return entries[0]
+
 
 class DirectorySetting(Setting):
     """Setting for storing and retrieving a path"""
@@ -151,6 +158,15 @@ class DirectorySetting(Setting):
 
     def set(self, value):
         super().set(str(value))
+
+
+class IndexSetting(Setting):
+    """A setting that has a built in index value associated with it"""
+
+    def __init__(self, default_value, index: int):
+        super().__init__(default_value)
+        self.index = index
+
 
 class ListSection(Section):
     """Section that stores a list of values. Simple implementation for small lists. Can implement as something less brute force if this needs to work with huge lists"""

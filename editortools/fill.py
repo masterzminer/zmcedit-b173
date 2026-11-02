@@ -75,7 +75,7 @@ class FillToolPanel(Panel):
         self.replaceLabel = replaceLabel = Label("Replace", width=self.blockButton.width)
         replaceLabel.mouse_down = lambda a: self.tool.toggleReplacing()
         replaceLabel.fg_color = (177, 177, 255, 255)
-        replaceLabel.tooltipText = f"Shortcut: {Keys.roll.upper()}"
+        replaceLabel.tooltipText = f"Shortcut: {Keys.roll.v.upper()}"
         replaceLabel.align = "c"
 
         col = (self.fillWithLabel,
