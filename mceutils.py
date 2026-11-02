@@ -624,18 +624,18 @@ class FilterControls(Column):
 
         controls = []
         controls.append(Button("Choose Filters Folder", action=self.choose_filter_folder))
-        if LastDir.filter:
+        if Settings.user_filters_dir.v != "" :
             controls.append(Button("Open Filters Folder", action=self.open_filters_folder))
         Column.__init__(self, controls)
 
     def choose_filter_folder(self):
         folder = askSaveFolder(LastDir.filter, title="Choose folder for custom filters")
         if folder:
+            # Update the user folder
+            Settings.user_filters_dir.set(str(folder))
+
             # Reload the menu to account for the updated directory
             self.reload()
-
-            # Update the user folder
-            Settings.user_filters_dir = str(folder)
 
             # Reload all filters
             from editortools.filter import reload_filters
@@ -643,7 +643,7 @@ class FilterControls(Column):
             reload_filters()
 
     def open_filters_folder(self):
-        os_ops.open_file(LastDir.filter.directory)
+        os_ops.open_file(LastDir.filter.v)
 
 
 

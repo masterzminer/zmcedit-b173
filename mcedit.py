@@ -121,7 +121,7 @@ class FileOpener(albow.Widget):
             if len(shortname) > 40:
                 shortname = shortname[:37] + "..."
             short_names.append(shortname)
-
+        # TODO update this display instead of hard coded hot keys
         hotkeys = ([('N', 'Create New World', self.createNewWorld),
             ('O', 'Open a level...', self.promptOpenAndLoad)] + [
             ('F{0}'.format(i + 1), short_names[i], self.createLoadButtonHandler(world))
