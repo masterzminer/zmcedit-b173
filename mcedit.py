@@ -121,11 +121,25 @@ class FileOpener(albow.Widget):
             if len(shortname) > 40:
                 shortname = shortname[:37] + "..."
             short_names.append(shortname)
-        # TODO update this display instead of hard coded hot keys
-        hotkeys = ([('N', 'Create New World', self.createNewWorld),
-            ('O', 'Open a level...', self.promptOpenAndLoad)] + [
-            ('F{0}'.format(i + 1), short_names[i], self.createLoadButtonHandler(world))
-            for i, world in enumerate(self.mcedit.recentWorlds())])
+
+        def build_world_buttons():
+            buttons = []
+            
+            for i, world in enumerate(self.mcedit.recentWorlds()):
+                world_key = WorldKeys.get_from_index(i)
+                if world_key is None:
+                    continue
+                # Each button is the display for the hot key, the world name, and the button itself to load the world
+                buttons.append((f'{world_key.upper()}', short_names[i], self.createLoadButtonHandler(world)))
+                            
+            return buttons
+        
+        hotkeys = ([
+                (Keys.new_level.v, 'Create New World', self.createNewWorld),
+                (Keys.open_level.v, 'Open a level...', self.promptOpenAndLoad)
+            ] + 
+            build_world_buttons()
+        )
 
         commandRow = mceutils.HotkeyColumn(hotkeys, keysColumn, buttonsColumn)
         commandRow.anchor = 'lrh'
@@ -151,13 +165,12 @@ class FileOpener(albow.Widget):
 
     def key_down(self, evt):
         keyname = key.name(evt.key)
-        world_hotkey = WorldKeys.get_from_value(keyname)
-        if world_hotkey:
-            self.mcedit.loadRecentWorldIndex(world_hotkey.index)
-        # TODO make these configs
-        if keyname == "o":
+        world_hotkey_index = WorldKeys.list_index_from_value(keyname)
+        if world_hotkey_index is not None:
+            self.mcedit.loadRecentWorldIndex(world_hotkey_index)
+        if keyname == Keys.open_level.v:
             return self.promptOpenAndLoad()
-        if keyname == "n":
+        if keyname == Keys.new_level.v:
             self.createNewWorld()
 
     def promptOpenAndLoad(self):

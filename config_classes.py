@@ -171,10 +171,31 @@ class IndexSetting(Setting):
 class ListSection(Section):
     """Section that stores a list of values. Simple implementation for small lists. Can implement as something less brute force if this needs to work with huge lists"""
 
-    def __init__(self, max_size: int, config: RawConfigParser):
+    def __init__(self, max_size: int, config: RawConfigParser, default_values=[]):
         super().__init__(config)
         
         self.max_size = max_size
+
+        # Get the existing indexes
+        indexes = [int(v[0]) for v in self._config.items(self.NAME)]
+
+        new = self.get()
+        # Check each index for the default values
+
+        for (i, v) in enumerate(default_values):
+            # If the list isn't long enough, the list needs to expand
+            if i >= len(new):
+                new.append(v)
+            # If there isn't a value at that index, the default value needs to be inserted
+            elif i not in indexes:
+                new.insert(i, v)
+            # Otherwise, that is now the value if there isn't one there
+            else:
+                if new[i] == "" or new[i] is None:
+                    new[i] = v
+
+        # Update with the new values
+        self.set(new)
 
 
     def get(self):
@@ -182,10 +203,20 @@ class ListSection(Section):
 
         # Get all values for the section
         values = self._config.items(self.NAME)
+
         # Sort the values by their key ascending
         values = sorted(values, key=lambda v: v[0])
+
         # Get just the value itself, not the key
         return [value[1] for value in values]
+
+    def list_index_from_value(self, value):
+        values = self.get()
+        for (i, v) in enumerate(values):
+            if v == value:
+                return i
+        return None
+
 
     def set(self, value):
         """Overwrite all elements in the list"""
@@ -201,5 +232,12 @@ class ListSection(Section):
         # Update each value
         for i, v in enumerate(new_values):
             super().set(str(i), v)
+
+    def get_from_index(self, index: int):
+        """get the setting in the list of the given index, or null if none exists"""
+        values = self.get()
+        if index >= len(values):
+            return None
+        return values[index]
 
     

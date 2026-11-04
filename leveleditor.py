@@ -1971,6 +1971,8 @@ class LevelEditor(GLViewport):
                 self.toolbar.tools[8].createChunks()
                 self.mainViewport.cameraPosition = (x, self.level.Height, z)
 
+        save_config()
+
     @mceutils.alertException
     def gotoEarth(self):
         assert self.level.parentWorld
@@ -2378,6 +2380,7 @@ class LevelEditor(GLViewport):
         im = [0., 0., 0.]
         mods = evt.dict.get('mod', 0)
 
+        # TODO make these a config
         if mods & KMOD_ALT:
             if keyname == "z":
                 Settings.long_distance_mode.set(not Settings.long_distance_mode.v)
@@ -2404,14 +2407,14 @@ class LevelEditor(GLViewport):
             if keyname == 'r':
                 self.reload()
 
-            if keyname == 'o':
+            if keyname == Keys.open_level.v:
                 self.askOpenFile()
                 return True
             if keyname == 'z':
                 self.undo()
             if keyname == 's':
                 self.saveFile()
-            if keyname == 'n':
+            if keyname == Keys.new_level.v:
                 self.createNewLevel()
             if keyname == 'w':
                 self.closeEditor()

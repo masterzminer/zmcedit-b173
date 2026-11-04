@@ -107,19 +107,13 @@ class _ToolKeysSection(Section):
 
 ToolKeys = _ToolKeysSection(config)
 
-class _WorldKeysSection(Section):
+class _WorldKeysSection(ListSection):
     """Key bindings for selecting tools"""
 
     NAME = "recent world keys"
 
-    world_1 = IS("f1", 0)
-    world_2 = IS("f2", 1)
-    world_3 = IS("f3", 2)
-    world_4 = IS("f4", 3)
-    world_5 = IS("f5", 4)
 
-
-WorldKeys = _WorldKeysSection(config)
+WorldKeys = _WorldKeysSection(5, config, default_values=["f1", "f2", "f3", "f4", "f5"])
 
 class _SettingsSection(Section):
     """Generic configurations"""
