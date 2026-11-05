@@ -47,6 +47,7 @@ import renderer
 import traceback
 from typing import Literal
 from pymclevel.schematic import MCSchematic
+import arguments
 
 from math import isnan
 from os.path import dirname, isdir
@@ -65,7 +66,7 @@ import pygame
 
 from depths import DepthOffset
 from editortools.chunk import GeneratorPanel
-from editortools.toolbasics import Operation
+from editortools.toolbasics import Operation, EditorTool
 from glbackground import GLBackground, Panel
 from glutils import gl, Texture
 from mcplatform import askSaveFile
@@ -199,6 +200,8 @@ class CameraViewport(GLViewport):
     oldMousePosition = None
 
     def __init__(self, editor):
+        self.position = None
+
         self.editor = editor
         rect = editor.mcedit.rect
         GLViewport.__init__(self, rect)
@@ -1485,7 +1488,7 @@ class LevelEditor(GLViewport):
 
         self.reloadToolbar()
 
-        self.currentTool = None
+        self.currentTool: EditorTool = None
         self.toolbar.selectTool(0)
 
         self.controlPanel = controlPanel = ControlPanel(self)
@@ -2380,92 +2383,91 @@ class LevelEditor(GLViewport):
         im = [0., 0., 0.]
         mods = evt.dict.get('mod', 0)
 
-        # TODO make these a config
         if mods & KMOD_ALT:
-            if keyname == "z":
+            if keyname == Keys.long_distance_mode.v:
                 Settings.long_distance_mode.set(not Settings.long_distance_mode.v)
-            if keyname in "12345":
-                name = "option" + keyname
-                if hasattr(self.currentTool, name):
-                    getattr(self.currentTool, name)()
+            if keyname == Keys.tool_option_1.v:
+                self.currentTool.option1()
+            if keyname == Keys.tool_option_2.v:
+                self.currentTool.option2()
+            if keyname == Keys.tool_option_3.v:
+                self.currentTool.option3()
+            if keyname == Keys.tool_option_4.v:
+                self.currentTool.option4()
+            if keyname == Keys.tool_option_5.v:
+                self.currentTool.option5()
 
-        # TODO make these configurable
-        elif mods & KMOD_CTRL:
-            if keyname == 'f':
+        if mods & KMOD_CTRL:
+            if keyname == Keys.swap_view_distance.v:
                 self.swapViewDistance()
-            if keyname == 'a':
+            if keyname == Keys.select_all.v:
                 self.selectAll()
-            if keyname == 'd':
+            if keyname == Keys.deselect.v:
                 self.deselect()
-            if keyname == 'x':
+            if keyname == Keys.cut.v:
                 self.cutSelection()
-            if keyname == 'c':
+            if keyname == Keys.copy.v:
                 self.copySelection()
-            if keyname == 'v':
+            if keyname == Keys.paste.v:
                 self.pasteSelection()
 
-            if keyname == 'r':
+            if keyname == Keys.reload.v:
                 self.reload()
 
             if keyname == Keys.open_level.v:
                 self.askOpenFile()
                 return True
-            if keyname == 'z':
+            if keyname == Keys.undo.v:
                 self.undo()
-            if keyname == 's':
+            if keyname == Keys.save.v:
                 self.saveFile()
             if keyname == Keys.new_level.v:
                 self.createNewLevel()
-            if keyname == 'w':
+            if keyname == Keys.close_world.v:
                 self.closeEditor()
-            if keyname == 'i':
+            if keyname == Keys.info.v:
                 self.showWorldInfo()
-
-            if keyname == 'e':
+            if keyname == Keys.export.v:
                 self.selectionTool.exportSelection()
                 
                 # Hack to ensure import doesn't repeatedly get selected
                 pygame.event.clear()
 
-            if keyname == 'f9':
+            if keyname == Keys.debug_1.v:
                 if mods & KMOD_ALT:
+                    # Weird magic that allows you to run arbitrary python code from in the gui
+                    if arguments.DEBUG:
+                        try:
+                            expr = input_text(">>> ", 600)
+                            expr = compile(expr, 'eval', 'single')
+                            alert("Result: {0!r}".format(eval(expr, globals(), locals())))
+                        except Exception as e:
+                            alert("Exception: {0!r}".format(e))
+
+                elif mods & KMOD_SHIFT:
+                    if arguments.DEBUG:
+                        raise GL.GLError(err=1285, description=f"User pressed CONTROL-SHIFT-{Keys.debug_1}, requesting a GL Memory Error")
+                else:
                     self.parent.reloadEditor()
-                    # ===========================================================
-                    # debugPanel = Panel()
-                    # buttonColumn = [
-                    #    Button("Reload Editor", action=self.parent.reloadEditor),
-                    # ]
-                    # debugPanel.add(Column(buttonColumn))
-                    # debugPanel.shrink_wrap()
-                    # self.add_centered(debugPanel)
-                    # ===========================================================
 
-                elif mods & KMOD_SHIFT:
-                    raise GL.GLError(err=1285, description="User pressed CONTROL-SHIFT-F9, requesting a GL Memory Error")
-                else:
-                    try:
-                        expr = input_text(">>> ", 600)
-                        expr = compile(expr, 'eval', 'single')
-                        alert("Result: {0!r}".format(eval(expr, globals(), locals())))
-                    except Exception as e:
-                        alert("Exception: {0!r}".format(e))
-
-            if keyname == 'f10':
+            if keyname == Keys.debug_2.v:
                 def causeError():
-                    raise ValueError("User pressed CONTROL-F10, requesting a program error.")
+                    raise ValueError(f"User pressed CONTROL-{Keys.debug_2}, requesting a program error.")
 
                 if mods & KMOD_ALT:
-                    alert("MCEdit, a Minecraft World Editor\n\nCopyright 2010 David Rio Vierra")
+                    if arguments.DEBUG:
+                        causeError()
                 elif mods & KMOD_SHIFT:
-                    mceutils.alertException(causeError)()
+                    if arguments.DEBUG:
+                        mceutils.alertException(causeError)()
                 else:
-                    causeError()
+                    alert("MCEdit, a Minecraft World Editor\n\nCopyright 2010 David Rio Vierra. Modernized port for beta 1.7.3 by masterzminer")
 
         else:
             cp = self.cameraPanKeys
 
-            if keyname == 'g': self.showGotoPanel()
-            if keyname == 'tab': self.swapViewports()
+            if keyname == Keys.goto.v: self.showGotoPanel()
+            if keyname == Keys.swap_view.v: self.swapViewports()
 
             if keyname == Keys.brake.v: self.mainViewport.brakeOn()
 

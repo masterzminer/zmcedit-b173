@@ -575,7 +575,7 @@ class MCEdit(GLViewport):
         self.editor.anchor = 'tlbr'
         if level:
             self.add(self.editor)
-            self.editor.gotoLevel(level)
+            self.editor.loadLevel(level)
             self.focus_switch = self.editor
 
             if pos is not None:

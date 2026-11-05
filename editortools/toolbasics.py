@@ -691,7 +691,17 @@ class EditorTool(object):
         is picked, escape is pressed, or etc etc'''
         self.hidePanel()
 
-    #        pass
+    # Explicitly defining generic extra methods that tools can optionally use, these used to be done through python magic finding the function name
+    def option1(self):
+        pass
+    def option2(self):
+        pass
+    def option3(self):
+        pass
+    def option4(self):
+        pass
+    def option5(self):
+        pass
 
     def findBestTrackingPlane(self, face):
         cv = list(self.editor.mainViewport.cameraVector)

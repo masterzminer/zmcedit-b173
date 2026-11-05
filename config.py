@@ -53,7 +53,11 @@ def save_config():
 class _KeysSection(Section):
     """Configs for keybindings"""
 
+    # May want to allow these to be bound to different key combinations, i.e. ctrl, alt, and or shift, not going to scope creep myself for now
+
     NAME = "keys"
+
+    # Normal keys
     forward = S("w")
     back = S("s")
     left = S("a")
@@ -85,6 +89,35 @@ class _KeysSection(Section):
     
     toggle_fps_counter = S("0")
     toggle_renderer = S("m")
+    goto = S("g")
+    swap_view = S("tab")
+
+    # Hot keys with control
+    swap_view_distance = S("f")
+    select_all = S("a")
+    deselect = S("d")
+    cut = S("x")
+    copy = S("c")
+    paste = S("v")
+    reload = S("r")
+    undo = S("z")
+    save = S("s")
+    close_world = S("w")
+    info = S("i")
+    export = S("e")
+
+    # Hot keys with alt
+    long_distance_mode = S("z")
+    tool_option_1 = S("1")
+    tool_option_2 = S("2")
+    tool_option_3 = S("3")
+    tool_option_4 = S("4")
+    tool_option_5 = S("5")
+
+    # Debug hot keys
+    debug_1 = S("[")
+    debug_2 = S("]")
+    
 
 Keys = _KeysSection(config)
 
