@@ -1,5 +1,6 @@
 finish testing the new config system
-    Add the new key bindings to the key config menu
+    Add world number hot keys to the config menu
+    Reload the menus after the key configs change, so on closing the menu
 
 standardize logging, print statements, and traceback error logging calls
 

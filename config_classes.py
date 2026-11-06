@@ -1,3 +1,4 @@
+from __future__ import annotations
 from configparser import RawConfigParser
 from pathlib import Path
 
@@ -166,6 +167,27 @@ class IndexSetting(Setting):
     def __init__(self, default_value, index: int):
         super().__init__(default_value)
         self.index = index
+
+
+class KeySetting(Setting):
+    """A setting for a key binding, mods should be some of ctrl, alt, shift"""
+
+    def __init__(self, default_value, mods = []):
+        super().__init__(default_value)
+        self.mods = mods
+
+    def mods_match(self, other: KeySetting):
+        return set(self.mods) == set(other.mods)
+
+class KeyIndexSetting(IndexSetting):
+    """An index setting for a key binding, mods should be some of ctrl, alt, shift"""
+
+    def __init__(self, default_value, index: int, mods = []):
+        super().__init__(default_value, index=index)
+        self.mods = mods
+
+    def mods_match(self, other: KeySetting):
+        return set(self.mods) == set(other.mods)
 
 
 class ListSection(Section):

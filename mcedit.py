@@ -26,7 +26,7 @@ import albow
 from albow.dialogs import Dialog
 from albow.openglwidgets import GLViewport
 from albow.root import RootWidget, schedule as albow_schedule
-from config import LastDir, Keys, WorldKeys, Controls, Settings, RecentWorlds, save_config
+from config import LastDir, Keys, WorldKeys, ToolKeys, Controls, Settings, RecentWorlds, save_config
 from config_classes import Setting
 import directories
 import functools
@@ -215,6 +215,50 @@ class KeyConfigPanel(Dialog):
         Keys.reach_increase.name: "Increase Reach",
         Keys.reach_decrease.name: "Decrease Reach",
         Keys.reach_reset.name: "Reset Reach",
+    
+        Keys.confirm_construction.name: "Confirm",
+        
+        Keys.open_level.name: "Open Level",
+        Keys.new_level.name: "New Level",
+        Keys.delete_blocks.name: "Delete Blocks",
+        
+        Keys.toggle_fps_counter.name: "Toggle FPS",
+        Keys.toggle_renderer.name: "Toggle Rendering",
+        Keys.goto.name: "Goto Location",
+        Keys.swap_view.name: "Toggle View",
+
+        Keys.swap_view_distance.name: "Adjust View Distance",
+        Keys.select_all.name: "Select All",
+        Keys.deselect.name: "Deselect",
+        Keys.cut.name: "Cut",
+        Keys.copy.name: "Copy",
+        Keys.paste.name: "Paste",
+        Keys.reload.name: "Reload",
+        Keys.undo.name: "Undo",
+        Keys.save.name: "Save",
+        Keys.close_world.name: "Close World",
+        Keys.info.name: "World Info",
+        Keys.export.name: "Export",
+
+        Keys.long_distance_mode.name: "Long Distance Mode",
+        Keys.tool_option_1.name: "Tool Option 1",
+        Keys.tool_option_2.name: "Tool Option 2",
+        Keys.tool_option_3.name: "Tool Option 3",
+        Keys.tool_option_4.name: "Tool Option 4",
+        Keys.tool_option_5.name: "Tool Option 5",
+
+        Keys.debug_1.name: "Debug 1",
+        Keys.debug_2.name: "Debug 2",
+
+        ToolKeys.tool_select.name: "Select Tool",
+        ToolKeys.tool_brush.name: "Brush Tool",
+        ToolKeys.tool_clone.name: "Clone Tool",
+        ToolKeys.tool_fill.name: "Fill Tool",
+        ToolKeys.tool_filter.name: "Filter Tool",
+        ToolKeys.tool_import.name: "Import Tool",
+        ToolKeys.tool_player.name: "Player Tool",
+        ToolKeys.tool_spawn.name: "Spawn Tool",
+        ToolKeys.tool_chunk.name: "Chunk Tool",
     }
 
     keyConfigKeys = [
@@ -242,6 +286,55 @@ class KeyConfigPanel(Dialog):
         Keys.reach_increase,
         Keys.reach_decrease,
         Keys.reach_reset,
+        Keys.confirm_construction,
+        ToolKeys.tool_select,
+        ToolKeys.tool_brush,
+        ToolKeys.tool_clone,
+        ToolKeys.tool_fill,
+        ToolKeys.tool_filter,
+        ToolKeys.tool_import,
+        ToolKeys.tool_player,
+        ToolKeys.tool_spawn,
+        ToolKeys.tool_chunk,
+        "<alt+key>",
+        Keys.tool_option_1,
+        Keys.tool_option_2,
+        Keys.tool_option_3,
+        Keys.tool_option_4,
+        Keys.tool_option_5,
+        "",
+        "<Selection Controls>",
+        Keys.delete_blocks,
+        "<ctrl+key>",
+        Keys.select_all,
+        Keys.deselect,
+        Keys.cut,
+        Keys.copy,
+        Keys.paste,
+        Keys.export,
+        "<alt+key>",
+        Keys.long_distance_mode,
+        "",
+        "<Render Controls>",
+        Keys.toggle_fps_counter,
+        Keys.toggle_renderer,
+        Keys.swap_view,
+        Keys.swap_view_distance,
+        "",
+        "<Editor Controls>",
+        Keys.info,
+        Keys.goto,
+        "<ctrl+key>",
+        Keys.new_level,
+        Keys.open_level,
+        Keys.close_world,
+        Keys.reload,
+        Keys.undo,
+        Keys.save,
+        "",
+        "Debug",
+        Keys.debug_1,
+        Keys.debug_2,
     ]
 
     presets = {
@@ -385,10 +478,16 @@ class KeyConfigPanel(Dialog):
 
         keyname = panel.present()
         if keyname != "escape":
-            occupiedKeys = [entry for entry in Keys.get_settings() if entry[1].v == keyname]
+            def find_matching_keys(section):
+                return [entry for entry in section.get_settings() if entry[1].v == keyname and entry[1].mods_match(keyConfig)]
+
+            occupiedKeys = find_matching_keys(Keys) + find_matching_keys(ToolKeys)
+            
             old_key = keySetting.get()
             keySetting.set(keyname)
             for keyname, setting in occupiedKeys:
+                # Skip if the modifiers don't match
+
                 # Skip if it's the same setting as the one being set
                 if setting.name == keySetting.name:
                     continue

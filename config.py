@@ -19,7 +19,7 @@ Configuration settings and storage.
 
 import logging
 from configparser import RawConfigParser
-from config_classes import Section, ListSection, Setting as S, DirectorySetting as DS, IndexSetting as IS
+from config_classes import Section, ListSection, Setting as S, DirectorySetting as DS, IndexSetting as IS, KeySetting as KS, KeyIndexSetting as KIS
 
 from directories import INI_FILE
 
@@ -58,65 +58,65 @@ class _KeysSection(Section):
     NAME = "keys"
 
     # Normal keys
-    forward = S("w")
-    back = S("s")
-    left = S("a")
-    right = S("d")
-    up = S("q")
-    down = S("z")
-    brake = S("space")
+    forward = KS("w")
+    back = KS("s")
+    left = KS("a")
+    right = KS("d")
+    up = KS("q")
+    down = KS("z")
+    brake = KS("space")
     
-    rotate = S("e")
-    roll = S("r")
-    flip = S("f")
-    mirror = S("g")
-    swap = S("x")
+    rotate = KS("e")
+    roll = KS("r")
+    flip = KS("f")
+    mirror = KS("g")
+    swap = KS("x")
     
-    pan_left = S("j")
-    pan_right = S("l")
-    pan_up = S("i")
-    pan_down = S("k")
+    pan_left = KS("j")
+    pan_right = KS("l")
+    pan_up = KS("i")
+    pan_down = KS("k")
     
-    reach_reset = S("mouse3")
-    reach_increase = S("mouse4")
-    reach_decrease = S("mouse5")
+    reach_reset = KS("mouse3")
+    reach_increase = KS("mouse4")
+    reach_decrease = KS("mouse5")
     
-    confirm_construction = S("return")
+    confirm_construction = KS("return")
     
-    open_level = S("o")
-    new_level = S("n")
-    delete_blocks = S("delete")
+    open_level = KS("o")
+    new_level = KS("n")
+    delete_blocks = KS("delete")
     
-    toggle_fps_counter = S("0")
-    toggle_renderer = S("m")
-    goto = S("g")
-    swap_view = S("tab")
+    toggle_fps_counter = KS("0")
+    toggle_renderer = KS("m")
+    goto = KS("g")
+    swap_view = KS("tab")
 
     # Hot keys with control
-    swap_view_distance = S("f")
-    select_all = S("a")
-    deselect = S("d")
-    cut = S("x")
-    copy = S("c")
-    paste = S("v")
-    reload = S("r")
-    undo = S("z")
-    save = S("s")
-    close_world = S("w")
-    info = S("i")
-    export = S("e")
+    swap_view_distance = KS("f", ["ctrl"])
+    select_all = KS("a", ["ctrl"])
+    deselect = KS("d", ["ctrl"])
+    cut = KS("x", ["ctrl"])
+    copy = KS("c", ["ctrl"])
+    paste = KS("v", ["ctrl"])
+    reload = KS("r", ["ctrl"])
+    undo = KS("z", ["ctrl"])
+    save = KS("s", ["ctrl"])
+    close_world = KS("w", ["ctrl"])
+    info = KS("i", ["ctrl"])
+    export = KS("e", ["ctrl"])
 
     # Hot keys with alt
-    long_distance_mode = S("z")
-    tool_option_1 = S("1")
-    tool_option_2 = S("2")
-    tool_option_3 = S("3")
-    tool_option_4 = S("4")
-    tool_option_5 = S("5")
+    long_distance_mode = KS("z", ["alt"])
+    tool_option_1 = KS("1", ["alt"])
+    tool_option_2 = KS("2", ["alt"])
+    tool_option_3 = KS("3", ["alt"])
+    tool_option_4 = KS("4", ["alt"])
+    tool_option_5 = KS("5", ["alt"])
 
     # Debug hot keys
-    debug_1 = S("[")
-    debug_2 = S("]")
+    debug_1 = KS("[")
+    debug_2 = KS("]")
     
 
 Keys = _KeysSection(config)
@@ -127,22 +127,23 @@ class _ToolKeysSection(Section):
 
     NAME = "tool keys"
 
-    tool_select = IS("1", 0)
-    tool_brush = IS("2", 1)
-    tool_clone = IS("3", 2)
-    tool_fill = IS("4", 3)
-    tool_filter = IS("5", 4)
-    tool_import = IS("6", 5)
-    tool_player = IS("7", 6)
-    tool_spawn = IS("8", 7)
-    tool_chunk = IS("9", 8)
+    tool_select = KIS("1", 0)
+    tool_brush = KIS("2", 1)
+    tool_clone = KIS("3", 2)
+    tool_fill = KIS("4", 3)
+    tool_filter = KIS("5", 4)
+    tool_import = KIS("6", 5)
+    tool_player = KIS("7", 6)
+    tool_spawn = KIS("8", 7)
+    tool_chunk = KIS("9", 8)
 
 
 ToolKeys = _ToolKeysSection(config)
 
 class _WorldKeysSection(ListSection):
-    """Key bindings for selecting tools"""
+    """Key bindings for selecting recent worlds"""
 
+    # TODO handle these key bindings
     NAME = "recent world keys"
 
 
