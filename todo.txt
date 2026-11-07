@@ -1,6 +1,3 @@
-finish testing the new config system
-    Reload the menus after the key configs change, so on closing the menu
-
 standardize logging, print statements, and traceback error logging calls
 
 

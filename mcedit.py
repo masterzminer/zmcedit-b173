@@ -433,10 +433,11 @@ class KeyConfigPanel(Dialog):
 
     def dismiss(self, value=True):
         super().dismiss(value)
-        # TODO can this be done without fully reloading the editor? Just the ui elements
-        self.mcedit.reloadEditor()
+        self.mcedit.reloadPanels()
         if self.mcedit.fileOpener:
             self.mcedit.fileOpener.reset_content_row()
+        if self.mcedit.editor:
+            self.mcedit.editor.reset_control_panel()
 
     def choosePreset(self):
         preset = self.choiceButton.selectedChoice
@@ -659,10 +660,7 @@ class MCEdit(GLViewport):
         self.bg_color = (0, 0, 0, 1)
         self.anchor = 'tlbr'
 
-        self.optionsPanel = OptionsPanel(self)
-        self.graphicOptionsPanel = GraphicsPanel(self)
-
-        self.keyConfigPanel = KeyConfigPanel(self)
+        self.reloadPanels()
 
         self.reloadEditor()
 
@@ -672,6 +670,12 @@ class MCEdit(GLViewport):
         self.fileOpener.focus()
 
     editor = None
+
+    def reloadPanels(self):
+        self.optionsPanel = OptionsPanel(self)
+        self.graphicOptionsPanel = GraphicsPanel(self)
+
+        self.keyConfigPanel = KeyConfigPanel(self)
 
     def reloadEditor(self):
         importlib.reload(leveleditor)

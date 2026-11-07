@@ -1490,12 +1490,15 @@ class LevelEditor(GLViewport):
         self.currentTool: EditorTool = None
         self.toolbar.selectTool(0)
 
-        self.controlPanel = controlPanel = ControlPanel(self)
-        controlPanel.anchor = "tlbr"
-        controlPanel.rect = self.rect
+        self.reset_control_panel()
 
         # Init view mode after initializing everything else
         self.on_view_mode_change(Settings.view_mode.v)
+
+    def reset_control_panel(self):
+        self.controlPanel = controlPanel = ControlPanel(self)
+        controlPanel.anchor = "tlbr"
+        controlPanel.rect = self.rect
 
 
     def __del__(self):
@@ -3062,22 +3065,6 @@ class LevelEditor(GLViewport):
 
     def freezeStatus(self, string):
         return
-
-#        GL.glColor(1.0, 0., 0., 1.0)
-#
-#        # glDrawBuffer(GL.GL_FRONT)
-#        GL.glMatrixMode(GL.GL_PROJECTION)
-#        GL.glPushMatrix()
-#        glRasterPos(50, 100)
-#        for i in string:
-#            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(i))
-#
-#        # glDrawBuffer(GL.GL_BACK)
-#        GL.glMatrixMode(GL.GL_PROJECTION)
-#        GL.glPopMatrix()
-#        glFlush()
-#        display.flip()
-#        # while(True): pass
 
     def selectionSize(self):
         return self.selectionTool.selectionSize()
