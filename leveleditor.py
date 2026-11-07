@@ -31,7 +31,7 @@ import csv
 import copy
 import time
 import numpy as np
-from config import LastDir, Keys, ToolKeys, WorldKeys, Settings, Controls, save_config
+from config import LastDir, Keys, ToolKeys, WorldKeys, Settings, Controls, save_config, config_seed
 import frustum
 import logging
 import glutils
@@ -1348,7 +1348,6 @@ class ChunkViewport(CameraViewport):
     def drawCeiling(self):
         pass
 
-
 class LevelEditor(GLViewport):
     anchor = "tlbr"
 
@@ -2255,14 +2254,14 @@ class LevelEditor(GLViewport):
 
         r = starDistance
 
-        randPoints = (np.random.random(size=(starCount, 3))) * 2.0 * r
+        randPoints = (np.random.default_rng(config_seed).random(size=(starCount, 3))) * 2.0 * r
 
         randPoints[:starCount // 2, 0] = -randPoints[:starCount // 2, 0]
         randPoints[::2, 1] = -randPoints[::2, 1]
         randPoints[::4, 2] = -randPoints[::4, 2]
         randPoints[1::4, 2] = -randPoints[1::4, 2]
 
-        rand_sizes = np.random.random(size=starCount) * 3 + 0.5
+        rand_sizes = np.random.default_rng(config_seed + 1).random(size=starCount) * 3 + 0.5
 
         vertsPerStar = 4
 
@@ -2273,7 +2272,7 @@ class LevelEditor(GLViewport):
 
         viewVector = norm_vector(randPoints)
 
-        rmod = np.random.random(size=(starCount, 3)) * 2.0 - 1.0
+        rmod = np.random.default_rng(config_seed + 2).random(size=(starCount, 3)) * 2.0 - 1.0
         referenceVector = viewVector + rmod
 
         rightVector = norm_vector(np.cross(referenceVector, viewVector)) * rand_sizes[:, np.newaxis]  # vector perpendicular to viewing line

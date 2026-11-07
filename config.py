@@ -143,7 +143,6 @@ ToolKeys = _ToolKeysSection(config)
 class _WorldKeysSection(ListSection):
     """Key bindings for selecting recent worlds"""
 
-    # TODO handle these key bindings
     NAME = "recent world keys"
 
 
@@ -322,3 +321,8 @@ RecentWorlds = _RecentWorldsSection(5, config)
 
 # Save the config after final init
 save_config()
+
+
+import time
+config_seed = int(time.time_ns())
+"""A constant seed that can be used for anything random that should be consistent per application launch"""
