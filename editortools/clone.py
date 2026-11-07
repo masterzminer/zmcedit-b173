@@ -276,7 +276,7 @@ class CloneToolPanel(Panel):
         self.copyAirCheckBox = CheckBox(ref=CloneToolSettings.copy_air)
         self.copyAirLabel = Label("Copy Air")
         self.copyAirLabel.mouse_down = self.copyAirCheckBox.mouse_down
-        self.copyAirLabel.tooltipText = "Shortcut: ALT-1"
+        self.copyAirLabel.tooltipText = f"Shortcut: ALT-{Keys.tool_option_1}"
         self.copyAirCheckBox.tooltipText = self.copyAirLabel.tooltipText
 
         copyAirRow = Row((self.copyAirCheckBox, self.copyAirLabel))
@@ -284,7 +284,7 @@ class CloneToolPanel(Panel):
         self.copyWaterCheckBox = CheckBox(ref=CloneToolSettings.copy_water)
         self.copyWaterLabel = Label("Copy Water")
         self.copyWaterLabel.mouse_down = self.copyWaterCheckBox.mouse_down
-        self.copyWaterLabel.tooltipText = "Shortcut: ALT-2"
+        self.copyWaterLabel.tooltipText = f"Shortcut: ALT-{Keys.tool_option_3}"
         self.copyWaterCheckBox.tooltipText = self.copyWaterLabel.tooltipText
 
         copyWaterRow = Row((self.copyWaterCheckBox, self.copyWaterLabel))

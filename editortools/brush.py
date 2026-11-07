@@ -553,7 +553,7 @@ class BrushPanel(Panel):
                                         ref=AttrRef(tool, "brushStyle"),
                                         action=tool.swapBrushStyles)
 
-        self.brushStyleButton.tooltipText = "Shortcut: ALT-1"
+        self.brushStyleButton.tooltipText = f"Shortcut: ALT-{Keys.tool_option_1}"
 
         self.brushStyleRow = Row((Label("Brush:"), self.brushStyleButton))
 
@@ -581,7 +581,7 @@ class BrushPanel(Panel):
         hollowCheckBox = CheckBox(ref=AttrRef(tool, "brushHollow"))
         hollowLabel = Label("Hollow")
         hollowLabel.mouse_down = hollowCheckBox.mouse_down
-        hollowLabel.tooltipText = hollowCheckBox.tooltipText = "Shortcut: ALT-3"
+        hollowLabel.tooltipText = hollowCheckBox.tooltipText = f"Shortcut: ALT-{Keys.tool_option_3}"
 
         self.hollowRow = Row((hollowCheckBox, hollowLabel))
 

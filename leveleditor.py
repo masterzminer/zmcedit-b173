@@ -130,20 +130,20 @@ class ControlPanel(Panel):
             buttonsColumn.append(b)'''
 
         cmd = mcplatform.cmd_name
-        hotkeys = ([(cmd + "-N", "Create New World", editor.mcedit.createNewWorld),
-                    (cmd + "-O", "Open World...", editor.askOpenFile),
-                    (cmd + "-S", "Save", editor.saveFile),
-                    (cmd + "-R", "Reload", editor.reload),
-                    (cmd + "-W", "Close", editor.closeEditor),
+        hotkeys = ([(cmd + f"-{Keys.new_level.v.upper()}", "Create New World", editor.mcedit.createNewWorld),
+                    (cmd + f"-{Keys.open_level.v.upper()}", "Open World...", editor.askOpenFile),
+                    (cmd + f"-{Keys.save.v.upper()}", "Save", editor.saveFile),
+                    (cmd + f"-{Keys.reload.v.upper()}", "Reload", editor.reload),
+                    (cmd + f"-{Keys.close_world.v.upper()}", "Close", editor.closeEditor),
                     ("", "", lambda: None),
 
-                    ("G", "Goto", editor.showGotoPanel),
-                    (cmd + "-I", "World Info", editor.showWorldInfo),
-                    (cmd + "-Z", "Undo", editor.undo),
-                    (cmd + "-A", "Select All", editor.selectAll),
-                    (cmd + "-D", "Deselect", editor.deselect),
-                    (cmd + "-F", AttrRef(editor, 'viewDistanceLabelText'), editor.swapViewDistance),
-                    ("Alt-F4", "Quit", editor.quit),
+                    (Keys.goto.v.upper(), "Goto", editor.showGotoPanel),
+                    (cmd + f"-{Keys.info.v.upper()}", "World Info", editor.showWorldInfo),
+                    (cmd + f"-{Keys.undo.v.upper()}", "Undo", editor.undo),
+                    (cmd + f"-{Keys.select_all.v.upper()}", "Select All", editor.selectAll),
+                    (cmd + f"-{Keys.deselect.v.upper()}", "Deselect", editor.deselect),
+                    (cmd + f"-{Keys.swap_view_distance.v.upper()}", AttrRef(editor, 'viewDistanceLabelText'), editor.swapViewDistance),
+                    ("", "Quit", editor.quit),
                     ])
 
         if cmd == "Cmd":
@@ -2083,7 +2083,7 @@ class LevelEditor(GLViewport):
     def saveInfoLabelText(self):
         if self.unsavedEdits == 0:
             return ""
-        return "{0} unsaved edits.  CTRL-S to save.  ".format(self.unsavedEdits)
+        return f"{self.unsavedEdits} unsaved edits.  CTRL-{Keys.save.v} to save.  "
 
     @property
     def viewDistanceLabelText(self):

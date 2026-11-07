@@ -135,8 +135,8 @@ class FileOpener(albow.Widget):
             return buttons
         
         hotkeys = ([
-                (Keys.new_level.v, 'Create New World', self.createNewWorld),
-                (Keys.open_level.v, 'Open a level...', self.promptOpenAndLoad)
+                (Keys.new_level.v.upper(), 'Create New World', self.createNewWorld),
+                (Keys.open_level.v.upper(), 'Open a level...', self.promptOpenAndLoad)
             ] + 
             build_world_buttons()
         )
@@ -433,8 +433,10 @@ class KeyConfigPanel(Dialog):
 
     def dismiss(self, value=True):
         super().dismiss(value)
-        # TODO figure out how to make the editor reload properly
+        # TODO can this be done without fully reloading the editor? Just the ui elements
         self.mcedit.reloadEditor()
+        if self.mcedit.fileOpener:
+            self.mcedit.fileOpener.reset_content_row()
 
     def choosePreset(self):
         preset = self.choiceButton.selectedChoice
@@ -602,7 +604,7 @@ class OptionsPanel(Dialog):
             tooltipText="When you are this far above the top of the world, move fast and use low-detail mode")
 
         longDistanceRow = mceutils.CheckBoxLabel("Long-Distance Mode", ref=Settings.long_distance_mode,
-            tooltipText="Always target the farthest block under the cursor, even in mouse look mode. Shortcut: ALT-Z")
+            tooltipText=f"Always target the farthest block under the cursor, even in mouse look mode. Shortcut: ALT-{Keys.long_distance_mode.v}")
 
         flyModeRow = mceutils.CheckBoxLabel("Fly Mode", ref=Settings.fly_mode,
             tooltipText="Moving forward and backward will not change your altitude in Fly Mode")
