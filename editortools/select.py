@@ -74,7 +74,7 @@ class SelectionToolOptions(ToolOptions):
                 values = GetSelectionColor(choice)
                 values = values[:i] + (val / 255.0,) + values[i + 1:]
                 setting = str(values)[1:-1]
-                ColorSettings.set("Selection Colors", choice, setting)
+                ColorSettings.set(choice, setting)
                 self.colorChanged()
 
             return _set

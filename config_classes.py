@@ -25,7 +25,8 @@ class Setting:
 
     def __set_name__(self, parent, name):
         # On the init for each setting, saving the setting's field name
-        self.name = name
+        if issubclass(parent, Section):
+            self.name = name
 
     def get(self):
         getters = self.section._getters
@@ -34,6 +35,12 @@ class Setting:
         getter = getters.get(self.option_type)
         # Return the actual value from the config
         return getter(self.name)
+    
+    @property
+    def id(self):
+        """returns a unique identifier for this config"""
+        return self.name + "_" + self.section.NAME
+
 
     @property
     def v(self):
@@ -195,13 +202,16 @@ class ListSection(Section):
 
     def __init__(self, max_size: int, config: RawConfigParser, default_values=[]):
         super().__init__(config)
+
+        self._settings_cache = {}
+        """Static object references to settings at specific indexes"""
         
         self.max_size = max_size
 
         # Get the existing indexes
         indexes = [int(v[0]) for v in self._config.items(self.NAME)]
 
-        new = self.get()
+        new = self.get_list()
         # Check each index for the default values
 
         for (i, v) in enumerate(default_values):
@@ -217,11 +227,35 @@ class ListSection(Section):
                     new[i] = v
 
         # Update with the new values
-        self.set(new)
+        self.set_list(new)
 
+    def set(self, setting, value):
+        super().set(setting, value)
+        self._check_build_setting(setting, value)
 
-    def get(self):
-        """All elements in the list"""
+    def _check_build_setting(self, index, value):
+        index = str(index)
+        if index not in self._settings_cache:
+            s = self._settings_cache[index] = Setting(value)
+            s.name = index
+            s.section = self
+        return self._settings_cache[index]
+
+    def get_all(self):
+        """Return a list of tuples as (key, value) for all settings"""
+        return [(str(i), v) for (i, v) in enumerate(self.get_list())]
+    
+    def get_settings(self):
+        """Return a list of tuples as (key, settings object) for all settings"""
+        new_list = []
+        for (i, v) in enumerate(self.get_list()):
+            setting = self._check_build_setting(i, v)
+            new_list.append((i, setting))
+
+        return new_list
+
+    def get_list(self):
+        """All values in the list"""
 
         # Get all values for the section
         values = self._config.items(self.NAME)
@@ -233,14 +267,13 @@ class ListSection(Section):
         return [value[1] for value in values]
 
     def list_index_from_value(self, value):
-        values = self.get()
+        values = self.get_list()
         for (i, v) in enumerate(values):
             if v == value:
                 return i
         return None
-
-
-    def set(self, value):
+    
+    def set_list(self, value):
         """Overwrite all elements in the list"""
         
         # Limit to the max size input
@@ -253,11 +286,11 @@ class ListSection(Section):
 
         # Update each value
         for i, v in enumerate(new_values):
-            super().set(str(i), v)
+            self.set(str(i), v)
 
     def get_from_index(self, index: int):
         """get the setting in the list of the given index, or null if none exists"""
-        values = self.get()
+        values = self.get_list()
         if index >= len(values):
             return None
         return values[index]

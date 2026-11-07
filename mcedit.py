@@ -196,70 +196,74 @@ class FileOpener(albow.Widget):
 
 class KeyConfigPanel(Dialog):
     display_names = {
-        Keys.forward.name: "Forward",
-        Keys.back.name: "Back",
-        Keys.left.name: "Left",
-        Keys.right.name: "Right",
-        Keys.up.name: "Up",
-        Keys.down.name: "Down",
-        Keys.brake.name: "Brake",
-        Keys.pan_left.name: "Pan Left",
-        Keys.pan_right.name: "Pan Right",
-        Keys.pan_up.name: "Pan Up",
-        Keys.pan_down.name: "Pan Down",
-        Keys.rotate.name: "Rotate",
-        Keys.roll.name: "Roll",
-        Keys.flip.name: "Flip",
-        Keys.mirror.name: "Mirror",
-        Keys.swap.name: "Swap",
-        Keys.reach_increase.name: "Increase Reach",
-        Keys.reach_decrease.name: "Decrease Reach",
-        Keys.reach_reset.name: "Reset Reach",
+        Keys.forward.id: "Forward",
+        Keys.back.id: "Back",
+        Keys.left.id: "Left",
+        Keys.right.id: "Right",
+        Keys.up.id: "Up",
+        Keys.down.id: "Down",
+        Keys.brake.id: "Brake",
+        Keys.pan_left.id: "Pan Left",
+        Keys.pan_right.id: "Pan Right",
+        Keys.pan_up.id: "Pan Up",
+        Keys.pan_down.id: "Pan Down",
+        Keys.rotate.id: "Rotate",
+        Keys.roll.id: "Roll",
+        Keys.flip.id: "Flip",
+        Keys.mirror.id: "Mirror",
+        Keys.swap.id: "Swap",
+        Keys.reach_increase.id: "Increase Reach",
+        Keys.reach_decrease.id: "Decrease Reach",
+        Keys.reach_reset.id: "Reset Reach",
     
-        Keys.confirm_construction.name: "Confirm",
+        Keys.confirm_construction.id: "Confirm",
         
-        Keys.open_level.name: "Open Level",
-        Keys.new_level.name: "New Level",
-        Keys.delete_blocks.name: "Delete Blocks",
+        Keys.open_level.id: "Open Level",
+        Keys.new_level.id: "New Level",
+        Keys.delete_blocks.id: "Delete Blocks",
         
-        Keys.toggle_fps_counter.name: "Toggle FPS",
-        Keys.toggle_renderer.name: "Toggle Rendering",
-        Keys.goto.name: "Goto Location",
-        Keys.swap_view.name: "Toggle View",
+        Keys.toggle_fps_counter.id: "Toggle FPS",
+        Keys.toggle_renderer.id: "Toggle Rendering",
+        Keys.goto.id: "Goto Location",
+        Keys.swap_view.id: "Toggle View",
 
-        Keys.swap_view_distance.name: "Adjust View Distance",
-        Keys.select_all.name: "Select All",
-        Keys.deselect.name: "Deselect",
-        Keys.cut.name: "Cut",
-        Keys.copy.name: "Copy",
-        Keys.paste.name: "Paste",
-        Keys.reload.name: "Reload",
-        Keys.undo.name: "Undo",
-        Keys.save.name: "Save",
-        Keys.close_world.name: "Close World",
-        Keys.info.name: "World Info",
-        Keys.export.name: "Export",
+        Keys.swap_view_distance.id: "Adjust View Distance",
+        Keys.select_all.id: "Select All",
+        Keys.deselect.id: "Deselect",
+        Keys.cut.id: "Cut",
+        Keys.copy.id: "Copy",
+        Keys.paste.id: "Paste",
+        Keys.reload.id: "Reload",
+        Keys.undo.id: "Undo",
+        Keys.save.id: "Save",
+        Keys.close_world.id: "Close World",
+        Keys.info.id: "World Info",
+        Keys.export.id: "Export",
 
-        Keys.long_distance_mode.name: "Long Distance Mode",
-        Keys.tool_option_1.name: "Tool Option 1",
-        Keys.tool_option_2.name: "Tool Option 2",
-        Keys.tool_option_3.name: "Tool Option 3",
-        Keys.tool_option_4.name: "Tool Option 4",
-        Keys.tool_option_5.name: "Tool Option 5",
+        Keys.long_distance_mode.id: "Long Distance Mode",
+        Keys.tool_option_1.id: "Tool Option 1",
+        Keys.tool_option_2.id: "Tool Option 2",
+        Keys.tool_option_3.id: "Tool Option 3",
+        Keys.tool_option_4.id: "Tool Option 4",
+        Keys.tool_option_5.id: "Tool Option 5",
 
-        Keys.debug_1.name: "Debug 1",
-        Keys.debug_2.name: "Debug 2",
+        Keys.debug_1.id: "Debug 1",
+        Keys.debug_2.id: "Debug 2",
 
-        ToolKeys.tool_select.name: "Select Tool",
-        ToolKeys.tool_brush.name: "Brush Tool",
-        ToolKeys.tool_clone.name: "Clone Tool",
-        ToolKeys.tool_fill.name: "Fill Tool",
-        ToolKeys.tool_filter.name: "Filter Tool",
-        ToolKeys.tool_import.name: "Import Tool",
-        ToolKeys.tool_player.name: "Player Tool",
-        ToolKeys.tool_spawn.name: "Spawn Tool",
-        ToolKeys.tool_chunk.name: "Chunk Tool",
+        ToolKeys.tool_select.id: "Select Tool",
+        ToolKeys.tool_brush.id: "Brush Tool",
+        ToolKeys.tool_clone.id: "Clone Tool",
+        ToolKeys.tool_fill.id: "Fill Tool",
+        ToolKeys.tool_filter.id: "Filter Tool",
+        ToolKeys.tool_import.id: "Import Tool",
+        ToolKeys.tool_player.id: "Player Tool",
+        ToolKeys.tool_spawn.id: "Spawn Tool",
+        ToolKeys.tool_chunk.id: "Chunk Tool",
     }
+
+    for (k, v) in WorldKeys.get_settings():
+        display_names[v.id] = f"Load world {str(int(k) + 1)}"
+    
 
     keyConfigKeys = [
         "<Movement Controls>",
@@ -332,6 +336,9 @@ class KeyConfigPanel(Dialog):
         Keys.undo,
         Keys.save,
         "",
+        "<World Shortcuts>",
+        *[entry[1] for entry in WorldKeys.get_settings()],
+        "",
         "Debug",
         Keys.debug_1,
         Keys.debug_2,
@@ -396,8 +403,9 @@ class KeyConfigPanel(Dialog):
 
     selectedKeyIndex = 0
 
-    def __init__(self):
+    def __init__(self, mcedit):
         Dialog.__init__(self)
+        self.mcedit = mcedit
         keyConfigTable = albow.TableView(columns=[albow.TableColumn("Command", 400, "l"), albow.TableColumn("Assigned Key", 150, "r")])
         keyConfigTable.num_rows = lambda: len(self.keyConfigKeys)
         keyConfigTable.row_data = self.getRowData
@@ -423,6 +431,11 @@ class KeyConfigPanel(Dialog):
         self.add(col)
         self.shrink_wrap()
 
+    def dismiss(self, value=True):
+        super().dismiss(value)
+        # TODO figure out how to make the editor reload properly
+        self.mcedit.reloadEditor()
+
     def choosePreset(self):
         preset = self.choiceButton.selectedChoice
         key_pairs = self.presets[preset]
@@ -436,7 +449,7 @@ class KeyConfigPanel(Dialog):
             display = configKeyData
             key = ""
         else:
-            display = self.display_names[configKeyData.name]
+            display = self.display_names[configKeyData.id]
             name = configKeyData.v
             key = name.upper() if len(name) == 1 else name
         return display, key
@@ -481,7 +494,7 @@ class KeyConfigPanel(Dialog):
             def find_matching_keys(section):
                 return [entry for entry in section.get_settings() if entry[1].v == keyname and entry[1].mods_match(keyConfig)]
 
-            occupiedKeys = find_matching_keys(Keys) + find_matching_keys(ToolKeys)
+            occupiedKeys = find_matching_keys(Keys) + find_matching_keys(ToolKeys) + find_matching_keys(WorldKeys)
             
             old_key = keySetting.get()
             keySetting.set(keyname)
@@ -489,10 +502,10 @@ class KeyConfigPanel(Dialog):
                 # Skip if the modifiers don't match
 
                 # Skip if it's the same setting as the one being set
-                if setting.name == keySetting.name:
+                if setting.name == keySetting.name and setting.section == keySetting.section:
                     continue
 
-                display_key = self.display_names[setting.name]
+                display_key = self.display_names[setting.id]
                 if self.askAssignKey(setting, f'The key "{display_key}" is no longer bound to "{setting}".\nPress a new key for the action "{display_key}"\n\n Press ESC to cancel.'):
                     keySetting.set(old_key)
                     return True
@@ -647,7 +660,7 @@ class MCEdit(GLViewport):
         self.optionsPanel = OptionsPanel(self)
         self.graphicOptionsPanel = GraphicsPanel(self)
 
-        self.keyConfigPanel = KeyConfigPanel()
+        self.keyConfigPanel = KeyConfigPanel(self)
 
         self.reloadEditor()
 
@@ -728,7 +741,7 @@ class MCEdit(GLViewport):
 
     def recentWorlds(self):
         worlds = []
-        for recent_world in RecentWorlds.get():
+        for recent_world in RecentWorlds.get_list():
             try:
                 worlds.append(self.removeLevelDat(recent_world))
             except Exception:
@@ -751,7 +764,7 @@ class MCEdit(GLViewport):
         self.setRecentWorlds(new_recent_worlds)
 
     def setRecentWorlds(self, worlds):
-        RecentWorlds.set([str(s) for s in worlds]);
+        RecentWorlds.set_list([str(s) for s in worlds]);
     
     def makeSideColumn(self, reset_parent):
         items = (

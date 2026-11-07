@@ -1,5 +1,4 @@
 finish testing the new config system
-    Add world number hot keys to the config menu
     Reload the menus after the key configs change, so on closing the menu
 
 standardize logging, print statements, and traceback error logging calls
