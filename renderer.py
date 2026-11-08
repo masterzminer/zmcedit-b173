@@ -2102,9 +2102,9 @@ class MCRenderer(object):
         layer_observer(Settings.draw_items, Layer.Items)
         layer_observer(Settings.draw_unpopulated_chunks, Layer.TerrainPopulated)
 
-        Settings.show_hidden_ores.add_observer(lambda v: self.discardAllChunks)
+        Settings.show_hidden_ores.add_observer(lambda v: self.discardAllChunks(), "renderer")
 
-        Settings.view_distance.add_observer(self.update_view_distance, "renderer")
+        Settings.view_distance.add_observer(lambda v: self.update_view_distance(), "renderer")
         Settings.fast_leaves.add_observer(lambda v: self.discardAllChunks(), "renderer")
         Settings.rough_graphics.add_observer(lambda v: self.discardAllChunks(), "renderer")
 
@@ -2171,7 +2171,7 @@ class MCRenderer(object):
     def getViewDistance(self):
         return Settings.view_distance.v
 
-    def update_view_distance(self, value):
+    def update_view_distance(self):
         # Keep the view distance as an even number
         vd = Settings.view_distance.v
         vd = vd - (vd % 2)
