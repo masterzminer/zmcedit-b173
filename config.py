@@ -159,7 +159,6 @@ class _SettingsSection(Section):
     fov = S(70.0)
 
     space_height = S(64)
-    double_buffer = S(True)
 
     view_distance = S(16)
     target_fps = S(60)

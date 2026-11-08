@@ -415,10 +415,7 @@ class CameraViewport(GLViewport):
          reading the depth buffer value
         """
         try:
-            if Settings.double_buffer.v:
-                GL.glReadBuffer(GL.GL_BACK)
-            else:
-                GL.glReadBuffer(GL.GL_FRONT)
+            GL.glReadBuffer(GL.GL_BACK)
         except Exception:
             log.error('Exception during glReadBuffer')
         ws = self.get_root().size
