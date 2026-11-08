@@ -165,8 +165,6 @@ class _SettingsSection(Section):
 
     window_width = S(1024)
     window_height = S(768)
-    window_show_cmd = S(1)
-    set_window_placement = S(True)
 
     show_hidden_ores = S(False)
     fast_leaves = S(False)
