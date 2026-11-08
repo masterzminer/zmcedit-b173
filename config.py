@@ -180,7 +180,7 @@ class _SettingsSection(Section):
     draw_unpopulated_chunks = S(True)
     vertex_buffer_limit = S(384)
 
-    vsync = S(0)
+    vsync = S(True)
     view_mode = S("Camera")
     classic_mouse = S(False)
     use_old_file_browser = S(False)

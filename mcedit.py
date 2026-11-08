@@ -535,12 +535,14 @@ class GraphicsPanel(Panel):
         roughGraphicsRow = mceutils.CheckBoxLabel("Rough Graphics", ref=Settings.rough_graphics,
             tooltipText="All blocks are drawn the same way (overrides 'Fast Leaves')")
 
-        enableMouseLagRow = mceutils.CheckBoxLabel("Enable Mouse Lag", ref=Settings.enable_mouse_lag,
-            tooltipText="Enable choppy mouse movement for faster loading.")
+        enableMouseLagRow = mceutils.CheckBoxLabel("Enable Mouse Lag", ref=Settings.enable_mouse_lag, tooltipText="Enable choppy mouse movement for faster loading")
+        
+        enableVsyncRow = mceutils.CheckBoxLabel("Enable vsync", ref=Settings.vsync, tooltipText="Enable vsync for consistent fps")
 
         settingsColumn = albow.Column((fastLeavesRow,
                                   roughGraphicsRow,
                                   enableMouseLagRow,
+                                  enableVsyncRow,
                                   fieldOfViewRow,
                                   targetFPSRow,
                                   bufferLimitRow,
@@ -904,6 +906,8 @@ class MCEdit(GLViewport):
     def main(self):
         displayContext = GLDisplayContext()
 
+        Settings.vsync.add_observer(lambda v: displayContext.update_vsync(), "mcedit")
+
         root_widget = RootWidget(displayContext.display)
         mcedit = MCEdit(displayContext)
         root_widget.displayContext = displayContext
@@ -986,13 +990,16 @@ class GLDisplayContext(object):
         displayMode = pygame.OPENGL | pygame.RESIZABLE | pygame.DOUBLEBUF
         return displayMode
 
+    def update_vsync(self):
+        try:
+            display.gl_set_attribute(pygame.GL_SWAP_CONTROL, 1 if Settings.vsync.v else 0)
+        except Exception as e:
+            log.warn('Unable to set vertical sync: {0!r}'.format(e))
+
     def reset(self):
         pygame.key.set_repeat(500, 100)
 
-        try:
-            display.gl_set_attribute(pygame.GL_SWAP_CONTROL, Settings.vsync.v)
-        except Exception as e:
-            log.warn('Unable to set vertical sync: {0!r}'.format(e))
+        self.update_vsync()
 
         display.gl_set_attribute(pygame.GL_ALPHA_SIZE, 8)
 
