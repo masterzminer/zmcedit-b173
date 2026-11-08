@@ -165,8 +165,6 @@ class _SettingsSection(Section):
 
     window_width = S(1024)
     window_height = S(768)
-    window_x = S(0)
-    window_y = S(0)
     window_show_cmd = S(1)
     set_window_placement = S(True)
 
