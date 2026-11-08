@@ -99,13 +99,13 @@ class BlockCopyOperation(Operation):
             self.recordUndo()
 
         blocksToCopy = None
-        if not (CloneToolSettings.copy_air and CloneToolSettings.copy_water):
+        if not (CloneToolSettings.copy_air.v and CloneToolSettings.copy_water.v):
             blocksToCopy = list(range(256))
-            if not CloneToolSettings.copy_air:
+            if not CloneToolSettings.copy_air.v:
                 blocksToCopy.remove(0)
-            if not CloneToolSettings.copy_water:
+            if not CloneToolSettings.copy_water.v:
                 blocksToCopy.remove(8)
-            if not CloneToolSettings.copy_water:
+            if not CloneToolSettings.copy_water.v:
                 blocksToCopy.remove(9)
 
         with setWindowCaption("Copying - "):
