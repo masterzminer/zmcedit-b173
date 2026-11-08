@@ -9,7 +9,6 @@
 import sys
 import pygame
 from pygame.locals import *
-#from pygame.time import get_ticks
 from pygame.event import Event
 
 from glbackground import *
@@ -20,14 +19,12 @@ from .controls import Label
 from datetime import datetime, timedelta
 from albow.dialogs import wrapped_label
 from config import Settings
+import log
 
 start_time = datetime.now()
 
 mod_cmd = KMOD_LCTRL | KMOD_RCTRL | KMOD_LMETA | KMOD_RMETA
 double_click_time = timedelta(0, 0, 300000)  # days, seconds, microseconds
-
-import logging
-log = logging.getLogger(__name__)
 
 modifiers = dict(
     shift=False,
@@ -167,7 +164,7 @@ class RootWidget(Widget):
                     events.extend(pygame.event.get())
                     for event in events:
                         if event.type:
-                            log.debug("%s", event)
+                            log.trace(event)
 
                         type = event.type
                         if type == QUIT:
@@ -290,7 +287,7 @@ class RootWidget(Widget):
             if widget:
                 widget.idle_event(event)
             else:
-                print("Idle ref died!")
+                log.debug("Idle ref died!")
             return bool(widget)
 
         self.idle_handlers = list(filter(call, self.idle_handlers))

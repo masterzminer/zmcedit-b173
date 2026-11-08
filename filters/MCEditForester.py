@@ -10,6 +10,7 @@
 from pymclevel.material import materials
 import forester.Forester as Forester
 import forester.mcInterface as mcInterface
+import log
 
 displayName = "Forester"
 
@@ -90,12 +91,12 @@ def perform(level, box, options):
     if planting_radius <= 1:
         planting_radius = 1
         Forester.TREE_COUNT = 1
-        print("Box isn't wide and/or long enough. Only planting one tree.")
+        log.warn("Box isn't wide and/or long enough. Only planting one tree.")
     # set the position to plant
     Forester.X = x_center
     Forester.Z = z_center
     Forester.RADIUS = planting_radius
-    print(("Plant radius = " + str(planting_radius)))
+    log.warn(("Plant radius = " + str(planting_radius)))
 
     # set the Forester settings that are not in the inputs
     # and should be a specific value

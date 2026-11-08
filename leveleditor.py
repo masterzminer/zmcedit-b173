@@ -33,7 +33,6 @@ import time
 import numpy as np
 from config import LastDir, Keys, ToolKeys, WorldKeys, Settings, Controls, save_config, config_seed
 import frustum
-import logging
 import glutils
 import release
 import mceutils
@@ -79,8 +78,7 @@ from pymclevel.level import MCLevel
 from pymclevel.infiniteworld import MCBetaLevel
 from pymclevel.material import materials
 import pymclevel.mclevel as mclevel
-
-# Label = GLLabel
+import log
 
 arch = platform.architecture()[0]
 
@@ -422,7 +420,7 @@ class CameraViewport(GLViewport):
             else:
                 GL.glReadBuffer(GL.GL_FRONT)
         except Exception:
-            logging.exception('Exception during glReadBuffer')
+            log.error('Exception during glReadBuffer')
         ws = self.get_root().size
         if center:
             x, y = ws
@@ -916,9 +914,6 @@ class CameraViewport(GLViewport):
             return
 
         td = datetime.now() - self.rightMouseDragStart
-        # except AttributeError:
-        #    return
-        # print "RightClickUp: ", td
         if td.seconds > 0 or td.microseconds > 280000:
             self.mouseLookOff()
 
@@ -961,7 +956,7 @@ class CameraViewport(GLViewport):
 
     def mouse_down(self, evt):
         button = remapMouseButton(evt.button)
-        logging.debug("Mouse down %d @ %s", button, evt.pos)
+        log.trace(f"Mouse down {button} @ {evt.pos}")
 
         if button == 1:
             self.leftClickDown(evt)
@@ -972,11 +967,10 @@ class CameraViewport(GLViewport):
             self.editor.key_down(evt)
 
         self.editor.focus_on(None)
-        # self.focus_switch = None
 
     def mouse_up(self, evt):
         button = remapMouseButton(evt.button)
-        logging.debug("Mouse up   %d @ %s", button, evt.pos)
+        log.debug(f"Mouse up {button} @ {evt.pos}")
         if button == 1:
             self.leftClickUp(evt)
         elif button == 2:
@@ -1892,10 +1886,8 @@ class LevelEditor(GLViewport):
         try:
             level = mclevel.fromFile(filename)
         except Exception as e:
-            logging.exception(
-                'Wasn\'t able to open a file {file => %s}' % filename
-            )
-            alert(u"I don't know how to open {0}:\n\n{1!r}".format(filename, e))
+            log.error(f"Wasn't able to open a file (file => {filename})")
+            alert("I don't know how to open {0}:\n\n{1!r}".format(filename, e))
             return False
 
         assert level
@@ -2017,7 +2009,7 @@ class LevelEditor(GLViewport):
     def initWindowCaption(self):
         filename = self.level.filename
         s = os.path.split(filename)
-        title = os.path.split(s[0])[1] + os.sep + s[1] + u" - " + release.NAME + " " + release.VERSION
+        title = os.path.split(s[0])[1] + os.sep + s[1] + " - " + release.NAME + " " + release.VERSION
         # title = title.encode('ascii', 'replace')
         display.set_caption(title)
 
@@ -2141,24 +2133,24 @@ class LevelEditor(GLViewport):
 
         if evt.state & 0x4:  # minimized
             if evt.gain == 0:
-                logging.debug("Offscreen")
+                log.trace("Offscreen")
                 self.onscreen = False
 
                 self.mouseLookOff()
 
             else:
-                logging.debug("Onscreen")
+                log.trace("Onscreen")
                 self.onscreen = True
                 self.invalidate()
 
         if evt.state & 0x1:  # mouse enter/leave
             if evt.gain == 0:
-                logging.debug("Mouse left")
+                log.trace("Mouse left")
                 self.mouseEntered = False
                 self.mouseLookOff()
 
             else:
-                logging.debug("Mouse entered")
+                log.trace("Mouse entered")
                 self.mouseEntered = True
 
     def swapDebugLevels(self):
@@ -2380,7 +2372,7 @@ class LevelEditor(GLViewport):
         if keyname == 'enter':
             keyname = 'return'
 
-        logging.debug("Key down: %s", keyname)
+        log.trace(f"Key down: {keyname}")
         d = self.cameraInputs
         im = [0., 0., 0.]
         mods = evt.dict.get('mod', 0)
@@ -2727,7 +2719,7 @@ class LevelEditor(GLViewport):
             if filename:
                 self.parent.loadFile(filename)
         except Exception:
-            logging.exception('Error while asking user for filename')
+            log.error('Error while asking user for filename')
             return
 
     def createNewLevel(self):
@@ -2791,7 +2783,7 @@ class LevelEditor(GLViewport):
 
             self.loadFile(filename)
         except Exception:
-            logging.exception('Error while creating world. {world => %s}' % filename)
+            log.error(f'Error while creating world. (world => {filename})')
             return
 
         return new_level
@@ -3151,7 +3143,7 @@ class LevelEditor(GLViewport):
         Settings.view_distance.set(Settings.view_distance - 4)
         self.renderer.discardAllChunks()
 
-        logging.warning(f'Out of memory, decreasing view distance. (view => {Settings.view_distance})')
+        log.warn(f'Out of memory, decreasing view distance. (view => {Settings.view_distance})')
 
         save_config()
 
@@ -3333,7 +3325,7 @@ class EditorToolbar(GLOrtho):
 
                 GL.glDrawArrays(GL.GL_QUADS, 0, 4)
             except Exception:
-                logging.exception('Error while drawing toolbar.')
+                log.error('Error while drawing toolbar')
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
     gfont = None
@@ -3344,12 +3336,6 @@ class EditorToolbar(GLOrtho):
         GL.glEnable(GL.GL_BLEND)
         self.toolbarDisplayList.call(self.drawToolbar)
         GL.glColor(1.0, 1.0, 0.0)
-
-        # GL.glEnable(GL.GL_BLEND)
-
-        # with gl.glPushMatrix(GL_TEXTURE):
-        #    GL.glLoadIdentity()
-        #    self.gfont.flatPrint("ADLADLADLADLADL")
 
         try:
             currentToolNumber = self.tools.index(self.parent.currentTool)

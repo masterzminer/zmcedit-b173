@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-
+from log_level import LogLevel
 
 def _validate_dir(dir: str):
     path = Path(dir)
@@ -32,6 +32,25 @@ def _validate_look(look_str: str):
     except:
         raise argparse.ArgumentTypeError(f"Direction '{look_str}' invalid must be 2 comma separated numbers as yaw,pitch")
 
+def _validate_log(log_str: str):
+    if not log_str:
+        raise argparse.ArgumentTypeError(f"Invalid log level '{log_str}'")
+
+    log_type = log_str.lower()
+
+    if log_type == "trace":
+        return LogLevel.TRACE
+    if log_type == "debug":
+        return LogLevel.DEBUG
+    if log_type == "info":
+        return LogLevel.INFO
+    if log_type == "warn":
+        return LogLevel.WARN
+    if log_type == "error":
+        return LogLevel.ERROR
+    
+    raise argparse.ArgumentTypeError(f"Invalid log level '{log_str}, must be one of trace, debug, info, warn, or error'")
+
 
 # Parse arguments
 def _init():
@@ -45,9 +64,9 @@ def _init():
     )
 
     parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="True to enable debug logging"
+        "--log",
+        type=_validate_log,
+        help="One of trace, debug, info, warn, or error of increasing levels of log severity"
     )
 
     parser.add_argument(
@@ -131,10 +150,10 @@ _parsed_args = _init()
 
 
 # Values from command line arguments
-DEBUG = _parsed_args.debug or False
-"""True if debug logging is enabled"""
+LOG_LEVEL: LogLevel = _parsed_args.log or LogLevel.INFO
+"""The severity that logging should occur at, defaults to info"""
 DEBUG_RENDER = _parsed_args.debugrender or False
-"""True if debug logging is enabled"""
+"""True if debug rendering is enabled"""
 CONFIG_OVERRIDE = _parsed_args.config
 """Path override for config directory"""
 INSTALLED_OVERRIDE = _parsed_args.installed

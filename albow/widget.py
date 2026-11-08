@@ -16,6 +16,7 @@ from .theme import ThemeProperty, FontProperty
 from numpy import frombuffer
 import sys
 from config import Settings
+import log
 
 debug_rect = False
 debug_tab = True
@@ -163,14 +164,14 @@ class Widget(object):
 
     def resized(self, dw, dh):
         if self.debug_resize:
-            print("Widget.resized:", self, "by", (dw, dh), "to", self.size)
+            log.debug("Widget.resized:", self, "by", (dw, dh), "to", self.size)
         for widget in self.subwidgets:
             widget.parent_resized(dw, dh)
 
     def parent_resized(self, dw, dh):
         debug_resize = self.debug_resize or self.parent.debug_resize
         if debug_resize:
-            print("Widget.parent_resized:", self, "by", (dw, dh))
+            log.debug("Widget.parent_resized:", self, "by", (dw, dh))
         left, top, width, height = self._rect
         move = False
         resize = False
@@ -186,10 +187,8 @@ class Widget(object):
             if any(factors):
                 resize = factors[1]
                 move = factors[0] or factors[2]
-                #print "lwr", factors
                 left += factors[0] * dw / sum(factors)
                 width += factors[1] * dw / sum(factors)
-                #left = (left + width) + factors[2] * dw / sum(factors) - width
 
         if dh:
             factors = [1, 1, 1]  # bottom, height, top
@@ -202,18 +201,16 @@ class Widget(object):
             if any(factors):
                 resize = factors[1]
                 move = factors[0] or factors[2]
-                #print "bht", factors
                 top += factors[2] * dh / sum(factors)
                 height += factors[1] * dh / sum(factors)
-                #top = (top + height) + factors[0] * dh / sum(factors) - height
 
         if resize:
             if debug_resize:
-                print("Widget.parent_resized: changing rect to", (left, top, width, height))
+                log.debug("Widget.parent_resized: changing rect to", (left, top, width, height))
             self.rect = (left, top, width, height)
         elif move:
             if debug_resize:
-                print("Widget.parent_resized: moving to", (left, top))
+                log.debug("Widget.parent_resized: moving to", (left, top))
             self._rect.topleft = (left, top)
 
     rect = property(get_rect, set_rect)
@@ -281,12 +278,12 @@ class Widget(object):
     def _add(self, widget):
         self.subwidgets.append(widget)
         if hasattr(widget, "idle_event"):
-            print("Adding idle handler for ", widget)
+            log.debug("Adding idle handler for ", widget)
             self.get_root().add_idle_handler(widget)
 
     def _remove(self, widget):
         if hasattr(widget, "idle_event"):
-            print("Removing idle handler for ", widget)
+            log.debug("Removing idle handler for ", widget)
             self.get_root().remove_idle_handler(widget)
         self.subwidgets.remove(widget)
 
@@ -321,7 +318,7 @@ class Widget(object):
             for widget in self.subwidgets:
                 sub_rect = widget.rect
                 if debug_rect:
-                    print("Widget: Drawing subwidget %s of %s with rect %s" % (
+                    log.debug("Widget: Drawing subwidget %s of %s with rect %s" % (
                         widget, self, sub_rect))
                 sub_rect = surf_rect.clip(sub_rect)
                 if sub_rect.width > 0 and sub_rect.height > 0:
@@ -640,62 +637,6 @@ class Widget(object):
             for child in self.subwidgets:
                 child.collect_tab_order(result)
 
-#    def tab_to_first(self, start = None):
-#        if debug_tab:
-#            print "Enter Widget.tab_to_first:", self ###
-#            print "...start =", start ###
-#        if not self.visible:
-#            if debug_tab: print "...invisible" ###
-#            self.tab_to_next_in_parent(start)
-#        elif self.tab_stop:
-#            if debug_tab: print "...stopping here" ###
-#            self.focus()
-#        else:
-#            if debug_tab: print "...tabbing to next" ###
-#            self.tab_to_next(start or self)
-#        if debug_tab: print "Exit Widget.tab_to_first:", self ###
-#
-#    def tab_to_next(self, start = None):
-#        if debug_tab:
-#            print "Enter Widget.tab_to_next:", self ###
-#            print "...start =", start ###
-#        sub = self.subwidgets
-#        if sub:
-#            if debug_tab: print "...tabbing to first subwidget" ###
-#            sub[0].tab_to_first(start or self)
-#        else:
-#            if debug_tab: print "...tabbing to next in parent" ###
-#            self.tab_to_next_in_parent(start)
-#        if debug_tab: print "Exit Widget.tab_to_next:", self ###
-#
-#    def tab_to_next_in_parent(self, start):
-#        if debug_tab:
-#            print "Enter Widget.tab_to_next_in_parent:", self ###
-#            print "...start =", start ###
-#        parent = self.parent
-#        if parent and not self.is_modal:
-#            if debug_tab: print "...telling parent to tab to next" ###
-#            parent.tab_to_next_after(self, start)
-#        else:
-#            if self is not start:
-#                if debug_tab: print "...wrapping back to first" ###
-#                self.tab_to_first(start)
-#        if debug_tab: print "Exit Widget.tab_to_next_in_parent:", self ###
-#
-#    def tab_to_next_after(self, last, start):
-#        if debug_tab:
-#            print "Enter Widget.tab_to_next_after:", self, last ###
-#            print "...start =", start ###
-#        sub = self.subwidgets
-#        i = sub.index(last) + 1
-#        if debug_tab: print "...next index =", i, "of", len(sub) ###
-#        if i < len(sub):
-#            if debug_tab: print "...tabbing there" ###
-#            sub[i].tab_to_first(start)
-#        else:
-#            if debug_tab: print "...tabbing to next in parent" ###
-#            self.tab_to_next_in_parent(start)
-#        if debug_tab: print "Exit Widget.tab_to_next_after:", self, last ###
 
     def inherited(self, attribute):
         value = getattr(self, attribute)

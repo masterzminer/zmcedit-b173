@@ -10,6 +10,7 @@ Startup, main menu, keyboard configuration, automatic updating.
 
 # Explicitly set up arguments before doing much else
 import arguments
+from log_level import LogLevel
 
 # Hide the default pygame message
 import os
@@ -19,7 +20,7 @@ from pygame import display, key, rect
 
 import OpenGL
 import sys
-if arguments.DEBUG:
+if arguments.LOG_LEVEL == LogLevel.TRACE or arguments.LOG_LEVEL == LogLevel.DEBUG:
     OpenGL.ERROR_CHECKING = False
 
 import albow
@@ -33,7 +34,6 @@ import functools
 from glbackground import Panel
 import glutils
 import leveleditor
-import logging
 import mceutils
 import mcplatform
 from mcplatform import platform_open
@@ -52,6 +52,7 @@ from pymclevel.infiniteworld import MCBetaLevel
 from pymclevel.material import materials
 from mceutils import FilterControls
 from typing import Literal
+import log
 
 MCBetaLevel.loadedChunkLimit = 0
 
@@ -110,10 +111,9 @@ class FileOpener(albow.Widget):
                     lev = pymclevel.MCBetaLevel(world)
                     shortname = lev.LevelName
                     if lev.LevelName != lev.displayName:
-                        shortname = u"{0} ({1})".format(lev.LevelName, lev.displayName)
+                        shortname = "{0} ({1})".format(lev.LevelName, lev.displayName)
             except Exception as e:
-                logging.warning(
-                    'Couldn\'t get name from recent world: {0!r}'.format(e))
+                log.warn("Couldn't get name from recent world: {0!r}".format(e))
 
             if shortname == "level.dat":
                 shortname = os.path.basename(os.path.dirname(world))
@@ -185,7 +185,7 @@ class FileOpener(albow.Widget):
                 return True
         except Exception as e:
             traceback.print_exc()
-            logging.error('Error during promptOpenAndLoad: {0!r}'.format(e))
+            log.error('Error during promptOpenAndLoad: {0!r}'.format(e))
 
     def createNewWorld(self):
         self.parent.createNewWorld()
@@ -949,32 +949,11 @@ class MCEdit(GLViewport):
 
 
 def main():
-    """
-    Setup logging, display, bundled schematics. Handle unclean
-    shutdowns.
-    """
-    # Setup file and stderr logging.
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-
-    fh = logging.FileHandler(directories.LOG_FILE)
-    fh.setLevel(logging.DEBUG)
-
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.ERROR)
-
-    fmt = logging.Formatter(
-        '[%(levelname)s][%(lineno)d][%(module)s]:%(message)s'
-    )
-    fh.setFormatter(fmt)
-    ch.setFormatter(fmt)
-
-    logger.addHandler(fh)
-    logger.addHandler(ch)
+    """Setup display, bundled schematics. Handle unclean shutdowns"""
 
     try:
         display.init()
-    except pygame.error as e:
+    except pygame.error:
         os.environ['SDL_VIDEODRIVER'] = 'directx'
         try:
             display.init()
@@ -988,8 +967,8 @@ def main():
         MCEdit.main()
     except SystemExit:
         return 0
-    except Exception as e:
-        logging.error('An unhandled error occurred.', exc_info=True)
+    except Exception:
+        log.error('An unhandled error occurred')
         display.quit()
         return 1
     return 0
@@ -1015,7 +994,7 @@ class GLDisplayContext(object):
         try:
             display.gl_set_attribute(pygame.GL_SWAP_CONTROL, Settings.vsync.v)
         except Exception as e:
-            logging.warning('Unable to set vertical sync: {0!r}'.format(e))
+            log.warn('Unable to set vertical sync: {0!r}'.format(e))
 
         display.gl_set_attribute(pygame.GL_ALPHA_SIZE, 8)
 
@@ -1023,7 +1002,7 @@ class GLDisplayContext(object):
         try:
             pygame.scrap.init()
         except:
-            logging.warning('PyGame clipboard integration disabled.')
+            log.warn('PyGame clipboard integration disabled.')
 
         display.set_caption(release.NAME + ' ~ ' + release.VERSION, release.NAME)
 
@@ -1033,7 +1012,7 @@ class GLDisplayContext(object):
             icon = pygame.image.load(icon_file, 'favicon.png')
             display.set_icon(icon)
         except Exception as e:
-            logging.warning('Unable to set icon: {0!r}'.format(e))
+            log.warn('Unable to set icon: {0!r}'.format(e))
 
         self.display = d
 
@@ -1079,10 +1058,7 @@ class GLDisplayContext(object):
                 tex = mceutils.loadTerrainTexture()
                 self.terrainTextures = tex
             except Exception as e:
-                logging.warning(
-                    'Unable to load terrain from {0}, using flat colors.'
-                    'Error was: {1!r}'.format(matFile, e)
-                )
+                log.warn('Unable to load terrain from {0}, using flat colors. Error was: {1!r}'.format(matFile, e))
                 self.terrainTextures = glutils.Texture(
                     functools.partial(makeTerrainTexture, mats)
                 )

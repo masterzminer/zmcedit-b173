@@ -7,6 +7,7 @@ import functools
 from heapq import nsmallest
 from operator import itemgetter
 import itertools
+import log
 
 class Counter(dict):
     'Mapping where default values are zero'
@@ -150,7 +151,7 @@ if __name__ == '__main__':
     for i in range(1000):
         r = f(choice(domain), choice(domain))
 
-    print((f.hits, f.misses))
+    log.debug((f.hits, f.misses))
 
     @lfu_cache(maxsize=20)
     def f(x, y):
@@ -161,4 +162,4 @@ if __name__ == '__main__':
     for i in range(1000):
         r = f(choice(domain), choice(domain))
 
-    print((f.hits, f.misses))
+    log.debug((f.hits, f.misses))

@@ -20,6 +20,7 @@ from io import BytesIO
 import os
 from contextlib import closing
 import numpy as np
+import log
 
 tag_format = ">b"
 
@@ -97,14 +98,12 @@ class TAG_Value(object):
         #atomic write
         try: os.rename(filename, filename + ".old");
         except Exception as e:
-            #print "Atomic Save: No existing file to rename"
             pass
 
         with closing(gzip.GzipFile(fileobj=sio, mode="wb", compresslevel=compresslevel)) as outputGz:
                 self.save(buf=outputGz)
                 outputGz.flush()
 
-        #print len(sio.getvalue());
         try:
                 with open(filename, 'wb') as f:
                         f.write(sio.getvalue())
@@ -112,12 +111,11 @@ class TAG_Value(object):
             try:
                 os.rename(filename + ".old", filename,)
             except Exception as e:
-                print(e)
+                log.error(e)
                 return
 
         try: os.remove(filename + ".old");
         except Exception as e:
-            #print "Atomic Save: No old file to remove"
             pass;
 
 class TAG_Byte(TAG_Value):
@@ -216,7 +214,6 @@ class TAG_Int_Array(TAG_Byte_Array):
 
 
     def write_value(self, buf):
-        #print self.value
         valuestr = self.value.tostring()
         buf.write(struct.pack(self.fmt % (len(valuestr),), len(valuestr) / 4, valuestr))
 
@@ -241,9 +238,8 @@ class TAG_Short_Array(TAG_Int_Array):
 
 
     def write_value(self, buf):
-        #print self.value
-        valuestr = self.value.tostring()
-        buf.write(struct.pack(self.fmt % (len(valuestr),), len(valuestr) / 2, valuestr))
+        value_str = self.value.tostring()
+        buf.write(struct.pack(self.fmt % (len(value_str),), len(value_str) / 2, value_str))
 
 class TAG_String(TAG_Value):
     """String in UTF-8
@@ -494,7 +490,7 @@ def loadFile(filename):
     try:
         data = gunzip(inputdata)
     except IOError:
-        print("File %s not zipped" % filename)
+        log.error(f"File {filename} not zipped")
 
     return load(buf=np.frombuffer(data, 'uint8'))
 

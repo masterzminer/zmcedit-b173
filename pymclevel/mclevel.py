@@ -136,8 +136,6 @@ world.saveInPlace();
 Copyright 2010 David Rio Vierra
 """
 
-import os
-import logging
 from numpy import frombuffer
 from . import nbt
 
@@ -148,17 +146,15 @@ from .schematic import *
 
 from pathlib import Path
 
-log = logging.getLogger(__name__)
-warn, error, info, debug = log.warn, log.error, log.info, log.debug
+import log
     
 
 class LoadingError(RuntimeError): pass
 
 def fromFile(filename) -> MCLevel:
-    ''' The preferred method for loading Minecraft levels of any type
-    '''
+    ''' The preferred method for loading Minecraft levels of any type'''
 
-    info(u"Identifying " + filename)
+    log.info(f"Identifying {filename}")
 
     if not filename:
         raise IOError("File not found: " + filename)
@@ -179,7 +175,7 @@ def fromFile(filename) -> MCLevel:
         raise ValueError(f"{str(file_path)} is too small! ({len(raw_data)}), cannot load")
 
     if MCBetaLevel._isLevel(str(file_path)):
-        info(u"Detected level.dat")
+        log.info("Detected level.dat")
         return MCBetaLevel(filename=filename)
 
 
@@ -191,7 +187,7 @@ def fromFile(filename) -> MCLevel:
     try:
         unzippedData = gunzip(raw_data)
     except Exception as e:
-        info("Exception during Gzip operation, assuming {0} uncompressed: {1!r}".format(filename, e))
+        log.info("Exception during Gzip operation, assuming {0} uncompressed: {1!r}".format(filename, e))
         if unzippedData is None:
             unzippedData = raw_data
 
@@ -201,16 +197,15 @@ def fromFile(filename) -> MCLevel:
         root_tag = nbt.load(buf=data)
 
     except Exception as e:
-        traceback.print_exc()
-        print("Error during NBT load: {0!r}".format(e))
+        log.error("Error during NBT load: {0!r}".format(e))
 
     else:
         if MCSchematic._isTagLevel(root_tag):
-            info("Detected Schematic.")
+            log.info("Detected Schematic")
             return MCSchematic(root_tag=root_tag, filename=filename)
 
         if INVEditChest._isTagLevel(root_tag):
-            info("Detected INVEdit inventory file")
+            log.info("Detected INVEdit inventory file")
             return INVEditChest(root_tag=root_tag, filename=filename)
 
     raise IOError("Cannot detect file type.")

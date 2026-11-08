@@ -29,6 +29,7 @@ from config import LastDir, Settings
 from config_classes import DirectorySetting
 
 import crossfiledialog
+import log
 
 enc = sys.getfilesystemencoding()
 
@@ -57,8 +58,7 @@ def askOpenFile(lastDir: DirectorySetting, title: str):
                 filter=["*." + f for f in file_types]
             )
         except:
-            print("Failed to load os file dialog, falling back to built in gui")
-            traceback.print_exc()
+            log.error("Failed to load os file dialog, falling back to built in gui")
 
             # On an exception, fall back to the built in gui selector
             return request_old_filename(file_types, initialDir)
@@ -181,7 +181,7 @@ class OS():
 
         path: The absolute path to the file to open
         """
-        print(f"Opening files is not implemented for this os, cannot open path {path}")
+        log.error(f"Opening files is not implemented for this os, cannot open path {path}")
 
 class LinuxHandler(OS):
     def open_file(self, path: Path):
@@ -207,7 +207,7 @@ class WindowsHandler(OS):
 
 class UnknownHandler(OS):
     def handle_init(self):
-        print("Failed to identify operating system or operating system not supported, some actions may not work")
+        log.error("Failed to identify operating system or operating system not supported, some actions may not work")
 
 
 def find_os_handler():
@@ -220,7 +220,7 @@ def find_os_handler():
     elif system == "Windows":
         return WindowsHandler(system)
     else:
-        print(f"Unknown operating system: {system}")
+        log.error(f"Unknown operating system: {system}")
         return UnknownHandler(system)
 
 

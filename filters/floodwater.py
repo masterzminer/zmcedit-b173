@@ -3,6 +3,7 @@ from pymclevel.material import materials, faceDirections, FaceYIncreasing
 from collections import deque
 import datetime
 import numpy as np
+import log
 
 displayName = "Classic Water Flood"
 inputs = (
@@ -29,7 +30,7 @@ def perform(level, box, options):
             y = y + (point[1] + box.miny)
             coords.append(np.transpose((x, y, z)))
 
-        print("Stacking coords...")
+        log.trace("Stacking coords...")
         coords = np.vstack(tuple(coords))
 
         def processCoords(coords):
@@ -57,11 +58,11 @@ def perform(level, box, options):
                 start = datetime.datetime.now()
 
                 num = len(coords)
-                print("Did {0} coords in ".format(num), end=' ')
+                log.trace(f"Did {num} coords in ")
                 coords = processCoords(coords)
                 d = datetime.datetime.now() - start
-                print(d)
-                yield "Did {0} coords in {1}".format(num, d)
+                log.trace(d)
+                yield f"Did {num} coords in {d}"
 
         level.showProgress("Spreading water...", spread(coords), cancel=True)
 

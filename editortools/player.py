@@ -24,6 +24,7 @@ from pymclevel.material import materials
 from pymclevel.box import BoundingBox
 
 from config import SpawnToolSettings
+import log
 
 
 class PlayerMoveOperation(Operation):
@@ -42,7 +43,7 @@ class PlayerMoveOperation(Operation):
                 self.undoDim = level.getPlayerDimension(self.player)
                 self.undoYP = level.getPlayerOrientation(self.player)
             except Exception as e:
-                print("Couldn't get player position! ({0!r})".format(e))
+                log.error("Couldn't get player position! ({0!r})".format(e))
 
             yaw, pitch = self.yp
             if yaw is not None and pitch is not None:
@@ -52,7 +53,7 @@ class PlayerMoveOperation(Operation):
             self.tool.markerList.invalidate()
 
         except PlayerNotFound as e:
-            print("Player move failed: ", e)
+            log.error("Player move failed: ", e)
 
     def undo(self):
         if not (self.undoPos is None):
@@ -318,10 +319,8 @@ class PlayerPositionTool(EditorTool):
                                        c1=(0, 0, 0, 0),
                                        )
 
-                #glDisable(GL_BLEND)
-
             except Exception as e:
-                print(repr(e))
+                log.error(repr(e))
                 continue
 
         glDisable(GL_DEPTH_TEST)

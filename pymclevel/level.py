@@ -1,12 +1,10 @@
-from __future__ import annotations\
+from __future__ import annotations
 
 '''
 Created on Jul 22, 2011
 
 @author: Rio
 '''
-
-
 
 
 from .mclevelbase import *
@@ -20,8 +18,7 @@ from pymclevel import material
 from pymclevel import blockrotation
 import itertools
 
-log = logging.getLogger(__name__)
-warn, error, info, debug = log.warn, log.error, log.info, log.debug
+import log
 
 def computeChunkHeightMap(blocks, heightMap = None):
     """Computes the HeightMap array for a chunk, which stores the lowest 
@@ -291,7 +288,7 @@ class MCLevel(object):
 
     def _getSlices(self, box):
         if box == self.bounds:
-            info("All chunks selected! Selecting %s chunks instead of %s", self.chunkCount, box.chunkCount)
+            log.info(f"All chunks selected! Selecting {self.chunkCount} chunks instead of {box.chunkCount}")
             y = box.miny
             slices = slice(0, 16), slice(0, 16), slice(0, box.maxy)
 
@@ -401,7 +398,7 @@ class MCLevel(object):
         else:
             box = box.intersect(self.bounds)
 
-        info(u"Filling blocks in {0} with {1}, replacing{2}".format(box, blockInfo, blocksToReplace))
+        log.info(f"Filling blocks in {box} with {blockInfo}, replacing{blocksToReplace}")
 
         slices = list(map(slice, box.origin, box.maximum))
         
@@ -519,8 +516,7 @@ class MCLevel(object):
         sourceBox = BoundingBox(sourceBox.origin, sourceBox.size)
 
         (lx, ly, lz) = sourceBox.size
-        debug(u"Asked to copy {0} blocks \n\tfrom {1} in {3}\n\tto {2} in {4}" .format (ly * lz * lx, sourceBox, destinationPoint, sourceLevel, self))
-
+        log.debug(f"Asked to copy {ly * lz * lx} blocks \n\tfrom {sourceBox} in {sourceLevel}\n\tto {destinationPoint} in {self}")
 
         #clip the source ranges to this level's edges.  move the destination point as needed.
         #xxx abstract this
@@ -571,10 +567,10 @@ class MCLevel(object):
         yield
         
         if min(sourceBox.size) <= 0:
-            print("Empty source box, aborting")
+            log.debug("Empty source box, aborting")
             return
 
-        info(u"Copying {0} blocks from {1} to {2}" .format (sourceBox.volume, sourceBox, destinationPoint))
+        log.info(f"Copying {sourceBox.volume} blocks from {sourceBox} to {destinationPoint}")
 
         if not sourceLevel.isInfinite:
             self.copyBlocksFromFiniteToFinite(sourceLevel, sourceBox, destinationPoint, blocksToCopy)
@@ -655,9 +651,7 @@ class EntityLevel(MCLevel):
 
                 self.addTileEntity(eTag)
 
-        info("Copied {0} entities, {1} tile entities".format(e, t))
-
-
+        log.info(f"Copied {e} entities, {t} tile entities")
 
     def copyEntitiesFromIter(self, sourceLevel, sourceBox, destinationPoint, entities=True):
         #assume coords have already been adjusted by copyBlocks
@@ -669,15 +663,15 @@ class EntityLevel(MCLevel):
             for i in self.copyEntitiesFromInfiniteIter(sourceLevel, sourceBox, destinationPoint, entities):
                 yield i
         else:
-            entsCopied = 0
-            tileEntsCopied = 0
+            entities_copied = 0
+            tile_entities_copied = 0
             copyOffset = list(map(lambda x, y:x - y, destinationPoint, sourcePoint0))
             if entities:
                 for entity in sourceLevel.getEntitiesInBox(sourceBox):
                     eTag = Entity.copyWithOffset(entity, copyOffset)
 
                     self.addEntity(eTag)
-                    entsCopied += 1
+                    entities_copied += 1
 
             i = 0
             for entity in sourceLevel.getTileEntitiesInBox(sourceBox):
@@ -690,12 +684,12 @@ class EntityLevel(MCLevel):
 
                 try:
                     self.addTileEntity(eTag)
-                    tileEntsCopied += 1
+                    tile_entities_copied += 1
                 except ChunkNotPresent:
                     pass
 
             yield
-            info(u"Copied {0} entities, {1} tile entities".format(entsCopied, tileEntsCopied))
+            log.info(f"Copied {entities_copied} entities, {tile_entities_copied} tile entities")
 
     def getEntitiesInBox(self, box):
         """Returns a list of references to entities in this chunk, whose positions are within box"""
@@ -707,34 +701,34 @@ class EntityLevel(MCLevel):
 
     def removeEntitiesInBox(self, box):
 
-        newEnts = []
+        new_entities = []
         for ent in self.Entities:
             if Entity.pos(ent) in box:
                 continue
-            newEnts.append(ent)
+            new_entities.append(ent)
 
-        entsRemoved = len(self.Entities) - len(newEnts)
-        debug("Removed {0} entities".format(entsRemoved))
+        entities_removed = len(self.Entities) - len(new_entities)
+        log.debug(f"Removed {entities_removed} entities")
 
-        self.Entities.value[:] = newEnts
+        self.Entities.value[:] = new_entities
 
-        return entsRemoved
+        return entities_removed
 
     def removeTileEntitiesInBox(self, box):
 
         if not hasattr(self, "TileEntities"): return;
-        newEnts = []
+        new_entities = []
         for ent in self.TileEntities:
             if TileEntity.pos(ent) in box:
                 continue
-            newEnts.append(ent)
+            new_entities.append(ent)
 
-        entsRemoved = len(self.TileEntities) - len(newEnts)
-        debug("Removed {0} tile entities".format(entsRemoved))
+        entities_removed = len(self.TileEntities) - len(new_entities)
+        log.debug(f"Removed {entities_removed} tile entities")
 
-        self.TileEntities.value[:] = newEnts
+        self.TileEntities.value[:] = new_entities
 
-        return entsRemoved
+        return entities_removed
 
     def addEntities(self, entities):
         for e in entities:
@@ -752,7 +746,7 @@ class EntityLevel(MCLevel):
                 entities.append(entityTag)
 
         if len(entities) > 1:
-            info("Multiple tile entities found: {0}".format(entities))
+            log.info(f"Multiple tile entities found: {entities}")
         if len(entities) == 0:
             return None
 

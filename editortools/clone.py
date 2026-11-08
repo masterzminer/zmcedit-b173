@@ -19,6 +19,7 @@ from .select import SelectionOperation
 
 from pymclevel.box import BoundingBox
 from config import LastDir, Keys, CloneToolSettings
+import log
 
 
 class CoordsInput(Widget):
@@ -563,7 +564,6 @@ class CloneTool(EditorTool):
         if size[1] >= self.editor.level.Height:
             direction = (0, 1, 0)  # always use the upward face whenever we're splicing full-height pieces, to avoid "jitter"
 
-        # print size; raise SystemExit
         if any(direction) and pos[1] >= 0:
             x, y, z = list(map(lambda p, s, d: p - s // 2 + s * d // 2 + (d > 0), pos, size, direction))
         else:
@@ -793,7 +793,7 @@ class CloneTool(EditorTool):
 
             if self.panel and self.panel.useOffsetInput:
                 self.panel.offsetInput.setCoords(list(map(operator.sub, self.destPoint, box.origin)))
-            print("Destination: ", self.destPoint)
+            log.trace("Destination: ", self.destPoint)
 
     @alertException
     def mouseUp(self, evt, pos, direction):
@@ -857,8 +857,7 @@ class CloneTool(EditorTool):
         d = list(map(lambda a, b, c: abs(a - b - c / 2), self.editor.mainViewport.cameraPosition, self.destPoint, box.size))
         self.cloneCameraDistance = np.sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
         self.destPoint = None
-        # self.panel.performButton.enabled = False
-        print("Picked up")
+        log.trace("Picked up")
 
     @alertException
     def confirm(self):
@@ -951,12 +950,6 @@ class ConstructionTool(CloneTool):
     def toolReselected(self):
         self.toolSelected()
 
-    #    def cancel(self):
-#        print "Cancelled Clone"
-#        self.level = None
-#        super(ConstructionTool, self).cancel(self)
-#
-
     def createTestBoard(self, anyBlock=True):
         if anyBlock:
             allBlocks = [materials[a, b] for a in range(256) for b in range(16)]
@@ -998,9 +991,9 @@ class ConstructionTool(CloneTool):
 
             self.loadSchematic(clipFilename)
 
-        print("Canceled")
+        log.trace("Canceled")
         if self.level is None:
-            print("No level selected.")
+            log.trace("No level selected.")
 
             self.editor.toolbar.selectTool(-1)
 
@@ -1012,12 +1005,12 @@ class ConstructionTool(CloneTool):
             level = fromFile(filename)
             self.loadLevel(level)
         except Exception as e:
-            print(u"Unable to import file {0} : {1}".format(filename, e))
+            log.trace(f"Unable to import file {log.trace} : {e}")
 
             traceback.print_exc()
             if filename:
                 # self.editor.toolbar.selectTool(-1)
-                alert(u"I don't know how to import this file: {0}.\n\nError: {1!r}".format(os.path.basename(filename), e))
+                alert("I don't know how to import this file: {0}.\n\nError: {1!r}".format(os.path.basename(filename), e))
 
             return
 

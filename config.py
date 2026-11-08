@@ -17,13 +17,11 @@ config.py
 Configuration settings and storage.
 """
 
-import logging
 from configparser import RawConfigParser
 from config_classes import Section, ListSection, Setting as S, DirectorySetting as DS, IndexSetting as IS, KeySetting as KS, KeyIndexSetting as KIS
 
 from directories import INI_FILE
-
-log = logging.getLogger(__name__)
+import log
 
 # Setup for the config
 

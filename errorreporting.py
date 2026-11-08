@@ -12,12 +12,6 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
-"""
-errorreporting.py
-
-Patch the `traceback' module to print "self" with each stack frame.
-"""
-
 
 import sys
 import traceback

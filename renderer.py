@@ -47,7 +47,6 @@ from collections import defaultdict, deque
 from datetime import datetime, timedelta
 from depths import DepthOffset
 from glutils import gl, Texture
-import logging
 import numpy as np
 from OpenGL import GL
 import pymclevel
@@ -62,6 +61,7 @@ from pymclevel.box import BoundingBox
 
 from config import Settings
 from config_classes import Setting
+import log
 
 def chunkMarkers(chunkSet):
     """ Returns a mapping { size: [position, ...] } for different powers of 2
@@ -124,11 +124,8 @@ class ChunkRenderer(object):
 
     def forgetDisplayLists(self, states=None):
         if self.renderstateLists is not None:
-            # print "Discarded {0}, gained {1} bytes".format(self.chunkPosition,self.bufferSize)
-
             for k in states or self.renderstateLists.keys():
                 a = self.renderstateLists.get(k, [])
-                # print a
                 for i in a:
                     gl.glDeleteLists(i, 1)
 
@@ -499,7 +496,7 @@ class ChunkCalculator (object):
         try:
             chunk = level.getChunk(cx, cz)
         except Exception as e:
-            logging.warn(u"Error reading chunk: %s", e)
+            log.warn(f"Error reading chunk: {e}")
             yield
             return
 
@@ -2320,7 +2317,6 @@ class MCRenderer(object):
         if self.overheadMode:
             return
 
-        # print "discardChunksOutsideViewDistance"
         d = self.effectiveViewDistance
         cx = (self.position[0] - self.origin[0]) / 16
         cz = (self.position[2] - self.origin[2]) / 16
@@ -2332,7 +2328,6 @@ class MCRenderer(object):
             return
         (ox, oz) = origin
         bytes = 0
-        # chunks = np.fromiter(self.chunkRenderers.iterkeys(), dtype='int32', count=len(self.chunkRenderers))
         chunks = np.fromiter(self.chunkRenderers.keys(), dtype='i,i', count=len(self.chunkRenderers))
         chunks.dtype = 'int32'
         chunks.shape = len(self.chunkRenderers), 2
@@ -2440,7 +2435,6 @@ class MCRenderer(object):
     def loadVisibleChunks(self):
         """ loads nearby chunks if the camera has moved beyond a certain distance """
 
-        # print "loadVisibleChunks"
         if self.cameraMovedFarEnough():
             if datetime.now() - self.lastVisibleLoad > timedelta(0, 0.5):
                 self.discardChunksOutsideViewDistance()
@@ -2454,7 +2448,6 @@ class MCRenderer(object):
     def loadNearbyChunks(self):
         if None is self.level:
             return
-        # print "loadNearbyChunks"
         cameraPos = self.position
 
         if self.shouldDrawAll:
@@ -2689,8 +2682,7 @@ class MCRenderer(object):
             except GL.GLError as e:
                 if self.errorLimit:
                     self.errorLimit -= 1
-                    traceback.print_exc()
-                    print(e)
+                    log.error(e)
 
             GL.glDisable(GL.GL_POLYGON_OFFSET_FILL)
 
@@ -2822,14 +2814,13 @@ class MCRenderer(object):
                 except Exception:
                     fn = c
 
-                logging.info(u"Skipped chunk {f}: {e}".format(e=e, f=fn))
+                log.info(f"Skipped chunk {fn}: {e}")
 
     redrawChunks = 0
 
     def chunkDone(self, chunkRenderer, work):
         self.chunkRenderers[chunkRenderer.chunkPosition] = chunkRenderer
         self.bufferUsage += chunkRenderer.bufferSize
-        # print "Chunk {0} used {1} work units".format(chunkRenderer.chunkPosition, work)
         if not self.needsRedraw:
             if self.redrawChunks:
                 self.redrawChunks -= 1

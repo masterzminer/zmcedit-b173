@@ -23,6 +23,7 @@ from functools import reduce
 import numpy as np
 from pymclevel.material import materials
 from config import LastDir, Keys, BrushToolSettings
+import log
 
 from pymclevel.box import BoundingBox
 
@@ -175,7 +176,7 @@ class Modes:
                 replaceWith = op.options['replaceBlockInfo']
                 # xxx pasted from fill.py
                 if op.blockInfo.wildcard:
-                    print("Wildcard replace")
+                    log.trace("Wildcard replace")
                     blocksToReplace = []
                     for i in range(16):
                         blocksToReplace.append(materials.blockWithID(op.blockInfo.ID, i))
@@ -285,7 +286,7 @@ class Modes:
                         blocktypeMask = blockmask[blocks]
 
                     except Exception as e:
-                        print(repr(e), " while using blockmask from filters.topsoil")
+                        log.error(repr(e), " while using blockmask from filters.topsoil")
                         blocktypeMask = blocks != 0
 
                 else:
@@ -296,11 +297,6 @@ class Modes:
                     blocktypeMask &= (blocks != blocktype.ID)
 
                 heightmap = extractHeights(blocktypeMask)
-
-                # logical_not(brushMask, brushMask)
-
-                # masked_blocks = ma.masked_array(blocks, brushMask, hard_mask=True)
-                # masked_data = ma.masked_array(data, brushMask, hard_mask=True)
 
                 for x, z in itertools.product(*list(map(np.xrange, heightmap.shape))):
                     h = heightmap[x, z]
@@ -1016,7 +1012,6 @@ class BrushTool(CloneTool):
 
     def resetToolDistance(self):
         distance = max(self.editor.cameraToolDistance, 6 + max(self.brushSize) * 1.25)
-        # print "Adjusted distance", distance, max(self.brushSize) * 1.25
         self.editor.cameraToolDistance = distance
 
     def toolSelected(self):

@@ -1,3 +1,6 @@
+# TODO test that this import works even when coming from a random configured directory
+import log
+
 inputs = (
   ("Numeric input", 15.0),
   ("Numeric range", (4, -128, 128)),
@@ -8,4 +11,4 @@ inputs = (
 
 
 def perform(level, box, options):
-    print("Running template filter", __name__)
+    log.info("Running template filter", __name__)

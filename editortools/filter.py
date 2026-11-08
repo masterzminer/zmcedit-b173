@@ -21,6 +21,7 @@ from config import LastDir, Settings
 
 from pymclevel.box import BoundingBox
 import arguments
+import log
 
 ALL_FILTER_DIRS = []
 
@@ -28,7 +29,7 @@ def reload_filter_dirs():
     """
     Find all relevant filter directories
     """
-    print("Reloading filter directories")
+    log.debug("Reloading filter directories")
     filter_dirs = []
 
     # Add the base filters directory
@@ -47,7 +48,7 @@ def reload_filter_dirs():
     ALL_FILTER_DIRS.clear()
     ALL_FILTER_DIRS.extend(filter_dirs)
 
-    print("Loaded filter directories", [str(s) for s in filter_dirs])
+    log.debug("Loaded filter directories", [str(s) for s in filter_dirs])
 
 
 def moduleDisplayName(module):
@@ -56,7 +57,7 @@ def moduleDisplayName(module):
 ALL_FILTER_MODULES = {}
 
 def reload_filter_modules():
-    print("Reloading filter modules from dirs", [str(s) for s in ALL_FILTER_DIRS])
+    log.debug("Reloading filter modules from dirs", [str(s) for s in ALL_FILTER_DIRS])
     # Find all filter files
     all_py_files = []
     for filters_dir in ALL_FILTER_DIRS:
@@ -74,7 +75,7 @@ def reload_filter_modules():
         if hasattr(m, "perform"):
             filter_modules.append(m)
         else:
-            print(f"Invalid filter: {moduleDisplayName(m)}, missing perform function")
+            log.warn(f"Invalid filter: {moduleDisplayName(m)}, missing perform function")
     # Map all filters by their display name
     filter_modules = dict((moduleDisplayName(m), m) for m in filter_modules)
     # Force reload every filter
@@ -84,7 +85,7 @@ def reload_filter_modules():
     ALL_FILTER_MODULES.clear()
     ALL_FILTER_MODULES.update(filter_modules)
 
-    print(f"Reloaded {len(filter_modules)} filters")
+    log.debug(f"Reloaded {len(filter_modules)} filters")
 
 
 def reload_filters():
@@ -107,8 +108,7 @@ def alertFilterException(func):
         try:
             func(*args, **kw)
         except Exception as e:
-            alert(u"Exception during filter operation. See console for details.\n\n{0}".format(e))
-            print(traceback.format_exc())
+            alert(f"Exception during filter operation. See console for details.\n\n{e}")
 
     return _func
 
@@ -138,9 +138,8 @@ class FilterModuleOptions(Widget):
         pages.is_gl_container = True
         self.pages = pages
         self.optionDict = {}
-        pageTabContents = []
         
-        print("Creating options for ", module)
+        log.debug("Creating options for ", module)
         if hasattr(module, "inputs"):
             if isinstance(module.inputs, list):
                 for tabData in module.inputs:
@@ -307,7 +306,7 @@ class FilterToolPanel(Panel):
             self.reload()
 
     def reload(self):
-        print("Reloading filters panel")
+        log.debug("Reloading filters panel")
 
         for i in list(self.subwidgets):
             self.remove(i)
@@ -424,7 +423,7 @@ class FilterToolPanel(Panel):
 
         # Failed to get the template text
         if not template_text:
-            print("Failed to load filter template")
+            log.warn("Failed to load filter template")
             return
         
         # Select a file to save

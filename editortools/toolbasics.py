@@ -44,6 +44,7 @@ from config import Keys
 
 from pymclevel.box import BoundingBox
 from pymclevel.material import materials
+import log
 
 class NudgeButton(GLBackground):
     """ A button that captures movement keys while pressed and sends them to a listener as nudge events.
@@ -382,7 +383,7 @@ class BlockButton(ButtonBase, Panel):
 
         self.recentBlockView.right = self.width
         self.add(self.recentBlockView)
-        print(self.rect, self.recentBlockView.rect)
+        log.trace(self.rect, self.recentBlockView.rect)
 
     recentBlockView = None
 
@@ -564,7 +565,7 @@ class BlockPicker(Dialog):
         except ValueError:
             pass
         except Exception as e:
-            print(repr(e))
+            log.error(repr(e))
 
         blocks = materials.allBlocks
 

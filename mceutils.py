@@ -34,6 +34,7 @@ from albow import FloatField, IntField, TextField
 from mcplatform import os_ops, askSaveFolder
 from config import LastDir, Settings
 from albow.controls import ControlRef
+import log
 
 
 def alertException(func):
@@ -283,8 +284,7 @@ def loadTerrainTexture():
             texW, texH, terrain_data = loadPNGData(slurpZipExt(pngFile))
 
         except Exception as e:
-            traceback.print_exc()
-            print(repr(e), "while loading texture pack")
+            log.error(repr(e), "while loading texture pack")
 
 
     from renderer import LeafBlockRenderer
@@ -330,7 +330,7 @@ def loadPNGTexture(filename):
         tex.data = n_data
         return tex
     except Exception as e:
-        print("Exception loading ", filename, ": ", repr(e))
+        log.error("Exception loading ", filename, ": ", repr(e))
         return glutils.Texture()
 
 

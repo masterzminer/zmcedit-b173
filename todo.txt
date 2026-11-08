@@ -1,4 +1,4 @@
-standardize logging, print statements, and traceback error logging calls
+finish todos related to logging
 
 
 
@@ -31,3 +31,5 @@ go through and remove all the unnecessary semicolons
 go through and clean up all the typos and general ide warnings
 
 go through and remove all the commented out code
+
+go through and fix all the deprecated method calls

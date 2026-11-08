@@ -31,6 +31,7 @@ INI_NAME = "mcedit.ini"
 
 
 def findDirectories():
+    # TODO figure out how to allow these print statements to make it to the log file, or to log them after the log directories are done loading
     if FROZEN:
         print("Running from stand alone install")
     else:
@@ -87,5 +88,6 @@ INSTALL_ROOT, CONFIG, ASSETS, STOCK_SCHEMATICS, STOCK_FILTERS = findDirectories(
 
 LOG_FILE = CONFIG / LOG_NAME
 INI_FILE = CONFIG / INI_NAME
+ITEMS_FILE = ASSETS / "items.txt"
 FILTER_TEMPLATE_FILE = STOCK_FILTERS / "demo" / "template.py"
 FILTER_GUIDE_FILE = STOCK_FILTERS / "demo" / "guide.py"

@@ -3,6 +3,7 @@ import sys
 import pygame
 from pygame.locals import RLEACCEL
 import directories
+import log
 
 optimize_images = True
 run_length_encode = False
@@ -51,11 +52,11 @@ def get_font(size, *names, **kwds):
     if not font:
         try:
             font = pygame.font.Font(path, size)
-        except Exception as e:
+        except Exception:
             try:
                 font = pygame.font.Font(path.encode(sys.getfilesystemencoding()), size)
-            except Exception as e:
-                print("Couldn't get font {0}, using sysfont".format((path, size)))
+            except Exception:
+                log.warn(f"Couldn't get font {path}, using sysfont")
                 font = pygame.font.SysFont("Courier New", size)
         font_cache[key] = font
     return font

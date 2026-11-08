@@ -19,6 +19,7 @@ from .toolbasics import *
 from pymclevel.box import BoundingBox
 from pymclevel.material import materials
 from config import Keys, FillToolSettings
+import log
 
 class BlockFillOperation(Operation):
     def __init__(self, editor, destLevel, destBox, blockInfo, blocksToReplace):
@@ -222,7 +223,7 @@ class FillTool(EditorTool):
 
             if self.replacing:
                 if self.blockInfo.wildcard:
-                    print("Wildcard replace")
+                    log.trace("Wildcard replace")
                     blocksToReplace = []
                     for i in range(16):
                         blocksToReplace.append(materials.blockWithID(self.blockInfo.ID, i))

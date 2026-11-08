@@ -5,7 +5,6 @@ Created on Jul 22, 2011
 '''
 
 from .mclevelbase import *
-import shutil
 from .level import MCLevel, EntityLevel
 import numpy as np
 from io import BytesIO
@@ -15,8 +14,7 @@ from pymclevel.material import materials
 from pymclevel import nbt
 import sys
 
-log = logging.getLogger(__name__)
-warn, error, info, debug = log.warn, log.error, log.info, log.debug
+import log
 
 __all__ = ['MCSchematic', 'INVEditChest']
 class MCSchematic (EntityLevel):
@@ -99,20 +97,19 @@ class MCSchematic (EntityLevel):
                 data = g_zipper.read()
                 if data == None: return;
             except Exception as e:
-                #error( u"Error reading compressed data, assuming uncompressed: {0}".format(e) )
                 data = self.compressedTag
 
 
         try:
             self.root_tag = nbt.load(buf=data)
         except Exception as e:
-            error(u"Malformed NBT data in schematic file: {0} ({1})".format(self.filename, e))
+            log.error(f"Malformed NBT data in schematic file: {self.filename} ({e})")
             raise(ChunkMalformed, (e,self.filename), sys.exc_info()[2])
 
         try:
             self.shapeChunkData()
         except KeyError as e:
-            error(u"Incorrect schematic format in file: {0} ({1})".format(self.filename, e))
+            log.error(f"Incorrect schematic format in file: {self.filename} ({e})")
             raise(ChunkMalformed, (e,self.filename), sys.exc_info()[2])
         pass
 
@@ -213,7 +210,7 @@ class MCSchematic (EntityLevel):
         
         blockrotation.RotateLeft(self.Blocks, self.Data)
 
-        info(u"Relocating entities...")
+        log.debug("Relocating entities...")
         for entity in self.Entities:
             for p in "Pos", "Motion":
                 if p == "Pos":
@@ -263,7 +260,7 @@ class MCSchematic (EntityLevel):
 
         northSouthPaintingMap = [0, 3, 2, 1]
 
-        info(u"N/S Flip: Relocating entities...")
+        log.debug("N/S Flip: Relocating entities...")
         for entity in self.Entities:
 
             entity["Pos"][0].value = self.Width - entity["Pos"][0].value
@@ -288,7 +285,7 @@ class MCSchematic (EntityLevel):
 
         eastWestPaintingMap = [2, 1, 0, 3]
 
-        info(u"E/W Flip: Relocating entities...")
+        log.debug("E/W Flip: Relocating entities...")
         for entity in self.Entities:
 
             entity["Pos"][2].value = self.Length - entity["Pos"][2].value
@@ -321,7 +318,7 @@ class MCSchematic (EntityLevel):
         """ save to file named filename, or use self.filename.  XXX NOT THREAD SAFE AT ALL. """
         if filename == None: filename = self.filename
         if filename == None:
-            print("Attempted to save an unnamed schematic in place")
+            log.warn("Attempted to save an unnamed schematic in place")
             return
 
         self.compress()
@@ -382,7 +379,7 @@ class INVEditChest(MCSchematic):
                 try:
                     root_tag = nbt.load(filename)
                 except IOError as e:
-                    info(u"Failed to load file {0}".format(e))
+                    log.error(f"Failed to load file {e}")
                     raise
         else:
             assert root_tag, "Must have either root_tag or filename"
@@ -465,10 +462,10 @@ def extractSchematicFromIter(sourceLevel, box, entities=True):
     if p is None: 
         yield None
         return
-    newbox, destPoint = p
+    new_box, destPoint = p
 
     tempSchematic = MCSchematic(shape=box.size)
-    for i in tempSchematic.copyBlocksFromIter(sourceLevel, newbox, destPoint, entities=entities):
+    for i in tempSchematic.copyBlocksFromIter(sourceLevel, new_box, destPoint, entities=entities):
         yield i
 
     yield tempSchematic

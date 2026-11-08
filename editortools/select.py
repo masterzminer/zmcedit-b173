@@ -23,6 +23,7 @@ from pymclevel.box import BoundingBox, FloatBox
 from pymclevel.material import materials
 
 from config import SelectToolSettings, ColorSettings
+import log
 
 
 def parseValues(colorValues):
@@ -329,7 +330,7 @@ class SelectionTool(EditorTool):
                      materials.WallSign.ID):
             t = self.editor.level.tileEntityAt(*pos)
             if t:
-                sign_text = u"\n".join(t["Text" + str(x)].value for x in range(1, 5))
+                sign_text = "\n".join(t["Text" + str(x)].value for x in range(1, 5))
             else:
                 sign_text = "Undefined"
             return "Sign text: \n" + sign_text + "\n\n" + "Double-click to edit sign."
@@ -797,8 +798,6 @@ class SelectionTool(EditorTool):
                     o, m = selectionBox.origin, selectionBox.maximum
                     otherFacePos = (m, o)[side ^ 1][dim]  # ugly
                     direction = (-1, 1)[side]
-                    # print "pos", pos, "otherFace", otherFacePos, "dir", direction
-                    # print "m", (pos - otherFacePos) * direction
                     if (pos - otherFacePos) * direction > 0:
                         face ^= 1
 
@@ -999,7 +998,7 @@ class SelectionTool(EditorTool):
 
         self.editor.mouseLookOff()
 
-        print("Clipping: ", shape)
+        log.trace("Clipping: ", shape)
 
         fileFormat = "schematic"
 

@@ -1,7 +1,6 @@
 
 
-import logging
-logger = logging.getLogger(__file__)
+import log
 import directories
 
 class ItemType (object):
@@ -13,9 +12,9 @@ class ItemType (object):
         self.damage_value = damage_value
         self.stacksize = stacksize
     def __repr__(self):
-        return "ItemType({0}, '{1}')".format(self.id, self.name)
+        return f"ItemType({self.id}, '{self.name}')"
     def __str__(self):
-        return "ItemType {0}: {1}".format(self.id, self.name)
+        return f"ItemType {self.id}: {self.name}"
 
 class Items (object):
     def __init__(self, filename):
@@ -23,7 +22,7 @@ class Items (object):
             with open(filename) as f:
                 items_txt = f.read()
         except Exception as e:
-            logger.info( "Error reading items.txt: %s", e)
+            log.info(f"Error reading items.txt: {e}")
             raise RuntimeError("Cannot find built in assets for items")
 
         self.item_types = {}
@@ -66,9 +65,7 @@ class Items (object):
 
                     self.item_types[(id, damage_value)] = ItemType(id, name, image_coords, max_damage, damage_value, stacksize)
             except Exception as e:
-                print("Error reading item data from line:", e)
-                print("Line: ", line)
-                print()
+                log.error(f"Error reading item data from line: {line}, {e}")
 
         self.names = dict((item.name, item.id) for item in self.item_types.values())
 
@@ -82,8 +79,8 @@ class Items (object):
         item = self.item_types.get((id, 0))
         if item: return item
         
-        return ItemType(id, "Unknown Item {0}:{1}".format(id, damage), damage_value=damage)
+        return ItemType(id, f"Unknown Item {id}:{damage}", damage_value=damage)
 
 class ItemNotFound(KeyError): pass
 
-items = Items(directories.ASSETS / "items.txt")
+items = Items(directories.ITEMS_FILE)

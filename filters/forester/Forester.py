@@ -1,3 +1,5 @@
+import log
+
 # Version 5
 '''This takes a base MineCraft level and adds or edits trees.
 Place it in the folder where the save files are (usually .../.minecraft/saves)
@@ -265,10 +267,6 @@ LIGHTING_FIX = True
 # Default: 1000
 MAX_TRIES = 1000
 
-# Do you want lots of text telling you what is going on?
-# True lots of text (default). Good for debugging.
-# False no text
-VERBOSE = True
 
 ##############################################################
 #  Don't edit below here unless you know what you are doing  #
@@ -281,8 +279,7 @@ if TREE_COUNT < 0:
 if SHAPE not in ["normal", "bamboo", "palm", "stickly",
                  "round", "cone", "procedural",
                  "rainforest", "mangrove"]:
-    if VERBOSE:
-        print("SHAPE not set correctly, using 'procedural'.")
+    log.trace("SHAPE not set correctly, using 'procedural'.")
     SHAPE = "procedural"
 if CENTER_HEIGHT < 1:
     CENTER_HEIGHT = 1
@@ -292,40 +289,33 @@ min_height = min(CENTER_HEIGHT, EDGE_HEIGHT)
 if HEIGHT_VARIATION > min_height:
     HEIGHT_VARIATION = min_height
 if INTERPOLATION not in ["linear"]:
-    if VERBOSE:
-        print("INTERPOLATION not set correctly, using 'linear'.")
+    log.trace("INTERPOLATION not set correctly, using 'linear'.")
     INTERPOLATION = "linear"
 if WOOD not in [True, False]:
-    if VERBOSE:
-        print("WOOD not set correctly, using True")
+    log.trace("WOOD not set correctly, using True")
     WOOD = True
 if TRUNK_THICKNESS < 0.0:
     TRUNK_THICKNESS = 0.0
 if TRUNK_HEIGHT < 0.0:
     TRUNK_HEIGHT = 0.0
 if ROOTS not in ["yes", "to_stone", "hanging", "no"]:
-    if VERBOSE:
-        print("ROOTS not set correctly, using 'no' and creating no roots")
+    log.trace("ROOTS not set correctly, using 'no' and creating no roots")
     ROOTS = "no"
 if ROOT_BUTTRESSES not in [True, False]:
-    if VERBOSE:
-        print("ROOT_BUTTRESSES not set correctly, using False")
+    log.trace("ROOT_BUTTRESSES not set correctly, using False")
     ROOT_BUTTRESSES = False
 if FOLIAGE not in [True, False]:
-    if VERBOSE:
-        print("FOLIAGE not set correctly, using True")
+    log.trace("FOLIAGE not set correctly, using True")
     ROOT_BUTTRESSES = True
 if FOLIAGE_DENSITY < 0.0:
     FOLIAGE_DENSITY = 0.0
 if BRANCH_DENSITY < 0.0:
     BRANCH_DENSITY = 0.0
 if MAP_HEIGHT_LIMIT not in [True, False]:
-    if VERBOSE:
-        print("MAP_HEIGHT_LIMIT not set correctly, using False")
+    log.trace("MAP_HEIGHT_LIMIT not set correctly, using False")
     MAP_HEIGHT_LIMIT = False
 if LIGHT_TREE not in [0, 1, 2, 4]:
-    if VERBOSE:
-        print("LIGHT_TREE not set correctly, using 0 for no torches")
+    log.trace("LIGHT_TREE not set correctly, using 0 for no torches")
     LIGHT_TREE = 0
 # assemble the material dictionaries
 WOOD_INFO = {'B': WOOD_MAT, 'D': WOOD_DATA}
@@ -1140,15 +1130,13 @@ def plant_trees(mc_map, tree_list):
     # keep looping until all the trees are placed
     # calc the radius difference, for interpolation
     in_out_dif = EDGE_HEIGHT - CENTER_HEIGHT
-    if VERBOSE:
-        print('Tree Locations: x, y, z, tree height')
+    log.trace('Tree Locations: x, y, z, tree height')
     tries = 0
     max_tries = MAX_TRIES
     while len(tree_list) < TREE_COUNT:
         if tries > max_tries:
-            if VERBOSE:
-                print(("Stopping search for tree locations after {0} tries".format(tries)))
-                print("If you don't have enough trees, check X, Y, RADIUS, and PLANT_ON")
+            log.trace(f"Stopping search for tree locations after {tries} tries")
+            log.trace("If you don't have enough trees, check X, Y, RADIUS, and PLANT_ON")
             break
         tries += 1
         # choose a location
@@ -1223,8 +1211,7 @@ def plant_trees(mc_map, tree_list):
 
         # generate the new tree
         new_tree = Tree([x, y, z], height)
-        if VERBOSE:
-            print((x, y, z, height))
+        log.trace((x, y, z, height))
         tree_list += [new_tree]
 
 
@@ -1289,53 +1276,38 @@ def main(the_map):
     '''create the trees
     '''
     tree_list = []
-    if VERBOSE:
-        print("Planting new trees")
+    log.trace("Planting new trees")
     plant_trees(the_map, tree_list)
-    if VERBOSE:
-        print("Processing tree changes")
+    log.trace("Processing tree changes")
     process_trees(the_map, tree_list)
     if FOLIAGE:
-        if VERBOSE:
-            print("Generating foliage ")
+        log.trace("Generating foliage ")
         for i in tree_list:
             i.make_foliage(the_map)
-        if VERBOSE:
-            print(' completed')
+        log.trace(' completed')
     if WOOD:
-        if VERBOSE:
-            print("Generating trunks, roots, and branches ")
+        log.trace("Generating trunks, roots, and branches ")
         for i in tree_list:
             i.make_trunk(the_map)
-        if VERBOSE:
-            print(' completed')
+        log.trace(' completed')
     return None
 
 
 def standalone():
-    if VERBOSE:
-        print("Importing the map")
+    log.trace("Importing the map")
     try:
         the_map = mcInterface.SaveFile(LOADNAME)
     except IOError:
-        if VERBOSE:
-            print('File name invalid or save file otherwise corrupted. Aborting')
+        log.error('File name invalid or save file otherwise corrupted. Aborting')
         return None
     main(the_map)
     if LIGHTING_FIX:
-        if VERBOSE:
-            print("Rough re-lighting the map")
+        log.trace("Rough re-lighting the map")
         relight_master.save_file = the_map
         relight_master.calc_lighting()
-    if VERBOSE:
-        print("Saving the map, this could be a while")
+    log.trace("Saving the map, this could be a while")
     the_map.write()
-    if VERBOSE:
-        print("finished")
+    log.trace("finished")
 
 if __name__ == '__main__':
     standalone()
-
-# to do:
-# get height limits from map
-# set "limit height" or some such to respect level height limits

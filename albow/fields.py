@@ -8,6 +8,7 @@ from pygame.locals import K_LEFT, K_RIGHT, K_TAB, K_c, K_v, SCRAP_TEXT
 from .widget import Widget, overridable_property
 from .controls import Control
 from config_classes import Setting
+import log
 
 #---------------------------------------------------------------------------
 
@@ -74,15 +75,14 @@ class TextEditor(Widget):
                 try:
                     pygame.scrap.put(SCRAP_TEXT, self.text)
                 except:
-                    print("scrap not available")
+                    log.warn("scrap not available")
 
             elif event.key == K_v:
                 try:
                     t = pygame.scrap.get(SCRAP_TEXT).replace('\0', '')
                     self.text = t
                 except:
-                    print("scrap not available")
-                #print repr(t)
+                    log.warn("scrap not available")
             else:
                 self.attention_lost()
 

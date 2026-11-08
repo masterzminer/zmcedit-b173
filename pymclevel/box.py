@@ -122,23 +122,20 @@ class BoundingBox (object):
 
     def intersect(self, box):
         """ return a box containing the area self and box have in common"""
-        newbox = BoundingBox()
+        new_box = BoundingBox()
 
         if self.minx > box.maxx or self.maxx < box.minx: return BoundingBox()
-        newbox.minx = max(self.minx, box.minx)
-        newbox.maxx = min(self.maxx, box.maxx)
+        new_box.minx = max(self.minx, box.minx)
+        new_box.maxx = min(self.maxx, box.maxx)
 
         if self.miny > box.maxy or self.maxy < box.miny: return BoundingBox()
-        newbox.miny = max(self.miny, box.miny)
-        newbox.maxy = min(self.maxy, box.maxy)
+        new_box.miny = max(self.miny, box.miny)
+        new_box.maxy = min(self.maxy, box.maxy)
         if self.minz > box.maxz or self.maxz < box.minz: return BoundingBox()
-        newbox.minz = max(self.minz, box.minz)
-        newbox.maxz = min(self.maxz, box.maxz)
+        new_box.minz = max(self.minz, box.minz)
+        new_box.maxz = min(self.maxz, box.maxz)
 
-
-
-        #print "Intersect of {0} and {1}: {2}".format(self, box, newbox)
-        return newbox
+        return new_box
 
     def union(self, box):
         newbox = BoundingBox()
