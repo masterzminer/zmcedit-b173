@@ -670,7 +670,7 @@ class BrushTool(CloneTool):
     panel = None
 
     def _setBrushSize(self, brushSize):
-        if BrushToolSettings.update_offset:
+        if BrushToolSettings.update_offset.v:
             self.reticleOffset = self.offsetMax()
             self.resetToolDistance()
         self.previewDirty = True
@@ -1016,7 +1016,7 @@ class BrushTool(CloneTool):
 
     def toolSelected(self):
 
-        if BrushToolSettings.choose_block_immediately:
+        if BrushToolSettings.choose_block_immediately.v:
             blockPicker = BlockPicker(
                 self.blockInfo,
                 allowWildcards=self.brushMode.name == "Replace")
@@ -1024,7 +1024,7 @@ class BrushTool(CloneTool):
             if blockPicker.present():
                 self.blockInfo = blockPicker.blockInfo
 
-        if BrushToolSettings.update_offset:
+        if BrushToolSettings.update_offset.v:
             self.reticleOffset = self.offsetMax()
         self.resetToolDistance()
         self.setupPreview()
@@ -1043,7 +1043,6 @@ class BrushTool(CloneTool):
         self.editor.add(panel)
 
     def increaseToolReach(self):
-        # self.reticleOffset = max(self.reticleOffset-1, 0)
         if self.editor.mainViewport.mouseMovesCamera and not Settings.long_distance_mode.v:
             return False
         self.reticleOffset = self.reticleOffset + 1

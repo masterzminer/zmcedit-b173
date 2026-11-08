@@ -322,7 +322,6 @@ class CameraViewport(GLViewport):
 
         # give the camera an impulse according to the state of the inputs and in the direction of the camera
         camera_acceleration = [x * accel_factor * timeDelta for x in directedInputs]
-        # cameraImpulse = map(lambda x: x*impulse_factor, directedInputs)
 
         newVelocity = list(map(lambda a, b: a + b, velocity, camera_acceleration))
         velocityDir, speed = mceutils.normalize_size(newVelocity)
@@ -1001,15 +1000,6 @@ class CameraViewport(GLViewport):
             if datetime.now() - self.lastRendererUpdate > timedelta(0, 0, 500000):
                 self.editor.renderer.loadNearbyChunks()
                 self.lastRendererUpdate = datetime.now()
-
-            # adjustLimit = 2
-
-            # self.oldMousePosition = (x, y)
-            # if (self.startingMousePosition[0] - x > adjustLimit or self.startingMousePosition[1] - y > adjustLimit or
-            #   self.startingMousePosition[0] - x < -adjustLimit or self.startingMousePosition[1] - y < -adjustLimit):
-            #    mouse.set_pos(*self.startingMousePosition)
-            #    event.get(MOUSEMOTION)
-            #    self.oldMousePosition = (self.startingMousePosition)
 
     def activeevent(self, evt):
         if evt.state & 0x2 and evt.gain != 0:
