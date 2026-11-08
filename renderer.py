@@ -188,7 +188,7 @@ class ChunkRenderer(object):
                 self.forgetDisplayLists()
             self.blockRenderers = blockRenderers
 
-            if Settings.show_chunk_redraw and Layer.Blocks in layers:
+            if Settings.show_chunk_redraw.v and Layer.Blocks in layers:
                 self.needsRedisplay = True
 
     def calcFaces(self):
