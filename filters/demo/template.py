@@ -1,4 +1,3 @@
-# TODO test that this import works even when coming from a random configured directory
 import log
 
 inputs = (

@@ -64,8 +64,6 @@ def init():
     ch.setFormatter(fmt)
     _logger.addHandler(ch)
 
-    # TODO fix the issue with an invalid filter Test showing up
-
     # Keep up to one backup log file, essentially just hold onto one 10mb log file before allowing old logs to be erased
     fh = RotatingFileHandler(directories.LOG_FILE, maxBytes = 10 * 1240 * 1240, backupCount=1)
     fh.setLevel(logging.INFO)

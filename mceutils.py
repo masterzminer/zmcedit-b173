@@ -418,7 +418,10 @@ class ChoiceButton(ValueButton):
     align = "c"
     choose = None
 
-    def __init__(self, choices, **kw):
+    def __init__(self, choices, choice_display={}, **kw):
+        self.choice_display = choice_display
+        """Maps the choice to text for how to display it"""
+
         # passing an empty list of choices is ill-advised
 
         if 'choose' in kw:
@@ -428,11 +431,16 @@ class ChoiceButton(ValueButton):
 
         self.choices = choices or ["[UNDEFINED]"]
 
-        widths = [self.font.size(c)[0] for c in choices] + [self.width]
+        widths = [self.font.size(self._display_value(c))[0] for c in choices] + [self.width]
         if len(widths):
             self.width = max(widths) + self.margin * 2
 
         self.choiceIndex = 0
+
+    def _display_value(self, c):
+        if c in self.choice_display:
+            return self.choice_display[c]
+        return c
 
     def showMenu(self):
         choiceIndex = self.menu.present(self, (0, 0))
@@ -442,7 +450,7 @@ class ChoiceButton(ValueButton):
                 self.choose()
 
     def get_value(self):
-        return self.selectedChoice
+        return self._display_value(self.selectedChoice)
 
     @property
     def selectedChoice(self):
@@ -452,9 +460,9 @@ class ChoiceButton(ValueButton):
 
     @selectedChoice.setter
     def selectedChoice(self, val):
-        idx = self.choices.index(val)
-        if idx != -1:
-            self.choiceIndex = idx
+        index = self.choices.index(val)
+        if index != -1:
+            self.choiceIndex = index
 
     @property
     def choices(self):
@@ -463,7 +471,7 @@ class ChoiceButton(ValueButton):
     @choices.setter
     def choices(self, ch):
         self._choices = ch
-        self.menu = Menu("", ((name, "pickMenu") for name in self._choices))
+        self.menu = Menu("", ((self._display_value(name), "pickMenu") for name in self._choices))
 
 
 def CheckBoxLabel(title, invert=False, ref:ControlRef=None, **kw):
