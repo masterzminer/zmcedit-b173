@@ -14,6 +14,9 @@ brush
     make the last selected block or blocks for the brush save with the config, similar to the last brush size
     fix the brush forcing you to select a block every time you select it
 
+select
+    fix the select tool icon showing a blank white square sometimes, seemingly from quick loading a world while a world is already open
+
 level rendering
     fix buttons and other non full blocks rendering weirdly
     fix the fire rendering with a dumb texture

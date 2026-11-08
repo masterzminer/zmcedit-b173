@@ -2519,9 +2519,9 @@ class LevelEditor(GLViewport):
                 pygame.event.clear()
 
             # Check if a recent world hotkey is pressed
-            world_hotkey = WorldKeys.get_from_value(keyname)
-            if world_hotkey:
-                self.mcedit.loadRecentWorldIndex(world_hotkey.index)
+            world_hotkey_index = WorldKeys.list_index_from_value(keyname)
+            if world_hotkey_index is not None:
+                self.mcedit.loadRecentWorldIndex(world_hotkey_index)
 
     def showGotoPanel(self):
 
