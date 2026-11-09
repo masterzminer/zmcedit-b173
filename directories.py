@@ -28,14 +28,15 @@ STOCK_SCHEMATICS_NAME = "stock-schematics"
 STOCK_FILTERS_NAME = "filters"
 LOG_NAME = "mcedit.log"
 INI_NAME = "mcedit.ini"
+DEMO_DIR_NAME = "demo"
+ITEMS_NAME = "items.txt"
+TEMPLATE_NAME = "template.py"
+GUIDE_NAME = "guide.py"
 
+_CONFIG_OVERRIDEN = arguments.INSTALLED_OVERRIDE is not None
+_INSTALL_OVERRIDEN = arguments.CONFIG_OVERRIDE is not None
 
 def findDirectories():
-    if FROZEN:
-        print("Running from stand alone install")
-    else:
-        print("Running from source")
-
     
     # If a command line path is not provided for where to read install data from, use the defaults
     if arguments.INSTALLED_OVERRIDE is None:
@@ -48,7 +49,6 @@ def findDirectories():
     
     # Otherwise, use the given dir
     else:
-        print("Install directory overriden to:", arguments.INSTALLED_OVERRIDE)
         install_root = arguments.INSTALLED_OVERRIDE
 
 
@@ -63,12 +63,9 @@ def findDirectories():
 
     # Otherwise, use the given config
     else:
-        print("Config directory overriden to:", arguments.CONFIG_OVERRIDE)
         config = arguments.CONFIG_OVERRIDE
 
-
-    print("Loading install data from dir:", install_root)
-    print("Loading config data from dir:", config)
+    # Now that the config is loaded, log information from start up
 
     os.makedirs(config, exist_ok=True)
 
@@ -87,5 +84,27 @@ INSTALL_ROOT, CONFIG, ASSETS, STOCK_SCHEMATICS, STOCK_FILTERS = findDirectories(
 
 LOG_FILE = CONFIG / LOG_NAME
 INI_FILE = CONFIG / INI_NAME
-FILTER_TEMPLATE_FILE = STOCK_FILTERS / "demo" / "template.py"
-FILTER_GUIDE_FILE = STOCK_FILTERS / "demo" / "guide.py"
+ITEMS_FILE = ASSETS / ITEMS_NAME
+FILTER_TEMPLATE_FILE = STOCK_FILTERS / DEMO_DIR_NAME / TEMPLATE_NAME
+FILTER_GUIDE_FILE = STOCK_FILTERS / DEMO_DIR_NAME / GUIDE_NAME
+
+# Must log all details about directories after setting up files due to circular logic
+def _log_creation():
+    import log
+    if FROZEN:
+        log.info("Running from stand alone install")
+    else:
+        log.info("Running from source")
+
+    global _CONFIG_OVERRIDEN, _INSTALL_OVERRIDEN
+
+    if _CONFIG_OVERRIDEN:
+        log.info("Config directory overriden to:", arguments.CONFIG_OVERRIDE)
+
+    if _INSTALL_OVERRIDEN:
+        log.info("Install directory overriden to:", arguments.INSTALLED_OVERRIDE)
+
+    log.info("Loaded install data from dir:", INSTALL_ROOT)
+    log.info("Loaded config data from dir:", CONFIG)
+
+_log_creation()

@@ -6,6 +6,7 @@ from .widget import Widget
 from .controls import Label, Button
 from .layout import Row, Column
 from .fields import TextField
+import log
 
 
 class Modal(object):
@@ -79,18 +80,10 @@ def wrapped_label(text, wrap_width, **kwds):
     text = "\n".join([textwrap.fill(para, wrap_width) for para in paras])
     return Label(text, **kwds)
 
-#def alert(mess, wrap_width = 60, **kwds):
-#    box = Dialog(**kwds)
-#    d = box.margin
-#    lb = wrapped_label(mess, wrap_width)
-#    lb.topleft = (d, d)
-#    box.add(lb)
-#    box.shrink_wrap()
-#    return box.present()
-
 
 def alert(mess, **kwds):
     ask(mess, ["OK"], **kwds)
+    log.info(mess)
 
 
 def ask(mess, responses=["OK", "Cancel"], default=0, cancel=-1,

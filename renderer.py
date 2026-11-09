@@ -42,12 +42,11 @@ MCRenderer:
 """
 
 
-
+import arguments
 from collections import defaultdict, deque
 from datetime import datetime, timedelta
 from depths import DepthOffset
 from glutils import gl, Texture
-import logging
 import numpy as np
 from OpenGL import GL
 import pymclevel
@@ -59,6 +58,10 @@ from pymclevel.level import FakeChunk
 import pymclevel.faces as Faces
 
 from pymclevel.box import BoundingBox
+
+from config import Settings
+from config_classes import Setting
+import log
 
 def chunkMarkers(chunkSet):
     """ Returns a mapping { size: [position, ...] } for different powers of 2
@@ -121,11 +124,8 @@ class ChunkRenderer(object):
 
     def forgetDisplayLists(self, states=None):
         if self.renderstateLists is not None:
-            # print "Discarded {0}, gained {1} bytes".format(self.chunkPosition,self.bufferSize)
-
             for k in states or self.renderstateLists.keys():
                 a = self.renderstateLists.get(k, [])
-                # print a
                 for i in a:
                     gl.glDeleteLists(i, 1)
 
@@ -150,9 +150,7 @@ class ChunkRenderer(object):
 
         lists = defaultdict(list)
 
-        showRedraw = self.renderer.showRedraw
-
-        if not (showRedraw and self.needsBlockRedraw):
+        if not (Settings.show_chunk_redraw.v and self.needsBlockRedraw):
             GL.glEnableClientState(GL.GL_COLOR_ARRAY)
 
         renderers = self.blockRenderers
@@ -163,10 +161,10 @@ class ChunkRenderer(object):
             if blockRenderer.layer not in self.visibleLayers:
                 continue
 
-            l = blockRenderer.makeArrayList(self.chunkPosition, self.needsBlockRedraw and showRedraw)
+            l = blockRenderer.makeArrayList(self.chunkPosition, self.needsBlockRedraw and Settings.show_chunk_redraw.v)
             lists[blockRenderer.renderstate].append(l)
 
-        if not (showRedraw and self.needsBlockRedraw):
+        if not (Settings.show_chunk_redraw.v and self.needsBlockRedraw):
             GL.glDisableClientState(GL.GL_COLOR_ARRAY)
 
         self.needsRedisplay = False
@@ -190,7 +188,7 @@ class ChunkRenderer(object):
                 self.forgetDisplayLists()
             self.blockRenderers = blockRenderers
 
-            if self.renderer.showRedraw and Layer.Blocks in layers:
+            if Settings.show_chunk_redraw.v and Layer.Blocks in layers:
                 self.needsRedisplay = True
 
     def calcFaces(self):
@@ -323,12 +321,6 @@ class ChunkCalculator (object):
 
     def __init__(self, level):
         self.makeRenderStates()
-
-        from leveleditor import Settings
-
-        Settings.fastLeaves.addObserver(self)
-        Settings.roughGraphics.addObserver(self)
-
         self.materialMap: np.ndarray
         """
         A 1D array of 256 ints defaulting to zero, seems to use block ids as an index to an int that represents the kind of block to render
@@ -504,7 +496,7 @@ class ChunkCalculator (object):
         try:
             chunk = level.getChunk(cx, cz)
         except Exception as e:
-            logging.warn(u"Error reading chunk: %s", e)
+            log.warn(f"Error reading chunk: {e}")
             yield
             return
 
@@ -718,8 +710,7 @@ class ChunkCalculator (object):
 
         # Find which materials should be visible through solid blocks
         # facingMats maps block id to the id for the renderer for that block?
-        showHiddenOres = cr.renderer.showHiddenOres
-        if showHiddenOres:
+        if Settings.show_hidden_ores.v:
             facingMats = self.hiddenOreMaterials[areaBlocks]
         else:
             facingMats = self.exposedMaterialMap[areaBlocks]
@@ -727,7 +718,7 @@ class ChunkCalculator (object):
         yield
 
         # areaBlockMats maps block id to some renderer for that block?
-        if self.roughGraphics:
+        if Settings.rough_graphics.v:
             areaBlockMats = self.roughMaterials[areaBlocks]
         else:
             areaBlockMats = self.materialMap[areaBlocks]
@@ -759,7 +750,7 @@ class ChunkCalculator (object):
         # Find the block "material" id from the blocks of the original chunk
         blockMaterials = areaBlockMats[1:-1, 1:-1, 1:-1]
         # If using simple graphics, only use rendering modes 0 and 1 (empty and full block)
-        if self.roughGraphics:
+        if Settings.rough_graphics.v:
             blockMaterials.clip(0, 1, blockMaterials)
 
         # Represents indexing into the original chunk data and the chunk data expanded by one block on all sides
@@ -846,12 +837,11 @@ class ChunkCalculator (object):
 class Layer:
     Blocks = "Blocks"
     Entities = "Entities"
-    Monsters = "Monsters"
     Items = "Items"
     TileEntities = "TileEntities"
     TileTicks = "TileTicks"
     TerrainPopulated = "TerrainPopulated"
-    AllLayers = (Blocks, Entities, Monsters, Items, TileEntities, TileTicks, TerrainPopulated)
+    AllLayers = (Blocks, Entities, Items, TileEntities, TileTicks, TerrainPopulated)
 
 
 class BlockRenderer(object):
@@ -1022,7 +1012,7 @@ class BaseEntityRenderer(EntityRendererGeneric):
 
 
 class MonsterRenderer(BaseEntityRenderer):
-    layer = Layer.Entities  # xxx Monsters
+    layer = Layer.Entities
     notMonsters = set(["Item", "XPOrb", "Painting"])
 
     def makeChunkVertices(self, chunk: pymclevel.EntityLevel):
@@ -1381,7 +1371,7 @@ class LeafBlockRenderer(BlockRenderer):
 
     @property
     def renderstate(self):
-        if self.chunkCalculator.fastLeaves:
+        if Settings.fast_leaves.v:
             return ChunkCalculator.renderStatePlain
         else:
             return ChunkCalculator.renderStateAlphaTest
@@ -1391,7 +1381,7 @@ class LeafBlockRenderer(BlockRenderer):
         materialIndices = self.getMaterialIndices(blockMaterials)
         yield
 
-        if not self.chunkCalculator.fastLeaves:
+        if not Settings.fast_leaves.v:
             blockIndices = materialIndices
             data = blockData[blockIndices]
             data &= 0x3  # ignore decay states
@@ -1401,7 +1391,7 @@ class LeafBlockRenderer(BlockRenderer):
             texes = texMap(18, data, 0)
 
         for (direction, exposedFaceIndices) in enumerate(facingBlockIndices):
-            if self.chunkCalculator.fastLeaves:
+            if Settings.fast_leaves.v:
                 blockIndices = materialIndices & exposedFaceIndices
                 data = blockData[blockIndices]
                 data &= 0x3  # ignore decay states
@@ -1420,7 +1410,7 @@ class LeafBlockRenderer(BlockRenderer):
 
             vertexArray[_ST] += texes[:, np.newaxis]
 
-            if not self.chunkCalculator.fastLeaves:
+            if not Settings.fast_leaves.v:
                 vertexArray[_ST] -= (0x10, 0x0)
 
             vertexArray.view('uint8')[_RGB] *= facingBlockLight[blockIndices][..., np.newaxis, np.newaxis]
@@ -2102,26 +2092,21 @@ class MCRenderer(object):
         self.chunkSamples = [timedelta(0, 0, 0)] * 15
 
         self.chunkIterator = None
+        
+        def layer_observer(setting: Setting, layer: Layer):
+            setting.add_observer(lambda v: self.toggleLayer(v, layer), "renderer")
 
-        import leveleditor
-        Settings = leveleditor.Settings
+        layer_observer(Settings.draw_entities, Layer.Entities)
+        layer_observer(Settings.draw_tile_entities, Layer.TileEntities)
+        layer_observer(Settings.draw_tile_ticks, Layer.TileTicks)
+        layer_observer(Settings.draw_items, Layer.Items)
+        layer_observer(Settings.draw_unpopulated_chunks, Layer.TerrainPopulated)
 
-        Settings.fastLeaves.addObserver(self)
+        Settings.show_hidden_ores.add_observer(lambda v: self.discardAllChunks(), "renderer")
 
-        Settings.roughGraphics.addObserver(self)
-        Settings.showHiddenOres.addObserver(self)
-        Settings.vertexBufferLimit.addObserver(self)
-
-        Settings.drawEntities.addObserver(self)
-        Settings.drawTileEntities.addObserver(self)
-        Settings.drawTileTicks.addObserver(self)
-        Settings.drawUnpopulatedChunks.addObserver(self, "drawTerrainPopulated")
-        Settings.drawMonsters.addObserver(self)
-        Settings.drawItems.addObserver(self)
-
-        Settings.showChunkRedraw.addObserver(self, "showRedraw")
-        Settings.spaceHeight.addObserver(self)
-        Settings.targetFPS.addObserver(self, "targetFPS")
+        Settings.view_distance.add_observer(lambda v: self.update_view_distance(), "renderer")
+        Settings.fast_leaves.add_observer(lambda v: self.discardAllChunks(), "renderer")
+        Settings.rough_graphics.add_observer(lambda v: self.discardAllChunks(), "renderer")
 
         self.level: pymclevel.MCLevel = level
 
@@ -2133,8 +2118,6 @@ class MCRenderer(object):
 
     minViewDistance = 2
     maxViewDistance = 64
-
-    _viewDistance = 16
 
     needsRedraw = True
 
@@ -2148,32 +2131,12 @@ class MCRenderer(object):
 
         self.loadNearbyChunks()
 
-    def layerProperty(layer, default=True):  # @NoSelf
-        attr = sys.intern("_draw" + layer)
-
-        def _get(self):
-            return getattr(self, attr, default)
-
-        def _set(self, val):
-            if val != _get(self):
-                setattr(self, attr, val)
-                self.toggleLayer(val, layer)
-
-        return property(_get, _set)
-
-    drawEntities = layerProperty(Layer.Entities)
-    drawTileEntities = layerProperty(Layer.TileEntities)
-    drawTileTicks = layerProperty(Layer.TileTicks)
-    drawMonsters = layerProperty(Layer.Monsters)
-    drawItems = layerProperty(Layer.Items)
-    drawTerrainPopulated = layerProperty(Layer.TerrainPopulated)
-
     def inSpace(self):
         if self.level is None:
             return True
         h = self.position[1]
-        return ((h > self.level.Height + self.spaceHeight) or
-                (h <= -self.spaceHeight))
+        return ((h > self.level.Height + Settings.space_height.v) or
+                (h <= -Settings.space_height.v))
 
     def chunkDistance(self, cpos):
         camx, camy, camz = self.position
@@ -2192,7 +2155,7 @@ class MCRenderer(object):
 
     overheadMode = False
 
-    def detailLevelForChunk(self, cpos):
+    def detailLevelForChunk(self, c_pos):
         if self.overheadMode:
             return 2
         if self.isPreviewer:
@@ -2200,36 +2163,33 @@ class MCRenderer(object):
             if w + l < 256:
                 return 0
 
-        distance = self.chunkDistance(cpos) - self.viewDistance
+        distance = self.chunkDistance(c_pos) - Settings.view_distance.v
         if distance > 0 or self.inSpace():
             return 1
         return 0
 
     def getViewDistance(self):
-        return self._viewDistance
+        return Settings.view_distance.v
 
-    def setViewDistance(self, vd):
-        vd = int(vd) & 0xfffe
+    def update_view_distance(self):
+        # Keep the view distance as an even number
+        vd = Settings.view_distance.v
+        vd = vd - (vd % 2)
         vd = min(max(vd, self.minViewDistance), self.maxViewDistance)
-        if vd != self._viewDistance:
-            self._viewDistance = vd
+        if vd != Settings.view_distance.v:
+            Settings.view_distance.set(vd)
             self.viewDistanceChanged()
-            # self.invalidateChunkMarkers()
-
-    viewDistance = property(getViewDistance, setViewDistance, None, "View Distance")
+            self.oldPosition = None
+            self.discardMasterList()
+            self.loadNearbyChunks()
+            self.discardChunksOutsideViewDistance()
 
     @property
     def effectiveViewDistance(self):
         if self.inSpace():
-            return self.viewDistance * 4
+            return Settings.view_distance.v * 4
         else:
-            return self.viewDistance * 2
-
-    def viewDistanceChanged(self):
-        self.oldPosition = None  # xxx
-        self.discardMasterList()
-        self.loadNearbyChunks()
-        self.discardChunksOutsideViewDistance()
+            return Settings.view_distance.v * 2
 
     maxWorkFactor = 64
     minWorkFactor = 1
@@ -2357,7 +2317,6 @@ class MCRenderer(object):
         if self.overheadMode:
             return
 
-        # print "discardChunksOutsideViewDistance"
         d = self.effectiveViewDistance
         cx = (self.position[0] - self.origin[0]) / 16
         cz = (self.position[2] - self.origin[2]) / 16
@@ -2369,7 +2328,6 @@ class MCRenderer(object):
             return
         (ox, oz) = origin
         bytes = 0
-        # chunks = np.fromiter(self.chunkRenderers.iterkeys(), dtype='int32', count=len(self.chunkRenderers))
         chunks = np.fromiter(self.chunkRenderers.keys(), dtype='i,i', count=len(self.chunkRenderers))
         chunks.dtype = 'int32'
         chunks.shape = len(self.chunkRenderers), 2
@@ -2397,44 +2355,6 @@ class MCRenderer(object):
 
         self.level.compressChunk(cx, cz)
 
-    _fastLeaves = False
-
-    @property
-    def fastLeaves(self):
-        return self._fastLeaves
-
-    @fastLeaves.setter
-    def fastLeaves(self, val):
-        if self._fastLeaves != bool(val):
-            self.discardAllChunks()
-
-        self._fastLeaves = bool(val)
-
-    _roughGraphics = False
-
-    @property
-    def roughGraphics(self):
-        return self._roughGraphics
-
-    @roughGraphics.setter
-    def roughGraphics(self, val):
-        if self._roughGraphics != bool(val):
-            self.discardAllChunks()
-
-        self._roughGraphics = bool(val)
-
-    _showHiddenOres = False
-
-    @property
-    def showHiddenOres(self):
-        return self._showHiddenOres
-
-    @showHiddenOres.setter
-    def showHiddenOres(self, val):
-        if self._showHiddenOres != bool(val):
-            self.discardAllChunks()
-
-        self._showHiddenOres = bool(val)
 
     def invalidateChunk(self, cx, cz, layers=None):
         " marks the chunk for regenerating vertex data and display lists "
@@ -2515,7 +2435,6 @@ class MCRenderer(object):
     def loadVisibleChunks(self):
         """ loads nearby chunks if the camera has moved beyond a certain distance """
 
-        # print "loadVisibleChunks"
         if self.cameraMovedFarEnough():
             if datetime.now() - self.lastVisibleLoad > timedelta(0, 0.5):
                 self.discardChunksOutsideViewDistance()
@@ -2529,7 +2448,6 @@ class MCRenderer(object):
     def loadNearbyChunks(self):
         if None is self.level:
             return
-        # print "loadNearbyChunks"
         cameraPos = self.position
 
         if self.shouldDrawAll:
@@ -2678,7 +2596,7 @@ class MCRenderer(object):
 
     needsImmediateRedraw = False
     viewingFrustum = None
-    if "-debuglists" in sys.argv:
+    if arguments.DEBUG_RENDER:
         def createMasterLists(self):
             pass
 
@@ -2764,8 +2682,7 @@ class MCRenderer(object):
             except GL.GLError as e:
                 if self.errorLimit:
                     self.errorLimit -= 1
-                    traceback.print_exc()
-                    print(e)
+                    log.error(e)
 
             GL.glDisable(GL.GL_POLYGON_OFFSET_FILL)
 
@@ -2820,8 +2737,8 @@ class MCRenderer(object):
                     except StopIteration:
                         # No more iterations to do, no more work, the iterator is complete
                         return
-                    if self.vertexBufferLimit:
-                        while self.bufferUsage > (0.9 * (self.vertexBufferLimit << 20)):
+                    if Settings.vertex_buffer_limit.v:
+                        while self.bufferUsage > (0.9 * (Settings.vertex_buffer_limit.v << 20)):
                             deadChunk = None
                             deadDistance = self.chunkDistance(c)
                             for cr in self.chunkRenderers.values():
@@ -2851,7 +2768,6 @@ class MCRenderer(object):
             if self.chunkIterator:
                 self.chunkIterator = None
 
-    vertexBufferLimit = 384
 
     def getChunkRenderer(self, c):
         if not (c in self.chunkRenderers):
@@ -2898,14 +2814,13 @@ class MCRenderer(object):
                 except Exception:
                     fn = c
 
-                logging.info(u"Skipped chunk {f}: {e}".format(e=e, f=fn))
+                log.info(f"Skipped chunk {fn}: {e}")
 
     redrawChunks = 0
 
     def chunkDone(self, chunkRenderer, work):
         self.chunkRenderers[chunkRenderer.chunkPosition] = chunkRenderer
         self.bufferUsage += chunkRenderer.bufferSize
-        # print "Chunk {0} used {1} work units".format(chunkRenderer.chunkPosition, work)
         if not self.needsRedraw:
             if self.redrawChunks:
                 self.redrawChunks -= 1

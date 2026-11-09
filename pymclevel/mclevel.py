@@ -8,10 +8,9 @@ import mclevel
 
 # Call mclevel.fromFile to identify and open any of these four file formats:
 #
-# Schematics - gzipped NBT data in a single file.  Returns an MCSchematic.  
+# Schematics - NBT data in a single file.  Returns an MCSchematic.  
 #   MCSchematics have the special method rotateLeft which will reorient torches, stairs, and other tiles appropriately.
-# levels - world folder structure containing level.dat and chunk folders.  Single or Multiplayer.
-#   Can accept a path to the world folder or a path to the level.dat.  Returns an MCLevel
+# levels - world folder structure containing level.dat and chunk folders
 
 # Sand to glass.
 blocks[blocks == materials.Sand.ID] = materials.Glass.ID
@@ -133,22 +132,10 @@ world.saveInPlace();
 # the point tuple is ordered (x,y,z) in accordance with the tuples used to initialize a bounding box
 # however, the slices tuple is ordered (x,z,y) for easy indexing into the arrays.
 
-# Here is an old version of MCInfdevOldLevel.fillBlocks in its entirety:
-
-def fillBlocks(self, box, blockType, blockData = 0):
-    chunkIterator = self.getChunkSlices(box)
-    
-    for (chunk, slices, point) in chunkIterator:
-        chunk.Blocks[slices] = blockType
-        chunk.Data[slices] = blockData
-        chunk.chunkChanged();
-
 
 Copyright 2010 David Rio Vierra
 """
 
-import os
-import logging
 from numpy import frombuffer
 from . import nbt
 
@@ -157,41 +144,38 @@ from .infiniteworld import *
 from .level import *
 from .schematic import *
 
-import sys
+from pathlib import Path
 
-log = logging.getLogger(__name__)
-warn, error, info, debug = log.warn, log.error, log.info, log.debug
+import log
     
 
 class LoadingError(RuntimeError): pass
 
 def fromFile(filename) -> MCLevel:
-    ''' The preferred method for loading Minecraft levels of any type
-    '''
-    info(u"Identifying " + filename)
+    ''' The preferred method for loading Minecraft levels of any type'''
+
+    log.info(f"Identifying {filename}")
 
     if not filename:
         raise IOError("File not found: " + filename)
-    if not os.path.exists(filename):
+    
+    file_path = Path(filename)
+
+    if not file_path.exists():
         raise IOError("File not found: " + filename)
 
-    if ZipSchematic._isLevel(filename):
-        info("Zipfile found, attempting zipped infinite level")
-        lev = ZipSchematic(filename)
-        info("Detected zipped level")
-        return lev
+    # If it's a directory, try to load the level.dat
+    if file_path.is_dir():
+        file_path = file_path / "level.dat"
 
-    if os.path.isdir(filename):
-        raise ValueError("Folder {0} was not identified as a Minecraft level.".format(os.path.basename(filename)))
-
-    f = open(filename, 'rb')
+    f = open(file_path, 'rb')
     raw_data = f.read()
     f.close()
     if len(raw_data) < 4:
-        raise ValueError("{0} is too small! ({1}) ".format(filename, len(raw_data)))
+        raise ValueError(f"{str(file_path)} is too small! ({len(raw_data)}), cannot load")
 
-    if MCBetaLevel._isLevel(filename):
-        info(u"Detected level.dat")
+    if MCBetaLevel._isLevel(str(file_path)):
+        log.info("Detected level.dat")
         return MCBetaLevel(filename=filename)
 
 
@@ -199,14 +183,12 @@ def fromFile(filename) -> MCLevel:
     if not data.any():
         raise ValueError("{0} contains only zeroes. This file is damaged beyond repair.")
 
-    compressed = True
     unzippedData = None
     try:
         unzippedData = gunzip(raw_data)
     except Exception as e:
-        info("Exception during Gzip operation, assuming {0} uncompressed: {1!r}".format(filename, e))
+        log.info("Exception during Gzip operation, assuming {0} uncompressed: {1!r}".format(filename, e))
         if unzippedData is None:
-            compressed = False
             unzippedData = raw_data
 
     data = unzippedData
@@ -215,16 +197,15 @@ def fromFile(filename) -> MCLevel:
         root_tag = nbt.load(buf=data)
 
     except Exception as e:
-        traceback.print_exc()
-        print("Error during NBT load: {0!r}".format(e))
+        log.error("Error during NBT load: {0!r}".format(e))
 
     else:
         if MCSchematic._isTagLevel(root_tag):
-            info("Detected Schematic.")
+            log.info("Detected Schematic")
             return MCSchematic(root_tag=root_tag, filename=filename)
 
         if INVEditChest._isTagLevel(root_tag):
-            info("Detected INVEdit inventory file")
+            log.info("Detected INVEdit inventory file")
             return INVEditChest(root_tag=root_tag, filename=filename)
 
     raise IOError("Cannot detect file type.")

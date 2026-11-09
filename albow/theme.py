@@ -7,6 +7,7 @@
 from . import resource
 
 import sys
+import log
 
 debug_theme = False
 
@@ -19,27 +20,25 @@ class ThemeProperty(object):
 
     def __get__(self, obj, owner):
         if debug_theme:
-            print("%s(%r).__get__(%r)" % (self.__class__.__name__, self.name, obj))
+            log.debug("%s(%r).__get__(%r)" % (self.__class__.__name__, self.name, obj))
         try:  ###
             cache_name = self.cache_name
             try:
                 return getattr(obj, cache_name)
             except AttributeError as e:
                 if debug_theme:
-                    print(e)
+                    log.error(e)
                 value = self.get_from_theme(obj.__class__, self.name)
                 obj.__dict__[cache_name] = value
                 return value
         except:  ###
             if debug_theme:
-                import traceback
-                traceback.print_exc()
-                print("-------------------------------------------------------")
+                log.error()
             raise  ###
 
     def __set__(self, obj, value):
         if debug_theme:
-            print("Setting %r.%s = %r" % (obj, self.cache_name, value))  ###
+            log.debug("Setting %r.%s = %r" % (obj, self.cache_name, value))  ###
         obj.__dict__[self.cache_name] = value
 
     def get_from_theme(self, cls, name):
@@ -73,7 +72,7 @@ class Theme(object):
 
     def lookup(self, cls, name):
         if debug_theme:
-            print("Theme(%r).lookup(%r, %r)" % (self.name, cls, name))
+            log.debug("Theme(%r).lookup(%r, %r)" % (self.name, cls, name))
         for base_class in cls.__mro__:
             class_theme = getattr(self, base_class.__name__, None)
             if class_theme:
@@ -93,11 +92,11 @@ class Theme(object):
 
     def get_font(self, cls, name):
         if debug_theme:
-            print("Theme.get_font(%r, %r)" % (cls, name))
+            log.debug("Theme.get_font(%r, %r)" % (cls, name))
         spec = self.get(cls, name)
         if spec:
             if debug_theme:
-                print("font spec =", spec)
+                log.debug("font spec =", spec)
             return resource.get_font(*spec)
 
 
@@ -202,7 +201,6 @@ root.TabPanel.tab_fg_color = root.fg_color
 root.TabPanel.default_tab_bg_color = (128, 128, 128)
 root.TabPanel.tab_area_bg_color = None
 root.TabPanel.tab_dimming = 0.75
-#root.TabPanel.use_page_bg_color_for_tabs = True
 
 menu = Theme('menu')
 menu.bg_color = (64, 64, 64)

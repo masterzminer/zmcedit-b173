@@ -6,17 +6,12 @@ Created on Jul 22, 2011
 
 from contextlib import contextmanager
 
-import logging
-
 from .nbt import *
 from .material import *
 from .entity import *
 
 from .faces import *
 #String constants for common tag names
-
-log = logging.getLogger(__name__)
-warn, error, info, debug = log.warn, log.error, log.info, log.debug
 
 Entities = "Entities"
 TileEntities = "TileEntities"

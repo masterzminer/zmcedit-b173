@@ -1,43 +1,42 @@
-add command line arguments
-    load a world by supplying a .dat file to load immediately
-    specifying a dimension and or position to load into the save with
-
 filters
     make the last filter used, along with its settings, for the next time mc edit starts
     make the default filter something generally useful
     forester
         figure out if it works
-    set biome
-        fix it locking up controls after running it
-        verify which biomes are valid
-        verify if setting a biome is possible in beta 1.7.3
     topsoil
         figure out overflow error during subtraction
     Allow a new selection to be made or the existing selection modified with the mouse without changing out of the filters tool
     Allow stock filters to be hidden
-
-level rendering
-    make some way of viewing the current biome of a block
-    fix buttons and other non full blocks rendering weirdly
-
-input
-    change key handling to use a binding system, allowing shortcuts to be customized and to avoid hacky work arounds
-    fix the mouse issue when using mouse look and the sidebar of the os panel still being activated
-
-Avoid having to constantly parse adding level.dat, probably make save files represented by an object
-
-standardize logging, print statements, and traceback error logging calls
+    Retest all stock filters
 
 brush
     make a max spacing feature so it can't skip long distances
     make the last selected block or blocks for the brush save with the config, similar to the last brush size
 
-main menu
-    maybe put the stars back in the main menu, or make it a toggle option
-    fix the screen going blank if it fails to load a world
-    make buttons on the main menu to open the config and assets directories
+select
+    fix the select tool icon showing a blank white square sometimes, seemingly from quick loading a world while a world is already open
 
-config
-    standardize the config strings to constants, maybe replace it with json
+import
+    Fix the import not consistently placing immediately or not
 
-add other world generators for making new worlds and generating chunks
+spawn
+    Fix undoDim being undefined when undoing
+
+level rendering
+    fix buttons and other non full blocks rendering weirdly
+    fix the fire rendering with a dumb texture
+
+menu
+    Allow recent worlds to be deleted from the ui
+
+
+
+go through and remove all the unnecessary imports
+
+go through and remove all the unnecessary semicolons
+
+go through and clean up all the typos and general ide warnings
+
+go through and remove all the commented out code
+
+go through and fix all the deprecated method calls

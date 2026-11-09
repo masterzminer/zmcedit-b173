@@ -22,27 +22,8 @@ from .toolbasics import *
 from pymclevel.box import BoundingBox, FloatBox
 from pymclevel.material import materials
 
-SelectSettings = config.Settings("Selection")
-SelectSettings.showPreviousSelection = SelectSettings("Show Previous Selection", True)
-SelectSettings.color = SelectSettings("Color", "teal")
-
-ColorSettings = config.Settings("Selection Colors")
-ColorSettings.defaultColors = {}
-
-
-class ColorSetting(config.Setting):
-    def __init__(self, section, name, dtype, default):
-        super(ColorSetting, self).__init__(section, name, dtype, default)
-        ColorSettings.defaultColors[name] = self
-
-    def set(self, val):
-        values = str(tuple(val))[1:-1]
-        super(ColorSetting, self).set(values)
-
-    def get(self):
-        colorValues = super(ColorSetting, self).get()
-        return parseValues(colorValues)
-ColorSettings.Setting = ColorSetting
+from config import SelectToolSettings, ColorSettings
+import log
 
 
 def parseValues(colorValues):
@@ -57,34 +38,21 @@ def parseValues(colorValues):
 
     return tuple(values)
 
-ColorSettings("white", (1.0, 1.0, 1.0))
-
-ColorSettings("blue", (0.75, 0.75, 1.0))
-ColorSettings("green", (0.75, 1.0, 0.75))
-ColorSettings("red", (1.0, 0.75, 0.75))
-
-ColorSettings("teal", (0.75, 1.0, 1.0))
-ColorSettings("pink", (1.0, 0.75, 1.0))
-ColorSettings("yellow", (1.0, 1.0, 0.75))
-
-ColorSettings("grey", (0.6, 0.6, 0.6))
-ColorSettings("black", (0.0, 0.0, 0.0))
-
 
 def GetSelectionColor(colorWord=None):
     if colorWord is None:
-        colorWord = SelectSettings.color.get()
+        colorWord = SelectToolSettings.color.v
 
-    colorValues = config.config.get("Selection Colors", colorWord)
+    colorValues = ColorSettings.get(colorWord)
     return parseValues(colorValues)
 
 
 class SelectionToolOptions(ToolOptions):
     def updateColors(self):
-        names = [name.lower() for (name, value) in config.config.items("Selection Colors")]
+        names = [entry[0].lower() for entry in ColorSettings.get_all()]
         self.colorPopupButton.choices = [name.capitalize() for name in names]
 
-        color = SelectSettings.color.get()
+        color = SelectToolSettings.color.v
 
         self.colorPopupButton.choiceIndex = names.index(color.lower())
 
@@ -97,7 +65,7 @@ class SelectionToolOptions(ToolOptions):
 
         colorRow = Row((Label("Color: ", align="r"), self.colorPopupButton))
         okButton = Button("OK", action=self.dismiss)
-        showPreviousRow = CheckBoxLabel("Show Previous Selection", ref=AttrRef(tool, 'showPreviousSelection'))
+        showPreviousRow = CheckBoxLabel("Show Previous Selection", ref=SelectToolSettings.show_previous_selection)
 
         def set_color_value(ch):
             i = "RGB".index(ch)
@@ -107,7 +75,7 @@ class SelectionToolOptions(ToolOptions):
                 values = GetSelectionColor(choice)
                 values = values[:i] + (val / 255.0,) + values[i + 1:]
                 setting = str(values)[1:-1]
-                config.config.set("Selection Colors", choice, setting)
+                ColorSettings.set(choice, setting)
                 self.colorChanged()
 
             return _set
@@ -131,7 +99,7 @@ class SelectionToolOptions(ToolOptions):
         self.shrink_wrap()
 
     def colorChanged(self):
-        SelectSettings.color.set(self.colorPopupButton.selectedChoice)
+        SelectToolSettings.color.set(self.colorPopupButton.selectedChoice)
         self.tool.updateSelectionColor()
 
 
@@ -362,7 +330,7 @@ class SelectionTool(EditorTool):
                      materials.WallSign.ID):
             t = self.editor.level.tileEntityAt(*pos)
             if t:
-                sign_text = u"\n".join(t["Text" + str(x)].value for x in range(1, 5))
+                sign_text = "\n".join(t["Text" + str(x)].value for x in range(1, 5))
             else:
                 sign_text = "Undefined"
             return "Sign text: \n" + sign_text + "\n\n" + "Double-click to edit sign."
@@ -605,7 +573,7 @@ class SelectionTool(EditorTool):
             self.dragResizeFace = None
             return
 
-        if self.editor.viewMode == "Chunk":
+        if Settings.view_mode.v == "Chunk":
             self.clickSelectionInProgress = True
 
         if self.dragStartPoint is None and not self.clickSelectionInProgress:
@@ -643,7 +611,7 @@ class SelectionTool(EditorTool):
 
     @property
     def chunkMode(self):
-        return self.editor.viewMode == "Chunk" or self.editor.currentTool is self.editor.toolbar.tools[8]
+        return Settings.view_mode.v == "Chunk" or self.editor.currentTool is self.editor.toolbar.tools[8]
 
     def selectionBoxInProgress(self):
         if self.editor.blockFaceUnderCursor is None:
@@ -700,7 +668,6 @@ class SelectionTool(EditorTool):
     def selectOtherCorner(self):
         self.currentCorner = 1 - self.currentCorner
 
-    showPreviousSelection = SelectSettings.showPreviousSelection.configProperty()
     alpha = 0.25
 
     def drawToolMarkers(self):
@@ -774,7 +741,7 @@ class SelectionTool(EditorTool):
                     glColor(r, g, b, alpha)
                     drawCube(BoundingBox((sx, sy, sz), (1, 1, 1)), GL_LINE_STRIP)
 
-            if not (not self.showPreviousSelection and self.selectionInProgress):
+            if not (not SelectToolSettings.show_previous_selection.v and self.selectionInProgress):
                 # draw the current selection as a white box.  hangs around when you use other tools.
                 glPolygonOffset(DepthOffset.Selection, DepthOffset.Selection)
                 color = self.selectionColor + (self.alpha,)
@@ -831,8 +798,6 @@ class SelectionTool(EditorTool):
                     o, m = selectionBox.origin, selectionBox.maximum
                     otherFacePos = (m, o)[side ^ 1][dim]  # ugly
                     direction = (-1, 1)[side]
-                    # print "pos", pos, "otherFace", otherFacePos, "dir", direction
-                    # print "m", (pos - otherFacePos) * direction
                     if (pos - otherFacePos) * direction > 0:
                         face ^= 1
 
@@ -1033,31 +998,15 @@ class SelectionTool(EditorTool):
 
         self.editor.mouseLookOff()
 
-        print("Clipping: ", shape)
+        log.trace("Clipping: ", shape)
 
         fileFormat = "schematic"
-        if box.volume > self.maxBlocks:
-            fileFormat = "schematic.zip"
-
-        if fileFormat == "schematic.zip":
-            missingChunks = [x for x in box.chunkPositions if not self.editor.level.containsChunk(*x)]
-            if len(missingChunks):
-                if not ((box.origin[0] & 0xf == 0) and (box.origin[2] & 0xf == 0)):
-                    if ask("This is an uneven selection with missing chunks. Expand the selection to chunk edges, or copy air within the missing chunks?", ["Expand Selection", "Copy Air"]) == "Expand Selection":
-                        self.selectChunks()
-                        box = self.selectionBox()
 
         with setWindowCaption("Copying - "):
-            filename = tempfile.mkdtemp(".zip", "mceditcopy")
-            os.rmdir(filename)
-
             status = "Copying {0:n} blocks...".format(box.volume)
             if fileFormat == "schematic":
                 schematic = showProgress(status,
                             self.editor.level.extractSchematicIter(box), cancel=True)
-            else:
-                schematic = showProgress(status,
-                            self.editor.level.extractZipSchematicIter(box, filename), cancel=True)
             if schematic == "Canceled":
                 return None
 

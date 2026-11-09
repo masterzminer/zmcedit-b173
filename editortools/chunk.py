@@ -19,6 +19,7 @@ from albow.dialogs import Dialog
 import numpy as np
 import config
 from config import LastDir
+import log
 
 from pymclevel.box import BoundingBox
 
@@ -109,8 +110,6 @@ class ChunkTool(EditorTool):
     def drawToolMarkers(self):
         if self._displayList is None:
             self._displayList = DisplayList(self._drawToolMarkers)
-
-        #print len(self._selectedChunks) if self._selectedChunks else None, "!=", len(self.editor.selectedChunks)
 
         if self._selectedChunks != self.editor.selectedChunks or True:  # xxx
             self._selectedChunks = set(self.editor.selectedChunks)
@@ -238,7 +237,7 @@ class ChunkTool(EditorTool):
                     try:
                         self.editor.level.deleteChunk(cx, cz)
                     except Exception as e:
-                        print("Error during chunk delete: ", e)
+                        log.error("Error during chunk delete: ", e)
 
         with setWindowCaption("DELETING - "):
             showProgress("Deleting chunks...", _destroyChunks())
@@ -261,7 +260,7 @@ class ChunkTool(EditorTool):
                         self.editor.level.deleteChunk(*cPos)
 
                     except Exception as e:
-                        print("Error during chunk delete: ", e)
+                        log.error("Error during chunk delete: ", e)
 
                 yield i, self.editor.level.chunkCount
 
@@ -270,8 +269,6 @@ class ChunkTool(EditorTool):
 
         self.editor.renderer.invalidateChunkMarkers()
         self.editor.discardAllChunks()
-
-        #self.editor.addUnsavedEdit()
 
     @alertException
     def relightChunks(self):
@@ -342,7 +339,6 @@ def GeneratorPanel():
     panel.grass = True
     panel.simulate = False
 
-    # TODO probably add options for an all air chunk vs a flatland
     generatorChoice = ChoiceButton(["Flatland"])
     panel.generatorChoice = generatorChoice
     col = [Row((Label("Generator:"), generatorChoice))]
@@ -354,7 +350,6 @@ def GeneratorPanel():
     flatPanel = Column([height_input, grass_input], align="l")
 
     def generatorChoiceChanged():
-        # TODO add logic for selecting other generators
         flatPanel.visible = True
 
     generatorChoice.choose = generatorChoiceChanged
@@ -393,13 +388,11 @@ def GeneratorPanel():
             for i, (cx, cz) in enumerate(chunks):
 
                 yield i, len(chunks)
-                #surface = blockInput.blockInfo
 
-                #for cx, cz in :
                 try:
                     level.createChunk(cx, cz)
                 except ValueError as e:  # chunk already present
-                    print(e)
+                    log.warn(e)
                     continue
                 else:
                     ch = level.getChunk(cx, cz)

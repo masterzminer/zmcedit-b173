@@ -11,11 +11,9 @@ Based on code from:
 """
 
 
-import logging
 import numpy as np
 from OpenGL import GL
-context_log = logging.getLogger()
-
+import log
 
 def viewingMatrix(projection=None, model=None):
     """Calculate the total viewing matrix from given data
@@ -37,10 +35,7 @@ def viewingMatrix(projection=None, model=None):
         model = GL.glGetDoublev(GL.GL_MODELVIEW_MATRIX)
     # hmm, this will likely fail on 64-bit platforms :(
     if projection is None or model is None:
-        context_log.warn(
-            """A NULL matrix was returned from glGetDoublev: proj=%s modelView=%s""",
-            projection, model,
-        )
+        log.warn(f"A NULL matrix was returned from glGetDoublev: proj={projection} modelView={model}")
         if projection:
             return projection
         if model:
@@ -48,16 +43,10 @@ def viewingMatrix(projection=None, model=None):
         else:
             return np.identity(4, 'd')
     if np.allclose(projection, -1.79769313e+308):
-        context_log.warn(
-            """Attempt to retrieve projection matrix when uninitialised %s, model=%s""",
-            projection, model,
-        )
+        log.warn(f"Attempt to retrieve projection matrix when uninitialised {projection}, model={model}")
         return model
     if np.allclose(model, -1.79769313e+308):
-        context_log.warn(
-            """Attempt to retrieve model-view matrix when uninitialised %s, projection=%s""",
-            model, projection,
-        )
+        log.warn(f"Attempt to retrieve model-view matrix when uninitialised {model}, projection={projection}")
         return projection
     return np.dot(model, projection)
 

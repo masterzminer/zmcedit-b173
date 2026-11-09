@@ -234,13 +234,9 @@ cdef class _TAG_Compound(TAG_Value):
     cdef save_value(self, buf):
         i = self.items()
         for name, subtag in i:
-            #print "save_tag_name", name, subtag.tagID, "Named", subtag.name,
             save_tag_id(subtag.tagID, buf)
-            #print "id",
             save_tag_name(subtag, buf)
-            #print "name",
             save_tag_value(subtag, buf)
-            #print "value", name
         save_tag_id(TAG_END, buf)
         
 class TAG_Compound(_TAG_Compound, collections.abc.MutableMapping):
@@ -261,14 +257,10 @@ cdef class TAG_Int_Array(TAG_Array):
 #cdef int needswap = (sys.byteorder == "little")
 cdef swab(void * vbuf, int nbytes):
     cdef unsigned char * buf = <unsigned char *> vbuf
-    #print "Swapping ", nbytes, "bytes"
-    #for i in range(nbytes): print buf[i],
-    #print "to", 
     #if not needswap: return
     cdef int i
     for i in range((nbytes+1)//2):
         buf[i], buf[nbytes-i-1] = buf[nbytes-i-1], buf[i]
-    #for i in range(nbytes): print buf[i],
 
 import zlib
 def gunzip(data):
@@ -301,7 +293,6 @@ cdef class load_ctx:
     cdef char * buffer
     cdef size_t size
     cdef int require(self, size_t s) except -1:
-        #print "Asked for ", s
         if s > self.size - self.offset:
             raise NBTFormatError, "NBT Stream too short. Asked for %d, only had %d" % (s, (self.size - self.offset))
             
@@ -319,7 +310,6 @@ cdef load_buffer(bytes buf):
     if should_dump: print(dump(buf))
     assert ctx.buffer[0] == TAG_COMPOUND, "Data is not a TAG_Compound (found %d)" % ctx.buffer[0]
     name = load_string(ctx)
-    #print "Root name", name
     tag = load_compound(ctx)
     tag.name = name
     return tag
@@ -401,7 +391,6 @@ cdef load_bytearray(load_ctx ctx):
     cdef unsigned int length = ptr[0]
     ctx.offset += 4
     cdef char * arr = ctx.buffer + ctx.offset
-    #print "Bytearray", length, ctx.size - ctx.offset
     ctx.require(length)
     ctx.offset += length
     return TAG_Byte_Array(frombuffer(arr[:length], dtype='uint8', count=length).copy())
@@ -413,7 +402,6 @@ cdef load_intarray(load_ctx ctx):
     cdef unsigned int length = ptr[0]
     ctx.offset += 4
     cdef char * arr = ctx.buffer + ctx.offset
-    #print "Bytearray", length, ctx.size - ctx.offset
     ctx.require(length)
     ctx.offset += length
     return TAG_Int_Array(frombuffer(arr[:length], dtype='>u4', count=length//4).copy())
@@ -421,7 +409,6 @@ cdef load_intarray(load_ctx ctx):
 
 ### --- load_compound ---
 cdef load_compound(load_ctx ctx):
-    #print "load_compound buf=%d off=%d" % (ctx.buffer[0], ctx.offset)
     cdef char tagID
     cdef _TAG_Compound root_tag = TAG_Compound()
     assert root_tag is not None
@@ -431,13 +418,11 @@ cdef load_compound(load_ctx ctx):
         tagID = ctx.buffer[ctx.offset]
         ctx.offset += 1
         if tagID == TAG_END:
-            #print "TAG_END at ", ctx.offset
             break
         else:
             name = load_string(ctx)
             tag = load_tag(tagID, ctx)
             #tag.name = name
-            #print "tagID=%d name=%s at %d" % (tagID, tag.name, ctx.offset)
             root_tag[name] = tag
     return root_tag
          
@@ -463,7 +448,6 @@ cdef unicode load_string(load_ctx ctx):
     swab(ptr, 2)
     ctx.offset += 2
     cdef unsigned short length = ptr[0]
-    #print "String: ", ctx.offset, length
     cdef unicode u = PyUnicode_DecodeUTF8(ctx.buffer + ctx.offset, length, "strict")
     ctx.offset += length
     return u
@@ -569,7 +553,6 @@ cdef save_int(int value, object buf):
     cwrite(buf, <char *>&value, 4)
 
 cdef save_long(long long value, object buf):
-#    print "Long long value: ", value, sizeof(value)
     swab(&value, 8)
     cdef char * p = <char *>&value
     cwrite(buf, p, 8)

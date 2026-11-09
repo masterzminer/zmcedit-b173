@@ -31,8 +31,10 @@ import traceback
 from PIL import Image
 import directories
 from albow import FloatField, IntField, TextField
-import config
-from mcplatform import os_ops, askSaveFolder, LastDir
+from mcplatform import os_ops, askSaveFolder
+from config import LastDir, Settings
+from albow.controls import ControlRef
+import log
 
 
 def alertException(func):
@@ -282,8 +284,7 @@ def loadTerrainTexture():
             texW, texH, terrain_data = loadPNGData(slurpZipExt(pngFile))
 
         except Exception as e:
-            traceback.print_exc()
-            print(repr(e), "while loading texture pack")
+            log.error(repr(e), "while loading texture pack")
 
 
     from renderer import LeafBlockRenderer
@@ -329,7 +330,7 @@ def loadPNGTexture(filename):
         tex.data = n_data
         return tex
     except Exception as e:
-        print("Exception loading ", filename, ": ", repr(e))
+        log.error("Exception loading ", filename, ": ", repr(e))
         return glutils.Texture()
 
 
@@ -417,7 +418,10 @@ class ChoiceButton(ValueButton):
     align = "c"
     choose = None
 
-    def __init__(self, choices, **kw):
+    def __init__(self, choices, choice_display={}, **kw):
+        self.choice_display = choice_display
+        """Maps the choice to text for how to display it"""
+
         # passing an empty list of choices is ill-advised
 
         if 'choose' in kw:
@@ -427,11 +431,16 @@ class ChoiceButton(ValueButton):
 
         self.choices = choices or ["[UNDEFINED]"]
 
-        widths = [self.font.size(c)[0] for c in choices] + [self.width]
+        widths = [self.font.size(self._display_value(c))[0] for c in choices] + [self.width]
         if len(widths):
             self.width = max(widths) + self.margin * 2
 
         self.choiceIndex = 0
+
+    def _display_value(self, c):
+        if c in self.choice_display:
+            return self.choice_display[c]
+        return c
 
     def showMenu(self):
         choiceIndex = self.menu.present(self, (0, 0))
@@ -441,7 +450,7 @@ class ChoiceButton(ValueButton):
                 self.choose()
 
     def get_value(self):
-        return self.selectedChoice
+        return self._display_value(self.selectedChoice)
 
     @property
     def selectedChoice(self):
@@ -451,9 +460,9 @@ class ChoiceButton(ValueButton):
 
     @selectedChoice.setter
     def selectedChoice(self, val):
-        idx = self.choices.index(val)
-        if idx != -1:
-            self.choiceIndex = idx
+        index = self.choices.index(val)
+        if index != -1:
+            self.choiceIndex = index
 
     @property
     def choices(self):
@@ -462,13 +471,13 @@ class ChoiceButton(ValueButton):
     @choices.setter
     def choices(self, ch):
         self._choices = ch
-        self.menu = Menu("", ((name, "pickMenu") for name in self._choices))
+        self.menu = Menu("", ((self._display_value(name), "pickMenu") for name in self._choices))
 
 
-def CheckBoxLabel(title, invert=False, on_change=None, **kw):
+def CheckBoxLabel(title, invert=False, ref:ControlRef=None, **kw):
     tooltipText = kw.pop('tooltipText', None)
 
-    cb = CheckBox(invert, on_change, **kw)
+    cb = CheckBox(invert=invert, ref=ref, **kw)
     lab = Label(title, fg_color=cb.fg_color)
     lab.mouse_down = cb.mouse_down
 
@@ -492,15 +501,16 @@ def CheckBoxLabel(title, invert=False, on_change=None, **kw):
     return row
 
 
-def FloatInputRow(title, *args, **kw):
-    return Row((Label(title, tooltipText=kw.get('tooltipText')), FloatField(*args, **kw)))
+def FloatInputRow(title, ref:ControlRef=None, *args, **kw):
+    return Row((Label(title, tooltipText=kw.get('tooltipText')), FloatField(ref=ref, *args, **kw)))
 
 
-def IntInputRow(title, *args, **kw):
-    return Row((Label(title, tooltipText=kw.get('tooltipText')), IntField(*args, **kw)))
+def IntInputRow(title, ref:ControlRef=None, *args, **kw):
+    return Row((Label(title, ref=ref, tooltipText=kw.get('tooltipText')), IntField(ref=ref, *args, **kw)))
 
-def TextInputRow(title, *args, **kw):
-    return Row((Label(title, tooltipText=kw.get('tooltipText')), TextField(*args, **kw)))
+
+def TextInputRow(title, ref:ControlRef=None, *args, **kw):
+    return Row((Label(title, tooltipText=kw.get('tooltipText')), TextField(ref=ref, *args, **kw)))
 
 from albow.dialogs import Dialog
 from datetime import timedelta
@@ -622,24 +632,26 @@ class FilterControls(Column):
 
         controls = []
         controls.append(Button("Choose Filters Folder", action=self.choose_filter_folder))
-        if config.get_user_filters_dir():
+        if Settings.user_filters_dir.v != "" :
             controls.append(Button("Open Filters Folder", action=self.open_filters_folder))
         Column.__init__(self, controls)
 
     def choose_filter_folder(self):
         folder = askSaveFolder(LastDir.filter, title="Choose folder for custom filters")
         if folder:
-            # Update the directory
-            config.update_user_filters_dir(folder)
+            # Update the user folder
+            Settings.user_filters_dir.set(str(folder))
+
             # Reload the menu to account for the updated directory
             self.reload()
 
             # Reload all filters
             from editortools.filter import reload_filters
+
             reload_filters()
 
     def open_filters_folder(self):
-        os_ops.open_file(config.get_user_filters_dir())
+        os_ops.open_file(LastDir.filter.v)
 
 
 

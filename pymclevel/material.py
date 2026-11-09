@@ -9,9 +9,7 @@ NOTEX = (0xB0, 0xE0)
 import yaml
 import directories
 
-import logging
-log = logging.getLogger(__file__)
-debug, info, warn, error, critical = log.debug, log.info, log.warn, log.error, log.critical
+import log
 
 
 class Block(object):
@@ -146,19 +144,18 @@ class MCMaterials(object):
     
     def addYamlBlocksFromFile(self, filename):
         with open(filename) as f:
-            info("Loading block info from %s", f)
+            log.debug(f"Loading block info from {f}")
             block_yaml = yaml.safe_load(f)
             self.addYamlBlocks(block_yaml)
             
-    def addYamlBlocks(self, blockyaml):
-        self.yamlDatas.append(blockyaml)
-        for block in blockyaml['blocks']:
+    def addYamlBlocks(self, block_yaml):
+        self.yamlDatas.append(block_yaml)
+        for block in block_yaml['blocks']:
             try:
                 self.addYamlBlock(block)
             except Exception as e:
-                warn(u"Exception while parsing block: %s", e)
-                traceback.print_exc()
-                warn(u"Block definition: \n%s", pformat(block))
+                log.warn(f"Block definition: {pformat(block)}")
+                log.error(f"Exception while parsing block: {e}")
                     
             
     
@@ -180,10 +177,10 @@ class MCMaterials(object):
          ]
         
         for val, data in kw.get('data', {0:{}}).items():
-            datakw = dict(kw)
-            datakw.update(data)
-            idStr = datakw.get('idStr', "")
-            tex = [t*16 for t in datakw.get('tex', self.defaultTex)]
+            data_kw = dict(kw)
+            data_kw.update(data)
+            idStr = data_kw.get('idStr', "")
+            tex = [t*16 for t in data_kw.get('tex', self.defaultTex)]
             texture = [tex] * 6
             texDirs = {
                 "FORWARD":5,
@@ -193,22 +190,21 @@ class MCMaterials(object):
                 "TOP":2,
                 "BOTTOM":3,
             }
-            for dirname, dirtex in datakw.get('tex_direction', {}).items():
+            for dirname, dir_tex in data_kw.get('tex_direction', {}).items():
                 if dirname == "SIDES":
                     for dirname in ("LEFT", "RIGHT"):
-                        texture[texDirs[dirname]] = [t*16 for t in dirtex]
+                        texture[texDirs[dirname]] = [t*16 for t in dir_tex]
                 if dirname in texDirs:
-                    texture[texDirs[dirname]] = [t*16 for t in dirtex]
-            datakw['texture'] = texture
-            #print datakw
-            block = self.addBlock(blockID, val, **datakw)
-            block.yaml = datakw
+                    texture[texDirs[dirname]] = [t*16 for t in dir_tex]
+            data_kw['texture'] = texture
+            block = self.addBlock(blockID, val, **data_kw)
+            block.yaml = data_kw
             if idStr not in self.idStr:
                 self.idStr[idStr] = block
             
         tex_direction_data = kw.get('tex_direction_data')
         if tex_direction_data:
-            texture = datakw['texture']
+            texture = data_kw['texture']
             #X+0, X-1, Y+, Y-, Z+b, Z-f
             texDirMap = {
                 "NORTH": 0,
@@ -488,13 +484,11 @@ def conversionFunc(destMats, sourceMats):
     if func: return func
         
     filters, unavailable = guessFilterTable(sourceMats, destMats)
-    debug("")
-    debug("%s %s %s", sourceMats.name, "=>", destMats.name)
+    log.debug(f"{sourceMats.name} => {destMats.name}")
     for a,b in [(sourceMats.blockWithID(*a), destMats.blockWithID(*b)) for a,b in filters]:
-        debug("{0:20}: \"{1}\"".format('"' + a.name + '"',b.name))
+        log.debug(f"{a.name}, {b.name}")
     
-    debug("")
-    debug("Missing blocks: %s", [sourceMats.blockWithID(*a).name for a in unavailable])
+    log.debug(f"Missing blocks: {[sourceMats.blockWithID(*a).name for a in unavailable]}")
     
     table = _filterTable(filters, unavailable, (35, 0))
     func = filterConversion(table)

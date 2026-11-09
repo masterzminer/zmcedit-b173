@@ -9,6 +9,7 @@ from pygame import Rect
 from .layout import Column
 from .palette_view import PaletteView
 from .utils import blit_in_rect
+import log
 
 
 class TableView(Column):
@@ -88,7 +89,7 @@ class TableView(Column):
         pass
 
     def click_column_header(self, col):
-        print("click_column_header: ", col)
+        log.trace("click_column_header: ", col)
 
     def click_header(self, n, e):
         x, y = self.global_to_local(e.pos)

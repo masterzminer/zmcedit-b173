@@ -9,7 +9,6 @@
 import sys
 import pygame
 from pygame.locals import *
-#from pygame.time import get_ticks
 from pygame.event import Event
 
 from glbackground import *
@@ -19,13 +18,13 @@ from .controls import Label
 
 from datetime import datetime, timedelta
 from albow.dialogs import wrapped_label
+from config import Settings
+import log
+
 start_time = datetime.now()
 
 mod_cmd = KMOD_LCTRL | KMOD_RCTRL | KMOD_LMETA | KMOD_RMETA
 double_click_time = timedelta(0, 0, 300000)  # days, seconds, microseconds
-
-import logging
-log = logging.getLogger(__name__)
 
 modifiers = dict(
     shift=False,
@@ -105,7 +104,8 @@ class RootWidget(Widget):
         #put the mouse in "virtual mode" and pass mouse moved events to the
         #specified widget
         if widget:
-            pygame.mouse.set_visible(False)
+            if not Settings.center_mouse_fix.v:
+                pygame.mouse.set_visible(False)
             pygame.event.set_grab(True)
             get_root().captured_widget = widget
         else:
@@ -164,7 +164,7 @@ class RootWidget(Widget):
                     events.extend(pygame.event.get())
                     for event in events:
                         if event.type:
-                            log.debug("%s", event)
+                            log.trace(event)
 
                         type = event.type
                         if type == QUIT:
@@ -208,6 +208,11 @@ class RootWidget(Widget):
                                     mouse_widget = modal_widget
                                 last_mouse_event_handler = mouse_widget
                                 mouse_widget.handle_mouse('mouse_move', event)
+
+                            # Hack to force set the mouse back to the center when it moves during 3D movement
+                            if Settings.center_mouse_fix.v and pygame.event.get_grab():
+                                pygame.mouse.set_pos(self.width * .5, self.height * .5)
+
                         elif type == MOUSEBUTTONUP:
                             add_modifiers(event)
                             self.do_draw = True
@@ -282,7 +287,7 @@ class RootWidget(Widget):
             if widget:
                 widget.idle_event(event)
             else:
-                print("Idle ref died!")
+                log.debug("Idle ref died!")
             return bool(widget)
 
         self.idle_handlers = list(filter(call, self.idle_handlers))
@@ -399,15 +404,12 @@ scheduled_calls = []
 
 def make_scheduled_calls():
     sched = scheduled_calls
-    t = time()
-    while sched and sched[0][0] <= t:
-        sched[0][1]()
+    while scheduled_calls:
+        sched[0]()
         sched.pop(0)
 
 
-def schedule(delay, func):
-    """Arrange for the given function to be called after the specified
-    delay in seconds. Scheduled functions are called synchronously from
-    the event loop, and only when the frame timer is running."""
-    t = time() + delay
-    insort(scheduled_calls, (t, func))
+def schedule(func):
+    """Arrange for the given function to be called in the next pygame loop"""
+    insort(scheduled_calls, func)
+    pygame.event.post(pygame.event.Event(USEREVENT))

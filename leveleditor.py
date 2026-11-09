@@ -31,10 +31,8 @@ import csv
 import copy
 import time
 import numpy as np
-import config
-from config import LastDir
+from config import LastDir, Keys, ToolKeys, WorldKeys, Settings, Controls, save_config, config_seed
 import frustum
-import logging
 import glutils
 import release
 import mceutils
@@ -46,8 +44,9 @@ import mcplatform
 import pymclevel
 import renderer
 import traceback
-from pathlib import Path
+from typing import Literal
 from pymclevel.schematic import MCSchematic
+import arguments
 
 from math import isnan
 from os.path import dirname, isdir
@@ -66,7 +65,7 @@ import pygame
 
 from depths import DepthOffset
 from editortools.chunk import GeneratorPanel
-from editortools.toolbasics import Operation
+from editortools.toolbasics import Operation, EditorTool
 from glbackground import GLBackground, Panel
 from glutils import gl, Texture
 from mcplatform import askSaveFile
@@ -79,60 +78,7 @@ from pymclevel.level import MCLevel
 from pymclevel.infiniteworld import MCBetaLevel
 from pymclevel.material import materials
 import pymclevel.mclevel as mclevel
-
-# Label = GLLabel
-
-Settings = config.Settings("Settings")
-Settings.flyMode = Settings("Fly Mode", False)
-Settings.enableMouseLag = Settings("Enable Mouse Lag", False)
-Settings.longDistanceMode = Settings("Long Distance Mode", False)
-Settings.closeMinecraftWarning = Settings("Close Minecraft Warning", True)
-Settings.fov = Settings("Field of View", 70.0)
-Settings.spaceHeight = Settings("Space Height", 64)
-Settings.blockBuffer = Settings("Block Buffer", 256 * 1048576)
-
-Settings.doubleBuffer = Settings("Double Buffer", True)
-
-Settings.viewDistance = Settings("View Distance", 16)
-Settings.targetFPS = Settings("Target FPS", 60)
-
-Settings.windowWidth = Settings("window width", 1024)
-Settings.windowHeight = Settings("window height", 768)
-Settings.windowX = Settings("window x", 0)
-Settings.windowY = Settings("window y", 0)
-Settings.windowShowCmd = Settings("window showcmd", 1)
-Settings.setWindowPlacement = Settings("SetWindowPlacement", True)
-
-Settings.showHiddenOres = Settings("show hidden ores", False)
-Settings.fastLeaves = Settings("fast leaves", False)
-Settings.roughGraphics = Settings("rough graphics", False)
-Settings.showChunkRedraw = Settings("show chunk redraw", True)
-Settings.drawSky = Settings("draw sky", True)
-Settings.drawFog = Settings("draw fog", True)
-Settings.showCeiling = Settings("show ceiling", True)
-Settings.drawEntities = Settings("draw entities", True)
-Settings.drawMonsters = Settings("draw monsters", True)
-Settings.drawItems = Settings("draw items", True)
-Settings.drawTileEntities = Settings("draw tile entities", True)
-Settings.drawTileTicks = Settings("draw tile ticks", False)
-Settings.drawUnpopulatedChunks = Settings("draw unpopulated chunks", True)
-Settings.vertexBufferLimit = Settings("vertex buffer limit", 384)
-
-Settings.vsync = Settings("vertical sync", 0)
-Settings.visibilityCheck = Settings("visibility check", False)
-Settings.viewMode = Settings("View Mode", "Camera")
-Settings.classicMouse = Settings("classic mouse", False)
-Settings.useOldFileBrowser = Settings("old file browser", False)
-
-ControlSettings = config.Settings("Controls")
-ControlSettings.mouseSpeed = ControlSettings("mouse speed", 5.0)
-ControlSettings.cameraAccel = ControlSettings("camera acceleration", 125.0)
-ControlSettings.cameraDrag = ControlSettings("camera drag", 100.0)
-ControlSettings.cameraMaxSpeed = ControlSettings("camera maximum speed", 60.0)
-ControlSettings.cameraBrakingSpeed = ControlSettings("camera braking speed", 8.0)
-ControlSettings.invertMousePitch = ControlSettings("invert mouse pitch", False)
-ControlSettings.autobrake = ControlSettings("autobrake", True)
-ControlSettings.swapAxes = ControlSettings("swap axes looking down", False)
+import log
 
 arch = platform.architecture()[0]
 
@@ -182,20 +128,20 @@ class ControlPanel(Panel):
             buttonsColumn.append(b)'''
 
         cmd = mcplatform.cmd_name
-        hotkeys = ([(cmd + "-N", "Create New World", editor.mcedit.createNewWorld),
-                    (cmd + "-O", "Open World...", editor.askOpenFile),
-                    (cmd + "-S", "Save", editor.saveFile),
-                    (cmd + "-R", "Reload", editor.reload),
-                    (cmd + "-W", "Close", editor.closeEditor),
+        hotkeys = ([(cmd + f"-{Keys.new_level.v.upper()}", "Create New World", editor.mcedit.createNewWorld),
+                    (cmd + f"-{Keys.open_level.v.upper()}", "Open World...", editor.askOpenFile),
+                    (cmd + f"-{Keys.save.v.upper()}", "Save", editor.saveFile),
+                    (cmd + f"-{Keys.reload.v.upper()}", "Reload", editor.reload),
+                    (cmd + f"-{Keys.close_world.v.upper()}", "Close", editor.closeEditor),
                     ("", "", lambda: None),
 
-                    ("G", "Goto", editor.showGotoPanel),
-                    (cmd + "-I", "World Info", editor.showWorldInfo),
-                    (cmd + "-Z", "Undo", editor.undo),
-                    (cmd + "-A", "Select All", editor.selectAll),
-                    (cmd + "-D", "Deselect", editor.deselect),
-                    (cmd + "-F", AttrRef(editor, 'viewDistanceLabelText'), editor.swapViewDistance),
-                    ("Alt-F4", "Quit", editor.quit),
+                    (cmd + f"-{Keys.goto.v.upper()}", "Goto", editor.showGotoPanel),
+                    (cmd + f"-{Keys.info.v.upper()}", "World Info", editor.showWorldInfo),
+                    (cmd + f"-{Keys.undo.v.upper()}", "Undo", editor.undo),
+                    (cmd + f"-{Keys.select_all.v.upper()}", "Select All", editor.selectAll),
+                    (cmd + f"-{Keys.deselect.v.upper()}", "Deselect", editor.deselect),
+                    (cmd + f"-{Keys.swap_view_distance.v.upper()}", AttrRef(editor, 'viewDistanceLabelText'), editor.swapViewDistance),
+                    ("", "Quit", editor.quit),
                     ])
 
         if cmd == "Cmd":
@@ -252,6 +198,8 @@ class CameraViewport(GLViewport):
     oldMousePosition = None
 
     def __init__(self, editor):
+        self.position = None
+
         self.editor = editor
         rect = editor.mcedit.rect
         GLViewport.__init__(self, rect)
@@ -264,7 +212,6 @@ class CameraViewport(GLViewport):
 
         self.brake = False
         self.lastTick = datetime.now()
-        # self.nearheight = near * tang
 
         self.cameraPosition = (16., 45., 16.)
         self.velocity = [0., 0., 0.]
@@ -280,21 +227,9 @@ class CameraViewport(GLViewport):
         #   2 = mouse cursor was hidden after state 1, next event will be bad
         self.avoidMouseJumpBug = 1
 
-        Settings.drawSky.addObserver(self)
-        Settings.drawFog.addObserver(self)
-        Settings.showCeiling.addObserver(self)
-        ControlSettings.cameraAccel.addObserver(self, "accelFactor")
-        ControlSettings.cameraMaxSpeed.addObserver(self, "maxSpeed")
-        ControlSettings.cameraBrakingSpeed.addObserver(self, "brakeMaxSpeed")
-        ControlSettings.invertMousePitch.addObserver(self)
-        ControlSettings.autobrake.addObserver(self)
-        ControlSettings.swapAxes.addObserver(self)
-
-        Settings.visibilityCheck.addObserver(self)
-        Settings.fov.addObserver(self, "fovSetting", callback=self.updateFov)
+        Settings.fov.add_observer(self.update_fov, "camera viewport")
 
         self.mouseVector = (0, 0, 0)
-        # self.add(DebugDisplay(self, "cameraPosition", "blockFaceUnderCursor", "mouseVector", "mouse3dPoint"))
 
     @property
     def pitch(self):
@@ -304,11 +239,10 @@ class CameraViewport(GLViewport):
     def pitch(self, val):
         self._pitch = min(89.999, max(-89.999, val))
 
-    def updateFov(self, val=None):
-        hfov = self.fovSetting
-        fov = np.degrees(2.0 * np.arctan(self.size[0] / self.size[1] * np.tan(np.radians(hfov) * 0.5)))
+    def update_fov(self, value=None):
+        h_fov = Settings.fov.v
+        fov = np.degrees(2.0 * np.arctan(self.size[0] / self.size[1] * np.tan(np.radians(h_fov) * 0.5)))
 
-        self.fov = fov
         self.tang = np.tan(np.radians(fov))
 
     def stopMoving(self):
@@ -324,8 +258,6 @@ class CameraViewport(GLViewport):
 
     oldPosition = (0, 0, 0)
 
-    flyMode = Settings.flyMode.configProperty()
-
     def tickCamera(self, frameStartTime, inputs, inSpace):
         if (frameStartTime - self.lastTick).microseconds > self.tickInterval * 1000:
             timeDelta = frameStartTime - self.lastTick
@@ -334,32 +266,33 @@ class CameraViewport(GLViewport):
             return
 
         timeDelta = float(timeDelta.microseconds) / 1000000.
-        timeDelta = min(timeDelta, 0.125)  # 8fps lower limit!
-        drag = ControlSettings.cameraDrag.get()
-        accel_factor = drag + ControlSettings.cameraAccel.get()
+        # 8fps lower limit
+        timeDelta = min(timeDelta, 0.125)
+        drag = Controls.camera_drag.v
+        accel_factor = drag + Controls.camera_acceleration.v
 
         # if we're in space, move faster
 
         drag_epsilon = 10.0 * timeDelta
-        max_speed = self.maxSpeed
+        max_speed = Controls.camera_max_speed.v
 
         if self.brake:
-            max_speed = self.brakeMaxSpeed
+            max_speed = Controls.camera_breaking_speed.v
 
         if inSpace:
             accel_factor *= 3.0
             max_speed *= 3.0
 
         pi = self.editor.cameraPanKeys
-        mouseSpeed = ControlSettings.mouseSpeed.get()
-        self.yaw += pi[0] * mouseSpeed
-        self.pitch += pi[1] * mouseSpeed
+        mouse_speed = Controls.mouse_speed.v
+        self.yaw += pi[0] * mouse_speed
+        self.pitch += pi[1] * mouse_speed
 
         alignMovementToAxes = key.get_mods() & KMOD_SHIFT
 
-        if self.flyMode:
+        if Settings.fly_mode.v:
             (dx, dy, dz) = self._anglesToVector(self.yaw, 0)
-        elif self.swapAxesLookingDown or alignMovementToAxes:
+        elif Controls.swap_axes or alignMovementToAxes:
             p = self.pitch
             if p > 80 or alignMovementToAxes:
                 p = 0
@@ -388,15 +321,14 @@ class CameraViewport(GLViewport):
         ))
 
         # give the camera an impulse according to the state of the inputs and in the direction of the camera
-        cameraAccel = [x * accel_factor * timeDelta for x in directedInputs]
-        # cameraImpulse = map(lambda x: x*impulse_factor, directedInputs)
+        camera_acceleration = [x * accel_factor * timeDelta for x in directedInputs]
 
-        newVelocity = list(map(lambda a, b: a + b, velocity, cameraAccel))
+        newVelocity = list(map(lambda a, b: a + b, velocity, camera_acceleration))
         velocityDir, speed = mceutils.normalize_size(newVelocity)
 
         # apply drag
         if speed:
-            if self.autobrake and not any(inputs):
+            if Controls.auto_brake.v and not any(inputs):
                 speed = 0.15 * speed
             else:
 
@@ -482,12 +414,9 @@ class CameraViewport(GLViewport):
          reading the depth buffer value
         """
         try:
-            if Settings.doubleBuffer.get():
-                GL.glReadBuffer(GL.GL_BACK)
-            else:
-                GL.glReadBuffer(GL.GL_FRONT)
+            GL.glReadBuffer(GL.GL_BACK)
         except Exception:
-            logging.exception('Exception during glReadBuffer')
+            log.error('Exception during glReadBuffer')
         ws = self.get_root().size
         if center:
             x, y = ws
@@ -510,13 +439,13 @@ class CameraViewport(GLViewport):
 
     def updateBlockFaceUnderCursor(self):
         focusPair = None
-        if not self.enableMouseLag or self.editor.frames & 1:
+        if not Settings.enable_mouse_lag.v or self.editor.frames & 1:
             self.updateMouseVector()
             if self.editor.mouseEntered:
                 if not self.mouseMovesCamera:
                     mouse3dPoint = self._blockUnderCursor()
                     focusPair = self.findBlockFaceUnderCursor(mouse3dPoint)
-                elif self.editor.longDistanceMode:
+                elif Settings.long_distance_mode.v:
                     mouse3dPoint = self._blockUnderCursor(True)
                     focusPair = self.findBlockFaceUnderCursor(mouse3dPoint)
 
@@ -981,9 +910,6 @@ class CameraViewport(GLViewport):
             return
 
         td = datetime.now() - self.rightMouseDragStart
-        # except AttributeError:
-        #    return
-        # print "RightClickUp: ", td
         if td.seconds > 0 or td.microseconds > 280000:
             self.mouseLookOff()
 
@@ -1026,7 +952,7 @@ class CameraViewport(GLViewport):
 
     def mouse_down(self, evt):
         button = remapMouseButton(evt.button)
-        logging.debug("Mouse down %d @ %s", button, evt.pos)
+        log.trace(f"Mouse down {button} @ {evt.pos}")
 
         if button == 1:
             self.leftClickDown(evt)
@@ -1037,11 +963,10 @@ class CameraViewport(GLViewport):
             self.editor.key_down(evt)
 
         self.editor.focus_on(None)
-        # self.focus_switch = None
 
     def mouse_up(self, evt):
         button = remapMouseButton(evt.button)
-        logging.debug("Mouse up   %d @ %s", button, evt.pos)
+        log.debug(f"Mouse up {button} @ {evt.pos}")
         if button == 1:
             self.leftClickUp(evt)
         elif button == 2:
@@ -1062,28 +987,19 @@ class CameraViewport(GLViewport):
             return
 
         def sensitivityAdjust(d):
-            return d * ControlSettings.mouseSpeed.get() / 10.0
+            return d * Controls.mouse_speed.v / 10.0
 
         self.editor.mouseEntered = True
         if self.mouseMovesCamera:
 
             pitchAdjust = sensitivityAdjust(evt.rel[1])
-            if self.invertMousePitch:
+            if Controls.invert_mouse_pitch.v:
                 pitchAdjust = -pitchAdjust
             self.yaw += sensitivityAdjust(evt.rel[0])
             self.pitch += pitchAdjust
             if datetime.now() - self.lastRendererUpdate > timedelta(0, 0, 500000):
                 self.editor.renderer.loadNearbyChunks()
                 self.lastRendererUpdate = datetime.now()
-
-            # adjustLimit = 2
-
-            # self.oldMousePosition = (x, y)
-            # if (self.startingMousePosition[0] - x > adjustLimit or self.startingMousePosition[1] - y > adjustLimit or
-            #   self.startingMousePosition[0] - x < -adjustLimit or self.startingMousePosition[1] - y < -adjustLimit):
-            #    mouse.set_pos(*self.startingMousePosition)
-            #    event.get(MOUSEMOTION)
-            #    self.oldMousePosition = (self.startingMousePosition)
 
     def activeevent(self, evt):
         if evt.state & 0x2 and evt.gain != 0:
@@ -1165,12 +1081,11 @@ class CameraViewport(GLViewport):
 
     @property
     def floorColor(self):
-        if self.drawSky:
+        if self.draw_sky:
             return 0.0, 0.0, 1.0, 0.3
         else:
             return 0.0, 1.0, 0.0, 0.15
 
-#    floorColor = (0.0, 0.0, 1.0, 0.1)
 
     def _drawFloorQuad(self):
         GL.glDepthMask(True)
@@ -1181,12 +1096,12 @@ class CameraViewport(GLViewport):
             GL.glDrawArrays(GL.GL_QUADS, 0, 4)
 
     @property
-    def drawSky(self):
-        return self._drawSky
+    def draw_sky(self):
+        return Settings.draw_sky.v
 
-    @drawSky.setter
-    def drawSky(self, val):
-        self._drawSky = val
+    @draw_sky.setter
+    def draw_sky(self, val):
+        Settings.draw_sky.set(val)
         if self.skyList:
             self.skyList.invalidate()
         if self._floorQuadList:
@@ -1233,22 +1148,20 @@ class CameraViewport(GLViewport):
         GL.glMatrixMode(GL.GL_MODELVIEW)
         GL.glPopMatrix()
 
-    enableMouseLag = Settings.enableMouseLag.configProperty()
-
     @property
-    def drawFog(self):
-        return self._drawFog and not self.editor.renderer.inSpace()
+    def draw_fog(self):
+        return Settings.draw_fog.v and not self.editor.renderer.inSpace()
 
-    @drawFog.setter
-    def drawFog(self, val):
-        self._drawFog = val
+    @draw_fog.setter
+    def draw_fog(self, val):
+        Settings.draw_fog.set(val)
 
     fogColor = np.array([0.6, 0.8, 1.0, 1.0], dtype='float32')
     fogColorBlack = np.array([0.0, 0.0, 0.0, 1.0], dtype='float32')
 
     def enableFog(self):
         GL.glEnable(GL.GL_FOG)
-        if self.drawSky:
+        if self.draw_sky:
             GL.glFogfv(GL.GL_FOG_COLOR, self.fogColor)
         else:
             GL.glFogfv(GL.GL_FOG_COLOR, self.fogColorBlack)
@@ -1272,7 +1185,7 @@ class CameraViewport(GLViewport):
         distance = 1.0
         if self.editor.renderer.inSpace():
             distance = 8.0
-        GLU.gluPerspective(max(self.fov, 25.0), self.ratio, self.near * distance, self.far * distance)
+        GLU.gluPerspective(max(Settings.fov.v, 25.0), self.ratio, self.near * distance, self.far * distance)
 
     def setup_modelview(self):
         self.setModelview()
@@ -1282,16 +1195,11 @@ class CameraViewport(GLViewport):
         self.render()
 
     def render(self):
-        # if self.visibilityCheck:
-        if True:
-            self.viewingFrustum = frustum.Frustum.fromViewingMatrix()
-        else:
-            self.viewingFrustum = None
+        self.viewingFrustum = frustum.Frustum.fromViewingMatrix()
 
-        # self.editor.drawStars()
-        if self.drawSky:
+        if self.draw_sky:
             self.drawSkyBackground()
-        if self.drawFog:
+        if self.draw_fog:
             self.enableFog()
 
         self.drawFloorQuad()
@@ -1300,7 +1208,7 @@ class CameraViewport(GLViewport):
         self.editor.renderer.draw()
         focusPair = None
 
-        if self.showCeiling and not self.editor.renderer.inSpace():
+        if Settings.show_ceiling.v and not self.editor.renderer.inSpace():
             self.drawCeiling()
 
         if self.editor.level:
@@ -1330,7 +1238,7 @@ class CameraViewport(GLViewport):
             for t in self.editor.toolbar.tools:
                 t.drawToolMarkers()
 
-        if self.drawFog:
+        if self.draw_fog:
             self.disableFog()
 
 
@@ -1420,9 +1328,6 @@ class ChunkViewport(CameraViewport):
 
     def drawCeiling(self):
         pass
-#        if self.defaultScale >= 0.5:
-#            return super(ChunkViewport, self).drawCeiling()
-
 
 class LevelEditor(GLViewport):
     anchor = "tlbr"
@@ -1458,14 +1363,12 @@ class LevelEditor(GLViewport):
 
         self.sixteenBlockTex = self.genSixteenBlockTexture()
 
-        # self.Font = Font("Verdana, Arial", 18)
-
         self.generateStars()
 
         self.optionsBar = Widget()
         viewDistanceDown = Button("<", action=self.decreaseViewDistance)
         viewDistanceUp = Button(">", action=self.increaseViewDistance)
-        viewDistanceReadout = ValueDisplay(width=40, ref=AttrRef(self.renderer, "viewDistance"))
+        viewDistanceReadout = ValueDisplay(width=40, ref=Settings.view_distance)
 
         chunksReadout = SmallValueDisplay(width=140,
             get_value=lambda: "Chunks: %d" % len(self.renderer.chunkRenderers),
@@ -1504,23 +1407,19 @@ class LevelEditor(GLViewport):
 
         def showViewOptions():
             col = []
-            col.append(mceutils.CheckBoxLabel("Entities", fg_color=(0xff, 0x22, 0x22), ref=Settings.drawEntities.propertyRef()))
-            col.append(mceutils.CheckBoxLabel("Items", fg_color=(0x22, 0xff, 0x22), ref=Settings.drawItems.propertyRef()))
-            col.append(mceutils.CheckBoxLabel("TileEntities", fg_color=(0xff, 0xff, 0x22), ref=Settings.drawTileEntities.propertyRef()))
-            col.append(mceutils.CheckBoxLabel("TileTicks", ref=Settings.drawTileTicks.propertyRef()))
-            col.append(mceutils.CheckBoxLabel("Unpopulated Chunks", fg_color=renderer.TerrainPopulatedRenderer.color,
-                                     ref=Settings.drawUnpopulatedChunks.propertyRef()))
+            col.append(mceutils.CheckBoxLabel("Entities", fg_color=(0xff, 0x22, 0x22), ref=Settings.draw_entities))
+            col.append(mceutils.CheckBoxLabel("Items", fg_color=(0x22, 0xff, 0x22), ref=Settings.draw_items))
+            col.append(mceutils.CheckBoxLabel("TileEntities", fg_color=(0xff, 0xff, 0x22), ref=Settings.draw_tile_entities))
+            col.append(mceutils.CheckBoxLabel("TileTicks", ref=Settings.draw_tile_ticks))
+            col.append(mceutils.CheckBoxLabel("Unpopulated Chunks", fg_color=renderer.TerrainPopulatedRenderer.color, ref=Settings.draw_unpopulated_chunks))
 
-            col.append(mceutils.CheckBoxLabel("Sky", ref=Settings.drawSky.propertyRef()))
-            col.append(mceutils.CheckBoxLabel("Fog", ref=Settings.drawFog.propertyRef()))
-            col.append(mceutils.CheckBoxLabel("Ceiling",
-                ref=Settings.showCeiling.propertyRef()))
+            col.append(mceutils.CheckBoxLabel("Sky", ref=Settings.draw_sky))
+            col.append(mceutils.CheckBoxLabel("Fog", ref=Settings.draw_fog))
+            col.append(mceutils.CheckBoxLabel("Ceiling", ref=Settings.show_ceiling))
 
-            col.append(mceutils.CheckBoxLabel("Hidden Ores",
-                ref=Settings.showHiddenOres.propertyRef()))
+            col.append(mceutils.CheckBoxLabel("Hidden Ores", ref=Settings.show_hidden_ores))
 
-            col.append(mceutils.CheckBoxLabel("Chunk Redraw", fg_color=(0xff, 0x99, 0x99),
-                ref=Settings.showChunkRedraw.propertyRef()))
+            col.append(mceutils.CheckBoxLabel("Chunk Redraw", fg_color=(0xff, 0x99, 0x99), ref=Settings.show_chunk_redraw))
 
             col = Column(col, align="r")
 
@@ -1540,8 +1439,10 @@ class LevelEditor(GLViewport):
 
         viewDistanceLabel = Label("View Distance:")
 
+        self.dimension_button = Button("Change Dimension", action=self.swap_dimension)
+
         row = (viewDistanceDown, viewDistanceLabel, viewDistanceReadout, viewDistanceUp,
-               readoutGrid, viewButton, self.viewportButton)
+               readoutGrid, viewButton, self.viewportButton, self.dimension_button)
 
         row = Row(row)
         self.add(row)
@@ -1562,36 +1463,34 @@ class LevelEditor(GLViewport):
         self.viewportContainer.top = row.bottom
         self.viewportContainer.size = self.mainViewport.size
         self.add(self.viewportContainer)
-        Settings.viewMode.addObserver(self)
+
+        Settings.view_mode.add_observer(self.on_view_mode_change, "level editor")
 
         self.reloadToolbar()
 
-        self.currentTool = None
+        self.currentTool: EditorTool = None
         self.toolbar.selectTool(0)
 
+        self.reset_control_panel()
+
+        # Init view mode after initializing everything else
+        self.on_view_mode_change(Settings.view_mode.v)
+
+    def reset_control_panel(self):
         self.controlPanel = controlPanel = ControlPanel(self)
         controlPanel.anchor = "tlbr"
         controlPanel.rect = self.rect
 
+
     def __del__(self):
         self.deleteAllCopiedSchematics()
 
-    _viewMode = None
-
-    @property
-    def viewMode(self):
-        return self._viewMode
-
-    @viewMode.setter
-    def viewMode(self, val):
-        if val == self._viewMode:
-            return
+    def on_view_mode_change(self, val):
         ports = {"Chunk": self.chunkViewport, "Camera": self.mainViewport}
         for p in ports.values():
             p.set_parent(None)
         port = ports.get(val, self.mainViewport)
         self.mainViewport.mouseLookOff()
-        self._viewMode = val
 
         if val == "Camera":
             x, y, z = self.chunkViewport.cameraPosition
@@ -1601,8 +1500,6 @@ class LevelEditor(GLViewport):
                 h = 0
             y = max(self.mainViewport.cameraPosition[1], h + 2)
             self.mainViewport.cameraPosition = x, y, z
-            # self.mainViewport.yaw = 180.0
-            # self.mainViewport.pitch = 90.0
             self.mainViewport.cameraVector = self.mainViewport._cameraVector()
             self.renderer.overheadMode = False
             self.viewportButton.text = "Chunk View"
@@ -1618,10 +1515,10 @@ class LevelEditor(GLViewport):
         self.renderer.loadNearbyChunks()
 
     def swapViewports(self):
-        if Settings.viewMode.get() == "Chunk":
-            Settings.viewMode = "Camera"
+        if Settings.view_mode.v == "Chunk":
+            Settings.view_mode.set("Camera")
         else:
-            Settings.viewMode = "Chunk"
+            Settings.view_mode.set("Chunk")
 
     maxCopies = 10
 
@@ -1870,8 +1767,6 @@ class LevelEditor(GLViewport):
     defaultCameraToolDistance = 10
     mouseSensitivity = 5.0
 
-    longDistanceMode = Settings.longDistanceMode.configProperty()
-
     def genSixteenBlockTexture(self):
 
         version = GL.glGetString(GL.GL_VERSION)
@@ -1962,11 +1857,15 @@ class LevelEditor(GLViewport):
         GL.glDisable(GL.GL_BLEND)
         GL.glDisable(GL.GL_DEPTH_TEST)
 
-    def loadFile(self, filename):
+    def loadFile(self, filename, starting_pos=None, starting_look=None, dimension:Literal["overworld","nether"]=None):
+        """
+        returns: true if the level loaded, false otherwise
+        """
+
         if self.level and self.unsavedEdits > 0:
             resp = ask("Save unsaved edits before loading?", ["Cancel", "Don't Save", "Save"], default=2, cancel=0)
             if resp == "Cancel":
-                return
+                return False
             if resp == "Save":
                 self.saveFile()
 
@@ -1974,28 +1873,43 @@ class LevelEditor(GLViewport):
         try:
             level = mclevel.fromFile(filename)
         except Exception as e:
-            logging.exception(
-                'Wasn\'t able to open a file {file => %s}' % filename
-            )
-            alert(u"I don't know how to open {0}:\n\n{1!r}".format(filename, e))
-            return
+            log.error(f"Wasn't able to open a file (file => {filename})")
+            alert("I don't know how to open {0}:\n\n{1!r}".format(filename, e))
+            return False
 
         assert level
         self.mcedit.addRecentWorld(filename)
 
-        try:
-            self.currentViewport.cameraPosition = level.getPlayerPosition()
+        if starting_pos:
+            open_at = starting_pos
+        else:
+            open_at = level.getPlayerPosition()
 
-            y, p = level.getPlayerOrientation()
+        try:
+            self.currentViewport.cameraPosition = open_at
+
+            if starting_look:
+                y, p = starting_look
+            else:
+                y, p = level.getPlayerOrientation()
+
             if p == -90.0:
                 p += 0.000000001
             if p == 90.0:
                 p -= 0.000000001
             self.mainViewport.yaw, self.mainViewport.pitch = y, p
 
-            pdim = level.getPlayerDimension()
-            if pdim and pdim in level.dimensions:
-                level = level.dimensions[pdim]
+            if dimension and dimension == "overworld":
+                # The overworld is dimension 0
+                p_dim = 0
+            elif dimension and dimension == "nether":
+                # The nether is dimension -1
+                p_dim = -1
+            else:
+                p_dim = level.getPlayerDimension()
+            
+            if p_dim and p_dim in level.dimensions:
+                level = level.dimensions[p_dim]
 
         except (KeyError, pymclevel.PlayerNotFound):  # TagNotFound
             # player tag not found, maybe
@@ -2006,12 +1920,12 @@ class LevelEditor(GLViewport):
                 self.mainViewport.yaw = -45.
                 self.mainViewport.pitch = 0.0
 
-        self.removeNetherPanel()
-
         self.undoStack = []
         self.loadLevel(level)
         self.renderer.position = self.currentViewport.cameraPosition
         self.renderer.loadNearbyChunks()
+
+        return True
 
     def loadLevel(self, level: MCLevel):
         self.level = level
@@ -2041,15 +1955,11 @@ class LevelEditor(GLViewport):
                 self.toolbar.tools[8].createChunks()
                 self.mainViewport.cameraPosition = (x, self.level.Height, z)
 
-    def removeNetherPanel(self):
-        if self.netherPanel:
-            self.remove(self.netherPanel)
-            self.netherPanel = None
+        save_config()
 
     @mceutils.alertException
     def gotoEarth(self):
         assert self.level.parentWorld
-        self.removeNetherPanel()
         self.loadLevel(self.level.parentWorld)
 
         x, y, z = self.mainViewport.cameraPosition
@@ -2057,7 +1967,6 @@ class LevelEditor(GLViewport):
 
     @mceutils.alertException
     def gotoNether(self):
-        self.removeNetherPanel()
         x, y, z = self.mainViewport.cameraPosition
         self.mainViewport.cameraPosition = [x / 8, y, z / 8]
         self.loadLevel(self.level.getDimension(-1))
@@ -2070,7 +1979,6 @@ class LevelEditor(GLViewport):
         elif dimNo == 0 and self.level.dimNo == -1:
             self.gotoEarth()
         else:
-            self.removeNetherPanel()
             if dimNo:
                 if dimNo == 1:
                     self.mainViewport.cameraPosition = (0, 96, 0)
@@ -2079,12 +1987,16 @@ class LevelEditor(GLViewport):
             else:
                 self.loadLevel(self.level.parentWorld)
 
-    netherPanel = None
+    def swap_dimension(self):
+        if self.level.dimNo == 0:
+            self.gotoNether()
+        else:
+            self.gotoEarth()
 
     def initWindowCaption(self):
         filename = self.level.filename
         s = os.path.split(filename)
-        title = os.path.split(s[0])[1] + os.sep + s[1] + u" - " + release.NAME + " " + release.VERSION
+        title = os.path.split(s[0])[1] + os.sep + s[1] + " - " + release.NAME + " " + release.VERSION
         # title = title.encode('ascii', 'replace')
         display.set_caption(title)
 
@@ -2120,7 +2032,7 @@ class LevelEditor(GLViewport):
         self.clearUnsavedEdits()
 
         # Also save the config, already doing file io, may as well keep the config updated in case mc edit doesn't shut down properly
-        config.saveConfig()
+        save_config()
 
     def addUnsavedEdit(self):
         if self.unsavedEdits:
@@ -2153,11 +2065,11 @@ class LevelEditor(GLViewport):
     def saveInfoLabelText(self):
         if self.unsavedEdits == 0:
             return ""
-        return "{0} unsaved edits.  CTRL-S to save.  ".format(self.unsavedEdits)
+        return f"{self.unsavedEdits} unsaved edits.  CTRL-{Keys.save.v} to save.  "
 
     @property
     def viewDistanceLabelText(self):
-        return "View Distance ({0})".format(self.renderer.viewDistance)
+        return f"View Distance ({Settings.view_distance})"
 
     def createRenderers(self):
         self.renderer = MCRenderer()
@@ -2168,8 +2080,6 @@ class LevelEditor(GLViewport):
             self.renderer.level = self.level
             self.addWorker(self.renderer)
 
-        self.renderer.viewDistance = int(Settings.viewDistance.get())
-
     def addWorker(self, chunkWorker):
         if chunkWorker not in self.workers:
             self.workers.appendleft(chunkWorker)
@@ -2179,7 +2089,7 @@ class LevelEditor(GLViewport):
             self.workers.remove(chunkWorker)
 
     def getFrameDuration(self):
-        frameDuration = timedelta(0, 1, 0) / self.renderer.targetFPS
+        frameDuration = timedelta(0, 1, 0) / Settings.target_fps.v
         return frameDuration
 
     lastRendererDraw = datetime.now()
@@ -2210,24 +2120,24 @@ class LevelEditor(GLViewport):
 
         if evt.state & 0x4:  # minimized
             if evt.gain == 0:
-                logging.debug("Offscreen")
+                log.trace("Offscreen")
                 self.onscreen = False
 
                 self.mouseLookOff()
 
             else:
-                logging.debug("Onscreen")
+                log.trace("Onscreen")
                 self.onscreen = True
                 self.invalidate()
 
         if evt.state & 0x1:  # mouse enter/leave
             if evt.gain == 0:
-                logging.debug("Mouse left")
+                log.trace("Mouse left")
                 self.mouseEntered = False
                 self.mouseLookOff()
 
             else:
-                logging.debug("Mouse entered")
+                log.trace("Mouse entered")
                 self.mouseEntered = True
 
     def swapDebugLevels(self):
@@ -2319,7 +2229,6 @@ class LevelEditor(GLViewport):
     @property
     def blockFaceUnderCursor(self):
         return self.currentViewport.blockFaceUnderCursor
-#
 
     def generateStars(self):
         starDistance = 999.0
@@ -2327,34 +2236,29 @@ class LevelEditor(GLViewport):
 
         r = starDistance
 
-        randPoints = (np.random.random(size=starCount * 3)) * 2.0 * r
-        randPoints.shape = (starCount, 3)
-
-        nearbyPoints = (randPoints[:, 0] < r) & (randPoints[:, 1] < r) & (randPoints[:, 2] < r)
-        randPoints[nearbyPoints] += r
+        randPoints = (np.random.default_rng(config_seed).random(size=(starCount, 3))) * 2.0 * r
 
         randPoints[:starCount // 2, 0] = -randPoints[:starCount // 2, 0]
         randPoints[::2, 1] = -randPoints[::2, 1]
         randPoints[::4, 2] = -randPoints[::4, 2]
         randPoints[1::4, 2] = -randPoints[1::4, 2]
 
-        randsizes = np.random.random(size=starCount) * 6 + 0.8
+        rand_sizes = np.random.default_rng(config_seed + 1).random(size=starCount) * 3 + 0.5
 
         vertsPerStar = 4
 
         vertexBuffer = np.zeros((starCount, vertsPerStar, 3), dtype='float32')
 
-        def normvector(x):
+        def norm_vector(x):
             return x / np.sqrt(np.sum(x * x, 1))[:, np.newaxis]
 
-        viewVector = normvector(randPoints)
+        viewVector = norm_vector(randPoints)
 
-        rmod = np.random.random(size=starCount * 3) * 2.0 - 1.0
-        rmod.shape = (starCount, 3)
+        rmod = np.random.default_rng(config_seed + 2).random(size=(starCount, 3)) * 2.0 - 1.0
         referenceVector = viewVector + rmod
 
-        rightVector = normvector(np.cross(referenceVector, viewVector)) * randsizes[:, np.newaxis]  # vector perpendicular to viewing line
-        upVector = normvector(np.cross(rightVector, viewVector)) * randsizes[:, np.newaxis]  # vector perpendicular previous vector and viewing line
+        rightVector = norm_vector(np.cross(referenceVector, viewVector)) * rand_sizes[:, np.newaxis]  # vector perpendicular to viewing line
+        upVector = norm_vector(np.cross(rightVector, viewVector)) * rand_sizes[:, np.newaxis]  # vector perpendicular previous vector and viewing line
 
         p = randPoints
         p1 = p + (- upVector - rightVector)
@@ -2367,19 +2271,25 @@ class LevelEditor(GLViewport):
         vertexBuffer[:, 2, :] = p3
         vertexBuffer[:, 3, :] = p4
 
-        self.starVertices = vertexBuffer.ravel()
-
-    starColor = None
+        self.starVertices = vertexBuffer.ravel() / 1000
 
     def drawStars(self):
+        if Settings.hide_menu_stars.v:
+            return
+
         pos = self.mainViewport.cameraPosition
         self.mainViewport.cameraPosition = [x / 128.0 for x in pos]
         self.mainViewport.setModelview()
 
-        GL.glColor(.5, .5, .5, 1.)
+        GL.glColor(.42, .376, .671, 1.)
 
-        GL.glVertexPointer(3, GL.GL_FLOAT, 0, self.starVertices)
-        GL.glDrawArrays(GL.GL_QUADS, 0, len(self.starVertices) // 3)
+        w = self.mcedit.rect.width
+        h = self.mcedit.rect.height
+        r = w / h
+        starVertices = self.starVertices
+
+        GL.glVertexPointer(3, GL.GL_FLOAT, 0, starVertices)
+        GL.glDrawArrays(GL.GL_QUADS, 0, len(starVertices) // 3)
 
         self.mainViewport.cameraPosition = pos
         self.mainViewport.setModelview()
@@ -2424,222 +2334,182 @@ class LevelEditor(GLViewport):
         d = self.cameraInputs
         keyname = getattr(evt, 'keyname', None) or key.name(evt.key)
 
-        if keyname == config.config.get('Keys', 'Brake'):
+        if keyname == Keys.brake.v:
             self.mainViewport.brakeOff()
 
-        # if keyname == 'left ctrl' or keyname == 'right ctrl':
-        #    self.hideControls()
-
-        if keyname == config.config.get('Keys', 'Left'):
-            d[0] = 0.
-        if keyname == config.config.get('Keys', 'Right'):
-            d[0] = 0.
-        if keyname == config.config.get('Keys', 'Forward'):
-            d[2] = 0.
-        if keyname == config.config.get('Keys', 'Back'):
-            d[2] = 0.
-        if keyname == config.config.get('Keys', 'Up'):
-            d[1] = 0.
-        if keyname == config.config.get('Keys', 'Down'):
-            d[1] = 0.
-
         cp = self.cameraPanKeys
-        if keyname == config.config.get('Keys', 'Pan Left'):
-            cp[0] = 0.
-        if keyname == config.config.get('Keys', 'Pan Right'):
-            cp[0] = 0.
-        if keyname == config.config.get('Keys', 'Pan Up'):
-            cp[1] = 0.
-        if keyname == config.config.get('Keys', 'Pan Down'):
-            cp[1] = 0.
 
-        # if keyname in ("left alt", "right alt"):
+        if keyname == Keys.left.v: d[0] = 0.
+        if keyname == Keys.right.v: d[0] = 0.
+        if keyname == Keys.forward.v: d[2] = 0.
+        if keyname == Keys.back.v: d[2] = 0.
+        if keyname == Keys.up.v: d[1] = 0.
+        if keyname == Keys.down.v: d[1] = 0.
+
+        if keyname == Keys.pan_left.v: cp[0] = 0.
+        if keyname == Keys.pan_right.v: cp[0] = 0.
+        if keyname == Keys.pan_up.v: cp[1] = 0.
+        if keyname == Keys.pan_down.v: cp[1] = 0.
 
     def key_down(self, evt):
         """
         returns: True if this key event should discard all remaining key events to process
         """
         keyname = evt.dict.get('keyname', None) or key.name(evt.key)
-        if keyname == 'enter':
-            keyname = 'return'
 
-        logging.debug("Key down: %s", keyname)
+        log.trace(f"Key down: {keyname}")
         d = self.cameraInputs
         im = [0., 0., 0.]
         mods = evt.dict.get('mod', 0)
 
         if mods & KMOD_ALT:
-            if keyname == "z":
-                self.longDistanceMode = not self.longDistanceMode
-            if keyname in "12345":
-                name = "option" + keyname
-                if hasattr(self.currentTool, name):
-                    getattr(self.currentTool, name)()
+            if keyname == Keys.long_distance_mode.v:
+                Settings.long_distance_mode.set(not Settings.long_distance_mode.v)
+            if keyname == Keys.tool_option_1.v:
+                self.currentTool.option1()
+            if keyname == Keys.tool_option_2.v:
+                self.currentTool.option2()
+            if keyname == Keys.tool_option_3.v:
+                self.currentTool.option3()
+            if keyname == Keys.tool_option_4.v:
+                self.currentTool.option4()
+            if keyname == Keys.tool_option_5.v:
+                self.currentTool.option5()
 
-        elif mods & KMOD_CTRL:
-            if keyname == 'f':
+        if mods & KMOD_CTRL:
+            if keyname == Keys.goto.v: self.showGotoPanel()
+            if keyname == Keys.swap_view_distance.v:
                 self.swapViewDistance()
-            if keyname == 'a':
+            if keyname == Keys.select_all.v:
                 self.selectAll()
-            if keyname == 'd':
+            if keyname == Keys.deselect.v:
                 self.deselect()
-            if keyname == 'x':
+            if keyname == Keys.cut.v:
                 self.cutSelection()
-            if keyname == 'c':
+            if keyname == Keys.copy.v:
                 self.copySelection()
-            if keyname == 'v':
+            if keyname == Keys.paste.v:
                 self.pasteSelection()
 
-            if keyname == 'r':
+            if keyname == Keys.reload.v:
                 self.reload()
 
-            if keyname == 'o':
+            if keyname == Keys.open_level.v:
                 self.askOpenFile()
                 return True
-            if keyname == 'z':
+            if keyname == Keys.undo.v:
                 self.undo()
-            if keyname == 's':
+            if keyname == Keys.save.v:
                 self.saveFile()
-            if keyname == 'n':
+            if keyname == Keys.new_level.v:
                 self.createNewLevel()
-            if keyname == 'w':
+            if keyname == Keys.close_world.v:
                 self.closeEditor()
-            if keyname == 'i':
+            if keyname == Keys.info.v:
                 self.showWorldInfo()
-
-            if keyname == 'e':
+            if keyname == Keys.export.v:
                 self.selectionTool.exportSelection()
                 
                 # Hack to ensure import doesn't repeatedly get selected
                 pygame.event.clear()
 
-            if keyname == 'f9':
+            if keyname == Keys.debug_1.v:
                 if mods & KMOD_ALT:
+                    # Weird magic that allows you to run arbitrary python code from in the gui
+                    if arguments.DEBUG:
+                        try:
+                            expr = input_text(">>> ", 600)
+                            expr = compile(expr, 'eval', 'single')
+                            alert("Result: {0!r}".format(eval(expr, globals(), locals())))
+                        except Exception as e:
+                            alert("Exception: {0!r}".format(e))
+
+                elif mods & KMOD_SHIFT:
+                    if arguments.DEBUG:
+                        raise GL.GLError(err=1285, description=f"User pressed CONTROL-SHIFT-{Keys.debug_1}, requesting a GL Memory Error")
+                else:
                     self.parent.reloadEditor()
-                    # ===========================================================
-                    # debugPanel = Panel()
-                    # buttonColumn = [
-                    #    Button("Reload Editor", action=self.parent.reloadEditor),
-                    # ]
-                    # debugPanel.add(Column(buttonColumn))
-                    # debugPanel.shrink_wrap()
-                    # self.add_centered(debugPanel)
-                    # ===========================================================
 
-                elif mods & KMOD_SHIFT:
-                    raise GL.GLError(err=1285, description="User pressed CONTROL-SHIFT-F9, requesting a GL Memory Error")
-                else:
-                    try:
-                        expr = input_text(">>> ", 600)
-                        expr = compile(expr, 'eval', 'single')
-                        alert("Result: {0!r}".format(eval(expr, globals(), locals())))
-                    except Exception as e:
-                        alert("Exception: {0!r}".format(e))
-
-            if keyname == 'f10':
+            if keyname == Keys.debug_2.v:
                 def causeError():
-                    raise ValueError("User pressed CONTROL-F10, requesting a program error.")
+                    raise ValueError(f"User pressed CONTROL-{Keys.debug_2}, requesting a program error.")
 
                 if mods & KMOD_ALT:
-                    alert("MCEdit, a Minecraft World Editor\n\nCopyright 2010 David Rio Vierra")
+                    if arguments.DEBUG:
+                        causeError()
                 elif mods & KMOD_SHIFT:
-                    mceutils.alertException(causeError)()
+                    if arguments.DEBUG:
+                        mceutils.alertException(causeError)()
                 else:
-                    causeError()
+                    alert("MCEdit, a Minecraft World Editor\n\nCopyright 2010 David Rio Vierra. Modernized port for beta 1.7.3 by masterzminer")
 
         else:
-            if keyname == 'g':
-                self.showGotoPanel()
-            if keyname == 'tab':
-                self.swapViewports()
+            cp = self.cameraPanKeys
 
-            if keyname == config.config.get('Keys', 'Brake'):
-                self.mainViewport.brakeOn()
+            if keyname == Keys.swap_view.v: self.swapViewports()
 
-            if keyname == config.config.get('Keys', 'Reset Reach'):
-                self.resetReach()
-            if keyname == config.config.get('Keys', 'Increase Reach'):
-                self.increaseReach()
-            if keyname == config.config.get('Keys', 'Decrease Reach'):
-                self.decreaseReach()
+            if keyname == Keys.brake.v: self.mainViewport.brakeOn()
 
-            if keyname == config.config.get('Keys', 'Flip'):
-                self.currentTool.flip()
-            if keyname == config.config.get('Keys', 'Roll'):
-                self.currentTool.roll()
-            if keyname == config.config.get('Keys', 'Rotate'):
-                self.currentTool.rotate()
-            if keyname == config.config.get('Keys', 'Mirror'):
-                self.currentTool.mirror()
-            if keyname == config.config.get('Keys', 'Swap'):
-                self.currentTool.swap()
+            if keyname == Keys.reach_reset.v: self.resetReach()
+            if keyname == Keys.reach_increase.v: self.increaseReach()
+            if keyname == Keys.reach_decrease.v: self.decreaseReach()
 
-            if keyname == 'escape':
-                if self.currentViewport == self.chunkViewport:
-                    self.toolbar.selectTool(8)
-                else:
-                    if self.currentTool != self.toolbar.tools[0]:
-                        self.toolbar.selectTool(-1)
-                    else:
-                        self.toolbar.tools[0].endSelection()
-                self.mouseLookOff()
+            if keyname == Keys.flip.v: self.currentTool.flip()
+            if keyname == Keys.roll.v: self.currentTool.roll()
+            if keyname == Keys.rotate.v: self.currentTool.rotate()
+            if keyname == Keys.mirror.v: self.currentTool.mirror()
+            if keyname == Keys.swap.v: self.currentTool.swap()
 
             # movement
-            if keyname == config.config.get('Keys', 'Left'):
+            if keyname == Keys.left.v:
                 d[0] = -1.
                 im[0] = -1.
-            if keyname == config.config.get('Keys', 'Right'):
+            if keyname == Keys.right.v:
                 d[0] = 1.
                 im[0] = 1.
-            if keyname == config.config.get('Keys', 'Forward'):
+            if keyname == Keys.forward.v:
                 d[2] = 1.
                 im[2] = 1.
-            if keyname == config.config.get('Keys', 'Back'):
+            if keyname == Keys.back.v:
                 d[2] = -1.
                 im[2] = -1.
-            if keyname == config.config.get('Keys', 'Up'):
+            if keyname == Keys.up.v:
                 d[1] = 1.
                 im[1] = 1.
-            if keyname == config.config.get('Keys', 'Down'):
+            if keyname == Keys.down.v:
                 d[1] = -1.
                 im[1] = -1.
 
-            cp = self.cameraPanKeys
-            if keyname == config.config.get('Keys', 'Pan Left'):
-                cp[0] = -1.
-            if keyname == config.config.get('Keys', 'Pan Right'):
-                cp[0] = 1.
-            if keyname == config.config.get('Keys', 'Pan Up'):
-                cp[1] = -1.
-            if keyname == config.config.get('Keys', 'Pan Down'):
-                cp[1] = 1.
+            if keyname == Keys.pan_left.v: cp[0] = -1.
+            if keyname == Keys.pan_right.v: cp[0] = 1.
+            if keyname == Keys.pan_up.v: cp[1] = -1.
+            if keyname == Keys.pan_down.v: cp[1] = 1.
 
-            if keyname == config.config.get('Keys', 'Confirm Construction'):
+            if keyname == Keys.confirm_construction.v:
                 self.confirmConstruction()
 
-            # =======================================================================
-            # if keyname == config.config.get('Keys','Toggle Flat Shading'):
-            #    self.renderer.swapMipmapping()
-            # if keyname == config.config.get('Keys','Toggle Lighting'):
-            #    self.renderer.toggleLighting()
-            # =======================================================================
-
-            if keyname == config.config.get('Keys', 'Toggle FPS Counter'):
+            if keyname == Keys.toggle_fps_counter.v:
                 self.swapDebugLevels()
 
-            if keyname == config.config.get('Keys', 'Toggle Renderer'):
+            if keyname == Keys.toggle_renderer.v:
                 self.renderer.render = not self.renderer.render
 
-            if keyname == config.config.get('Keys', 'Delete Blocks'):
+            if keyname == Keys.delete_blocks.v:
                 self.deleteSelectedBlocks()
 
-            if keyname in "123456789":
-                self.toolbar.selectTool(int(keyname) - 1)
+            # Check if a tool hotkey is pressed
+            tool_hotkey = ToolKeys.get_from_value(keyname)
+            if tool_hotkey:
+                # Select the tool
+                self.toolbar.selectTool(tool_hotkey.index)
+
                 # Hack to ensure tools don't repeatedly get over selected
                 pygame.event.clear()
 
-            if keyname in ('f1', 'f2', 'f3', 'f4', 'f5'):
-                self.mcedit.loadRecentWorldNumber(int(keyname[1]))
+            # Check if a recent world hotkey is pressed
+            world_hotkey_index = WorldKeys.list_index_from_value(keyname)
+            if world_hotkey_index is not None:
+                self.mcedit.loadRecentWorldIndex(world_hotkey_index)
 
     def showGotoPanel(self):
 
@@ -2729,8 +2599,6 @@ class LevelEditor(GLViewport):
             t = functools.partial(isinstance, self.level)
             if t(pymclevel.MCSchematic):
                 levelFormat = "MCEdit Schematic"
-            elif t(pymclevel.ZipSchematic):
-                levelFormat = "MCEdit Schematic (Zipped Format)"
             else:
                 levelFormat = "Unknown"
             formatLabel = Label(levelFormat)
@@ -2810,23 +2678,20 @@ class LevelEditor(GLViewport):
                     self.addUnsavedEdit()
 
     def swapViewDistance(self):
-        if self.renderer.viewDistance >= self.renderer.maxViewDistance:
-            self.renderer.viewDistance = self.renderer.minViewDistance
+        if Settings.view_distance.v >= self.renderer.maxViewDistance:
+            Settings.view_distance.set(self.renderer.minViewDistance)
         else:
-            self.renderer.viewDistance += 2
+            Settings.view_distance.add(2)
 
         self.addWorker(self.renderer)
-        Settings.viewDistance.set(self.renderer.viewDistance)
 
     def increaseViewDistance(self):
-        self.renderer.viewDistance = min(self.renderer.maxViewDistance, self.renderer.viewDistance + 2)
+        Settings.view_distance.set(min(self.renderer.maxViewDistance, Settings.view_distance.v + 2))
         self.addWorker(self.renderer)
-        Settings.viewDistance.set(self.renderer.viewDistance)
 
     def decreaseViewDistance(self):
-        self.renderer.viewDistance = max(self.renderer.minViewDistance, self.renderer.viewDistance - 2)
+        Settings.view_distance.set(max(self.renderer.minViewDistance, Settings.view_distance.v - 2))
         self.addWorker(self.renderer)
-        Settings.viewDistance.set(self.renderer.viewDistance)
 
     def askOpenFile(self):
         self.mouseLookOff()
@@ -2839,7 +2704,7 @@ class LevelEditor(GLViewport):
             if filename:
                 self.parent.loadFile(filename)
         except Exception:
-            logging.exception('Error while asking user for filename')
+            log.error('Error while asking user for filename')
             return
 
     def createNewLevel(self):
@@ -2901,9 +2766,9 @@ class LevelEditor(GLViewport):
             if "Canceled" == mceutils.showProgress("Generating chunks...", worker, cancel=True):
                 raise RuntimeError("Canceled")
 
-            self.loadFile(os.path.join(filename, "level.dat"))
+            self.loadFile(filename)
         except Exception:
-            logging.exception('Error while creating world. {world => %s}' % filename)
+            log.error(f'Error while creating world. (world => {filename})')
             return
 
         return new_level
@@ -3031,9 +2896,6 @@ class LevelEditor(GLViewport):
         frameStartTime = datetime.now()
         timeDelta = frameStartTime - self.frameStartTime
 
-        # self.addDebugString("FrameStart: {0}  CameraTick: {1}".format(frameStartTime, self.mainViewport.lastTick))
-        # self.addDebugString("D: %d, " % () )
-
         self.currentFrameDelta = timeDelta
         self.frameSamples.pop(0)
         self.frameSamples.append(timeDelta)
@@ -3055,7 +2917,7 @@ class LevelEditor(GLViewport):
             self.debugString = "FPS: %0.1f/%0.1f, CPS: %0.1f, VD: %d, W: %d, WF: %d, " % (1000000. / (float(timeDelta.microseconds) + 0.000001),
                                                                            self.averageFPS,
                                                                            cps,
-                                                                           self.renderer.viewDistance,
+                                                                           Settings.view_distance.v,
                                                                            len(self.workers),
                                                                            self.renderer.workFactor)
 
@@ -3078,11 +2940,6 @@ class LevelEditor(GLViewport):
             if isinstance(w, MCRenderer):
                 label = Label("Rendering chunks" + ((datetime.now().second / 3) % 3) * ".")
                 progress = Label("{0} chunks ({1} pending updates)".format(len(w.chunkRenderers), len(w.invalidChunkQueue)))
-                col = Column((label, progress), align="l", width=200)
-                infos.append(col)
-            elif isinstance(w, RunningOperation):  # **FIXME** Where is RunningOperation supposed to come from?  -David Sowder 20120311
-                label = Label(w.description)
-                progress = Label(w.progress)
                 col = Column((label, progress), align="l", width=200)
                 infos.append(col)
 
@@ -3186,22 +3043,6 @@ class LevelEditor(GLViewport):
     def freezeStatus(self, string):
         return
 
-#        GL.glColor(1.0, 0., 0., 1.0)
-#
-#        # glDrawBuffer(GL.GL_FRONT)
-#        GL.glMatrixMode(GL.GL_PROJECTION)
-#        GL.glPushMatrix()
-#        glRasterPos(50, 100)
-#        for i in string:
-#            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(i))
-#
-#        # glDrawBuffer(GL.GL_BACK)
-#        GL.glMatrixMode(GL.GL_PROJECTION)
-#        GL.glPopMatrix()
-#        glFlush()
-#        display.flip()
-#        # while(True): pass
-
     def selectionSize(self):
         return self.selectionTool.selectionSize()
 
@@ -3278,23 +3119,18 @@ class LevelEditor(GLViewport):
         # infoPanel.present()
 
     def handleMemoryError(self):
-        if self.renderer.viewDistance <= 2:
+        if Settings.view_distance.v <= 2:
             raise MemoryError("Out of memory. Please restart MCEdit.")
         if hasattr(self.level, 'compressAllChunks'):
             self.level.compressAllChunks()
         self.toolbar.selectTool(-1)
 
-        self.renderer.viewDistance = self.renderer.viewDistance - 4
+        Settings.view_distance.set(Settings.view_distance - 4)
         self.renderer.discardAllChunks()
 
-        logging.warning(
-            'Out of memory, decreasing view distance. {view => %s}' % (
-                self.renderer.viewDistance
-            )
-        )
+        log.warn(f'Out of memory, decreasing view distance. (view => {Settings.view_distance})')
 
-        Settings.viewDistance.set(self.renderer.viewDistance)
-        config.saveConfig()
+        save_config()
 
 
 class EditorToolbar(GLOrtho):
@@ -3474,7 +3310,7 @@ class EditorToolbar(GLOrtho):
 
                 GL.glDrawArrays(GL.GL_QUADS, 0, 4)
             except Exception:
-                logging.exception('Error while drawing toolbar.')
+                log.error('Error while drawing toolbar')
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
     gfont = None
@@ -3485,12 +3321,6 @@ class EditorToolbar(GLOrtho):
         GL.glEnable(GL.GL_BLEND)
         self.toolbarDisplayList.call(self.drawToolbar)
         GL.glColor(1.0, 1.0, 0.0)
-
-        # GL.glEnable(GL.GL_BLEND)
-
-        # with gl.glPushMatrix(GL_TEXTURE):
-        #    GL.glLoadIdentity()
-        #    self.gfont.flatPrint("ADLADLADLADLADL")
 
         try:
             currentToolNumber = self.tools.index(self.parent.currentTool)

@@ -5,7 +5,6 @@ Created on Jul 22, 2011
 '''
 
 from .mclevelbase import *
-import shutil
 from .level import MCLevel, EntityLevel
 import numpy as np
 from io import BytesIO
@@ -13,9 +12,9 @@ from pymclevel import blockrotation
 from pymclevel.box import BoundingBox
 from pymclevel.material import materials
 from pymclevel import nbt
+import sys
 
-log = logging.getLogger(__name__)
-warn, error, info, debug = log.warn, log.error, log.info, log.debug
+import log
 
 __all__ = ['MCSchematic', 'INVEditChest']
 class MCSchematic (EntityLevel):
@@ -98,20 +97,19 @@ class MCSchematic (EntityLevel):
                 data = g_zipper.read()
                 if data == None: return;
             except Exception as e:
-                #error( u"Error reading compressed data, assuming uncompressed: {0}".format(e) )
                 data = self.compressedTag
 
 
         try:
             self.root_tag = nbt.load(buf=data)
         except Exception as e:
-            error(u"Malformed NBT data in schematic file: {0} ({1})".format(self.filename, e))
+            log.error(f"Malformed NBT data in schematic file: {self.filename} ({e})")
             raise(ChunkMalformed, (e,self.filename), sys.exc_info()[2])
 
         try:
             self.shapeChunkData()
         except KeyError as e:
-            error(u"Incorrect schematic format in file: {0} ({1})".format(self.filename, e))
+            log.error(f"Incorrect schematic format in file: {self.filename} ({e})")
             raise(ChunkMalformed, (e,self.filename), sys.exc_info()[2])
         pass
 
@@ -142,8 +140,8 @@ class MCSchematic (EntityLevel):
     @Blocks.setter
     @decompress_first
     @unpack_first
-    def Blocks(self, newval):
-        self.root_tag[Blocks].value = newval
+    def Blocks(self, new_val):
+        self.root_tag[Blocks].value = new_val
 
     @property
     @decompress_first
@@ -212,7 +210,7 @@ class MCSchematic (EntityLevel):
         
         blockrotation.RotateLeft(self.Blocks, self.Data)
 
-        info(u"Relocating entities...")
+        log.debug("Relocating entities...")
         for entity in self.Entities:
             for p in "Pos", "Motion":
                 if p == "Pos":
@@ -227,10 +225,10 @@ class MCSchematic (EntityLevel):
             entity["Rotation"][0].value -= 90.0
             if entity["id"].value == "Painting":
                 x, z = entity["TileX"].value, entity["TileZ"].value
-                newx = z
-                newz = self.Length - x - 1
+                new_x = z
+                new_z = self.Length - x - 1
 
-                entity["TileX"].value, entity["TileZ"].value = newx, newz
+                entity["TileX"].value, entity["TileZ"].value = new_x, new_z
                 entity["Dir"].value = (entity["Dir"].value + 1) % 4
 
         for tileEntity in self.TileEntities:
@@ -262,7 +260,7 @@ class MCSchematic (EntityLevel):
 
         northSouthPaintingMap = [0, 3, 2, 1]
 
-        info(u"N/S Flip: Relocating entities...")
+        log.debug("N/S Flip: Relocating entities...")
         for entity in self.Entities:
 
             entity["Pos"][0].value = self.Width - entity["Pos"][0].value
@@ -287,7 +285,7 @@ class MCSchematic (EntityLevel):
 
         eastWestPaintingMap = [2, 1, 0, 3]
 
-        info(u"E/W Flip: Relocating entities...")
+        log.debug("E/W Flip: Relocating entities...")
         for entity in self.Entities:
 
             entity["Pos"][2].value = self.Length - entity["Pos"][2].value
@@ -320,7 +318,7 @@ class MCSchematic (EntityLevel):
         """ save to file named filename, or use self.filename.  XXX NOT THREAD SAFE AT ALL. """
         if filename == None: filename = self.filename
         if filename == None:
-            print("Attempted to save an unnamed schematic in place")
+            log.warn("Attempted to save an unnamed schematic in place")
             return
 
         self.compress()
@@ -381,7 +379,7 @@ class INVEditChest(MCSchematic):
                 try:
                     root_tag = nbt.load(filename)
                 except IOError as e:
-                    info(u"Failed to load file {0}".format(e))
+                    log.error(f"Failed to load file {e}")
                     raise
         else:
             assert root_tag, "Must have either root_tag or filename"
@@ -464,10 +462,10 @@ def extractSchematicFromIter(sourceLevel, box, entities=True):
     if p is None: 
         yield None
         return
-    newbox, destPoint = p
+    new_box, destPoint = p
 
     tempSchematic = MCSchematic(shape=box.size)
-    for i in tempSchematic.copyBlocksFromIter(sourceLevel, newbox, destPoint, entities=entities):
+    for i in tempSchematic.copyBlocksFromIter(sourceLevel, new_box, destPoint, entities=entities):
         yield i
 
     yield tempSchematic
@@ -476,80 +474,13 @@ MCLevel.extractSchematic = extractSchematicFrom
 MCLevel.extractSchematicIter = extractSchematicFromIter
 MCLevel.adjustExtractionParameters = adjustExtractionParameters
 
-import tempfile
-def extractZipSchematicFrom(sourceLevel, box, zipfilename=None, entities=True):
-    return exhaust(extractZipSchematicFromIter(sourceLevel, box, zipfilename, entities))
-
-def extractZipSchematicFromIter(sourceLevel, box, zipfilename=None, entities=True):
-    #converts classic blocks to alpha
-    #probably should only apply to alpha levels
-
-    if zipfilename is None:
-        zipfilename = tempfile.mktemp("zipschematic")
-
-    p = sourceLevel.adjustExtractionParameters(box)
-    if p is None: return
-    sourceBox, destPoint = p
-
-    destPoint = (0, 0, 0)
-
-    tempfolder = tempfile.mktemp("schematic")
-    try:
-        done = False
-        tempSchematic = MCBetaLevel(tempfolder, create=True)
-    
-        destBox = BoundingBox(destPoint, sourceBox.size)
-
-        for i in tempSchematic.copyBlocksFromIter(sourceLevel, sourceBox, destPoint, entities=entities, create=True):
-            yield i
-        tempSchematic.saveInPlace() #lights not needed for this format - crashes minecraft though
-        
-        schematicDat = TAG_Compound()
-        schematicDat.name = "Mega Schematic"
-    
-        schematicDat["Width"] = TAG_Int(sourceBox.size[0])
-        schematicDat["Height"] = TAG_Int(sourceBox.size[1])
-        schematicDat["Length"] = TAG_Int(sourceBox.size[2])
-        schematicDat.save(os.path.join(tempfolder, "schematic.dat"))
-    
-        zipdir(tempfolder, zipfilename)
-    
-        from . import mclevel
-        yield mclevel.fromFile(zipfilename)
-    finally:
-        #We get here if the generator is GCed also
-        if os.path.exists(tempfolder): shutil.rmtree(tempfolder, False)
             
-            
-MCLevel.extractZipSchematic = extractZipSchematicFrom
-MCLevel.extractZipSchematicIter = extractZipSchematicFromIter
-
 def extractAnySchematic(level, box):
     return exhaust(level.extractAnySchematicIter(box))
     
 def extractAnySchematicIter(level, box):
-    try:
-        if box.chunkCount > MCBetaLevel.decompressedChunkLimit:
-            raise MemoryError
-            
-        for i in level.extractSchematicIter(box):
-            yield i
-    except MemoryError:
-        for i in level.extractZipSchematicIter(box):
-            yield i
+    for i in level.extractSchematicIter(box):
+        yield i
             
 MCLevel.extractAnySchematic = extractAnySchematic
 MCLevel.extractAnySchematicIter = extractAnySchematicIter
-
-from zipfile import ZipFile, ZIP_STORED
-def zipdir(basedir, archivename):
-    assert os.path.isdir(basedir)
-    with closing(ZipFile(archivename, "w", ZIP_STORED)) as z:
-        for root, dirs, files in os.walk(basedir):
-            #NOTE: ignore empty directories
-            for fn in files:
-                absfn = os.path.join(root, fn)
-                zfn = absfn[len(basedir) + len(os.sep):] #XXX: relative path
-                z.write(absfn, zfn)
-
-from .infiniteworld import MCBetaLevel

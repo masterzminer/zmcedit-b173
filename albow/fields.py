@@ -7,6 +7,8 @@ import pygame
 from pygame.locals import K_LEFT, K_RIGHT, K_TAB, K_c, K_v, SCRAP_TEXT
 from .widget import Widget, overridable_property
 from .controls import Control
+from config_classes import Setting
+import log
 
 #---------------------------------------------------------------------------
 
@@ -73,15 +75,14 @@ class TextEditor(Widget):
                 try:
                     pygame.scrap.put(SCRAP_TEXT, self.text)
                 except:
-                    print("scrap not available")
+                    log.warn("scrap not available")
 
             elif event.key == K_v:
                 try:
                     t = pygame.scrap.get(SCRAP_TEXT).replace('\0', '')
                     self.text = t
                 except:
-                    print("scrap not available")
-                #print repr(t)
+                    log.warn("scrap not available")
             else:
                 self.attention_lost()
 
@@ -284,23 +285,21 @@ class Field(Control, TextEditor):
         else:
             self.insertion_point = None
 
-#    def get_value(self):
-#        self.commit()
-#        return Control.get_value(self)
-#
-#    def set_value(self, x):
-#        Control.set_value(self, x)
-#        self.editing = False
-
-
 
 class TextField(Field):
+
+    def __init__(self, width=None, **kwds):
+        super().__init__(width, **kwds)
+
     type = str
     _value = ""
 
 
 class IntField(Field):
     tooltipText = "Point here and use mousewheel to adjust"
+
+    def __init__(self, width=None, **kwds):
+        super().__init__(width, **kwds)
 
     def type(self, i):
         try:
@@ -421,6 +420,10 @@ from pygame.locals import KMOD_SHIFT
 
 
 class FloatField(Field):
+    def __init__(self, width=None, **kwds):
+        super().__init__(width, **kwds)
+    
+
     type = float
     _increment = 1.0
     _shift_increment = 16.0
@@ -459,4 +462,5 @@ class FloatField(Field):
 
         else:
             Field.mouse_down(self, evt)
+
 

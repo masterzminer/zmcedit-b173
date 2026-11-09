@@ -18,10 +18,8 @@ from .toolbasics import *
 
 from pymclevel.box import BoundingBox
 from pymclevel.material import materials
-
-FillSettings = config.Settings("Fill")
-FillSettings.chooseBlockImmediately = FillSettings("Choose Block Immediately", True)
-
+from config import Keys, FillToolSettings
+import log
 
 class BlockFillOperation(Operation):
     def __init__(self, editor, destLevel, destBox, blockInfo, blocksToReplace):
@@ -73,15 +71,12 @@ class FillToolPanel(Panel):
 
         self.fillWithLabel = Label("Fill with:", width=self.blockButton.width, align="c")
         self.fillButton = Button("Fill", action=tool.confirm, width=self.blockButton.width)
-        self.fillButton.tooltipText = "Shortcut: ENTER"
-
-        rollkey = config.config.get("Keys", "Roll").upper()
+        self.fillButton.tooltipText = f"Shortcut: {Keys.confirm_construction.v.upper()}"
 
         self.replaceLabel = replaceLabel = Label("Replace", width=self.blockButton.width)
         replaceLabel.mouse_down = lambda a: self.tool.toggleReplacing()
         replaceLabel.fg_color = (177, 177, 255, 255)
-        # replaceLabelRow = Row( (Label(rollkey), replaceLabel) )
-        replaceLabel.tooltipText = "Shortcut: {0}".format(rollkey)
+        replaceLabel.tooltipText = f"Shortcut: {Keys.roll.v.upper()}"
         replaceLabel.align = "c"
 
         col = (self.fillWithLabel,
@@ -102,12 +97,11 @@ class FillToolPanel(Panel):
             self.swapButton = Button("Swap", action=self.swapBlockTypes, width=self.blockButton.width)
             self.swapButton.fg_color = (255, 255, 255, 255)
             self.swapButton.highlight_color = (60, 255, 60, 255)
-            swapkey = config.config.get("Keys", "Swap").upper()
 
-            self.swapButton.tooltipText = "Shortcut: {0}".format(swapkey)
+            self.swapButton.tooltipText = f"Shortcut: {Keys.swap.upper()}"
 
             self.fillButton = Button("Replace", action=tool.confirm, width=self.blockButton.width)
-            self.fillButton.tooltipText = "Shortcut: ENTER"
+            self.fillButton.tooltipText = f"Shortcut: {Keys.confirm_construction.v.upper()}"
 
             col = (self.fillWithLabel,
                     self.blockButton,
@@ -145,7 +139,7 @@ class FillToolOptions(ToolOptions):
         Panel.__init__(self)
         self.tool = tool
         self.autoChooseCheckBox = CheckBoxLabel("Choose Block Immediately",
-                                                ref=FillSettings.chooseBlockImmediately.propertyRef(),
+                                                ref=FillToolSettings.chose_block_immediately,
                                                 tooltipText="When the fill tool is chosen, prompt for a block type.")
 
         col = Column((Label("Fill Options"), self.autoChooseCheckBox, Button("OK", action=self.dismiss)))
@@ -201,7 +195,7 @@ class FillTool(EditorTool):
         self.replacing = False
         self.showPanel()
 
-        if self.chooseBlockImmediately:
+        if FillToolSettings.chose_block_immediately.v:
             blockPicker = BlockPicker(self.blockInfo, allowWildcards=True)
 
             if blockPicker.present():
@@ -210,8 +204,6 @@ class FillTool(EditorTool):
 
             else:
                 self.editor.toolbar.selectTool(-1)
-
-    chooseBlockImmediately = FillSettings.chooseBlockImmediately.configProperty()
 
     def toolReselected(self):
         self.showPanel()
@@ -231,7 +223,7 @@ class FillTool(EditorTool):
 
             if self.replacing:
                 if self.blockInfo.wildcard:
-                    print("Wildcard replace")
+                    log.trace("Wildcard replace")
                     blocksToReplace = []
                     for i in range(16):
                         blocksToReplace.append(materials.blockWithID(self.blockInfo.ID, i))
@@ -332,7 +324,7 @@ class FillTool(EditorTool):
 
     @property
     def statusText(self):
-        return "Press {hotkey} to choose a block. Press {R} to enter replace mode. Click Fill or press ENTER to confirm.".format(hotkey=self.hotkey, R=config.config.get("Keys", "Roll").upper())
+        return f"Press {self.hotkey} to choose a block. Press {Keys.roll.v.upper()} to enter replace mode. Click Fill or press {Keys.confirm_construction.v.upper()} to confirm"
 
     @property
     def worldTooltipText(self):

@@ -17,11 +17,7 @@ class RowOrColumn(Widget):
         expand = kwds.pop('expand', None)
         if isinstance(expand, int):
             expand = items[expand]
-        #if kwds:
-        #    raise TypeError("Unexpected keyword arguments to Row or Column: %s"
-        #        % kwds.keys())
         Widget.__init__(self, **kwds)
-        #print "albow.controls: RowOrColumn: size =", size, "expand =", expand ###
         d = self.d
         longways = self.longways
         crossways = self.crossways
@@ -47,7 +43,6 @@ class RowOrColumn(Widget):
             n = len(items)
             if n > 1:
                 length += spacing * (n - 1)
-            #print "albow.controls: expanding size from", length, "to", size ###
             setattr(expand.rect, longways, max(1, size - length))
         h = w * k // 2
         m = self.margin
@@ -137,9 +132,6 @@ class Grid(Widget):
         width = max(1, col_left - column_spacing)
         height = max(1, row_top - row_spacing)
         r = Rect(0, 0, width, height)
-        #print "albow.controls.Grid: r =", r ###
-        #print "...col_widths =", col_widths ###
-        #print "...row_heights =", row_heights ###
         Widget.__init__(self, r, **kwds)
         self.add(rows)
 

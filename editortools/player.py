@@ -23,6 +23,9 @@ from pymclevel.material import materials
 
 from pymclevel.box import BoundingBox
 
+from config import SpawnToolSettings
+import log
+
 
 class PlayerMoveOperation(Operation):
     undoPos = None
@@ -40,7 +43,7 @@ class PlayerMoveOperation(Operation):
                 self.undoDim = level.getPlayerDimension(self.player)
                 self.undoYP = level.getPlayerOrientation(self.player)
             except Exception as e:
-                print("Couldn't get player position! ({0!r})".format(e))
+                log.error("Couldn't get player position! ({0!r})".format(e))
 
             yaw, pitch = self.yp
             if yaw is not None and pitch is not None:
@@ -50,7 +53,7 @@ class PlayerMoveOperation(Operation):
             self.tool.markerList.invalidate()
 
         except PlayerNotFound as e:
-            print("Player move failed: ", e)
+            log.error("Player move failed: ", e)
 
     def undo(self):
         if not (self.undoPos is None):
@@ -87,7 +90,7 @@ class PlayerSpawnMoveOperation(PlayerMoveOperation):
         level = self.tool.editor.level
         if isinstance(level, MCBetaLevel):
             if not positionValid(level, self.pos):
-                if SpawnSettings.spawnProtection.get():
+                if SpawnToolSettings.protection.v:
                     raise SpawnPositionInvalid("You cannot have two air blocks at Y=63 and Y=64 in your spawn point's column. Additionally, you cannot have a solid block in the three blocks above your spawn point. It's weird, I know.")
 
         self.undoPos = level.playerSpawnPosition()
@@ -316,10 +319,8 @@ class PlayerPositionTool(EditorTool):
                                        c1=(0, 0, 0, 0),
                                        )
 
-                #glDisable(GL_BLEND)
-
             except Exception as e:
-                print(repr(e))
+                log.error(repr(e))
                 continue
 
         glDisable(GL_DEPTH_TEST)
@@ -375,7 +376,7 @@ class PlayerSpawnPositionOptions(ToolOptions):
     def __init__(self, tool):
         Panel.__init__(self)
         self.tool = tool
-        self.spawnProtectionCheckBox = CheckBox(ref=AttrRef(tool, "spawnProtection"))
+        self.spawnProtectionCheckBox = CheckBox(ref=SpawnToolSettings.protection)
         self.spawnProtectionLabel = Label("Spawn Position Safety")
         self.spawnProtectionLabel.mouse_down = self.spawnProtectionCheckBox.mouse_down
 
@@ -387,9 +388,6 @@ class PlayerSpawnPositionOptions(ToolOptions):
 
         self.add(col)
         self.shrink_wrap()
-
-SpawnSettings = config.Settings("Spawn")
-SpawnSettings.spawnProtection = SpawnSettings("Spawn Protection", True)
 
 
 class PlayerSpawnPositionTool(PlayerPositionTool):
@@ -427,14 +425,12 @@ class PlayerSpawnPositionTool(PlayerPositionTool):
     def statusText(self):
         return "Click to set the spawn position."
 
-    spawnProtection = SpawnSettings.spawnProtection.configProperty()
-
     def drawToolReticle(self):
         pos, direction = self.editor.blockFaceUnderCursor
         x, y, z = list(map(lambda p, d: p + d, pos, direction))
 
         color = (1.0, 1.0, 1.0, 0.5)
-        if isinstance(self.editor.level, MCBetaLevel) and self.spawnProtection:
+        if isinstance(self.editor.level, MCBetaLevel) and SpawnToolSettings.protection.v:
             if not positionValid(self.editor.level, (x, y, z)):
                 color = (1.0, 0.0, 0.0, 0.5)
 

@@ -19,37 +19,36 @@ Platform-specific functions, file io
 """
 
 import os
-from os.path import exists
 import sys
 import traceback
 import platform
 import subprocess
 from pathlib import Path
 import config
-from config import LastDir
+from config import LastDir, Settings
+from config_classes import DirectorySetting
 
 import crossfiledialog
+import log
 
 enc = sys.getfilesystemencoding()
 
 from albow import request_new_filename, request_old_filename
 
 
-AppKit = None
-
 cmd_name = "Ctrl"
 option_name = "Alt"
 
-def askOpenFile(lastDir: LastDir, title: str):
+def askOpenFile(lastDir: DirectorySetting, title: str):
     """
-    dirType: String constant from config.LastDir representing the initial dir to open from
+    lastDir: setting to get the initial dir to open from
     """
-    initialDir = config.get_last_dir(lastDir)
+    initialDir = lastDir.v
 
     file_types = ["mclevel", "dat", "mine", "mine.gz", "schematic"]
 
     def _ask_open():
-        if config.use_old_file_browser():
+        if Settings.use_old_file_browser.v:
             return request_old_filename(file_types, initialDir)
 
         try:
@@ -59,8 +58,7 @@ def askOpenFile(lastDir: LastDir, title: str):
                 filter=["*." + f for f in file_types]
             )
         except:
-            print("Failed to load os file dialog, falling back to built in gui")
-            traceback.print_exc()
+            log.error("Failed to load os file dialog, falling back to built in gui")
 
             # On an exception, fall back to the built in gui selector
             return request_old_filename(file_types, initialDir)
@@ -68,46 +66,49 @@ def askOpenFile(lastDir: LastDir, title: str):
     file_name = _ask_open()
 
     if file_name:
-        config.update_last_dir(lastDir, Path(file_name).parent)
+        lastDir.set(Path(file_name).parent)
 
     return file_name
 
 
 def askSaveSchematic(defaultName: str):
-    file_name = askSaveFile(LastDir.schematic,
+    lastDir = LastDir.schematic
+
+    file_name = askSaveFile(lastDir,
                 title='Save this schematic...',
                 defaultName=defaultName,
                 filetype="schematic"
             )
 
     if file_name:
-        config.update_last_dir(LastDir.schematic, Path(file_name).parent)
+        lastDir.set(Path(file_name).parent)
 
     return file_name
 
 
 def askCreateWorld():
-    initialDir = config.get_last_dir(LastDir.world)
+    lastDir = LastDir.world
+    initialDir = lastDir.v
 
     # Find a valid name for a folder that doesn't already exist
     defaultName = name = "Untitled World"
     i = 0
-    while exists(initialDir / name):
+    while (initialDir / name).exists:
         i += 1
         name = defaultName + " " + str(i)
 
     # Select the directory
-    selected = askSaveFile(LastDir.world, title='Name this new world', defaultName=name)
+    selected = askSaveFile(lastDir, title='Name this new world', defaultName=name)
     
-    config.update_last_dir(LastDir.world, Path(selected).parent)
+    lastDir.set(Path(selected).parent)
 
     return selected
 
 
-def askSaveFolder(lastDir: LastDir, title):
-    initialDir = config.get_last_dir(lastDir)
+def askSaveFolder(lastDir: DirectorySetting, title):
+    initialDir = lastDir.v
 
-    if config.use_old_file_browser():
+    if Settings.use_old_file_browser.v:
         selected = request_old_filename(directory=initialDir, selectDir=True)
     else:
         selected = crossfiledialog.choose_folder(
@@ -118,15 +119,15 @@ def askSaveFolder(lastDir: LastDir, title):
     if selected is None or selected == "":
         return None
     
-    config.update_last_dir(lastDir, selected)
+    lastDir.set(selected)
 
     return selected
 
 
-def askSaveFile(lastDir: LastDir, title: str, defaultName, filetype: str=None):
-    initialDir = config.get_last_dir(lastDir);
+def askSaveFile(lastDir: DirectorySetting, title: str, defaultName, filetype: str=None):
+    initialDir = lastDir.v;
 
-    if config.use_old_file_browser():
+    if Settings.use_old_file_browser.v:
         selected_path = request_new_filename(
             prompt=title,
             suffix=("" if filetype is None else ("." + filetype)),
@@ -146,7 +147,7 @@ def askSaveFile(lastDir: LastDir, title: str, defaultName, filetype: str=None):
             selected_path += "." + filetype
 
     if selected_path is not None:
-        config.update_last_dir(LastDir.data, Path(selected_path).parent)
+        lastDir.set(Path(selected_path).parent)
 
     return selected_path
 
@@ -180,7 +181,7 @@ class OS():
 
         path: The absolute path to the file to open
         """
-        print(f"Opening files is not implemented for this os, cannot open path {path}")
+        log.error(f"Opening files is not implemented for this os, cannot open path {path}")
 
 class LinuxHandler(OS):
     def open_file(self, path: Path):
@@ -206,7 +207,7 @@ class WindowsHandler(OS):
 
 class UnknownHandler(OS):
     def handle_init(self):
-        print("Failed to identify operating system or operating system not supported, some actions may not work")
+        log.error("Failed to identify operating system or operating system not supported, some actions may not work")
 
 
 def find_os_handler():
@@ -219,7 +220,7 @@ def find_os_handler():
     elif system == "Windows":
         return WindowsHandler(system)
     else:
-        print(f"Unknown operating system: {system}")
+        log.error(f"Unknown operating system: {system}")
         return UnknownHandler(system)
 
 

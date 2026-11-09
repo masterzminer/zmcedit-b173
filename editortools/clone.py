@@ -18,12 +18,8 @@ from .toolbasics import *
 from .select import SelectionOperation
 
 from pymclevel.box import BoundingBox
-from config import LastDir
-
-CloneSettings = config.Settings("Clone")
-CloneSettings.copyAir = CloneSettings("Copy Air", True)
-CloneSettings.copyWater = CloneSettings("Copy Water", True)
-CloneSettings.placeImmediately = CloneSettings("Place Immediately", True)
+from config import LastDir, Keys, CloneToolSettings
+import log
 
 
 class CoordsInput(Widget):
@@ -77,14 +73,12 @@ class CoordsInput(Widget):
 
 
 class BlockCopyOperation(Operation):
-    def __init__(self, editor, sourceLevel, sourceBox, destLevel, destPoint, copyAir, copyWater):
+    def __init__(self, editor, sourceLevel, sourceBox, destLevel, destPoint):
         self.editor = editor
         self.sourceLevel = sourceLevel
         self.sourceBox = sourceBox
         self.destLevel = destLevel
         self.destPoint = destPoint
-        self.copyAir = copyAir
-        self.copyWater = copyWater
         self.sourceBox, self.destPoint = self.destLevel.adjustCopyParameters(self.sourceLevel, self.sourceBox, self.destPoint)
 
     def dirtyBox(self):
@@ -105,13 +99,13 @@ class BlockCopyOperation(Operation):
             self.recordUndo()
 
         blocksToCopy = None
-        if not (self.copyAir and self.copyWater):
+        if not (CloneToolSettings.copy_air.v and CloneToolSettings.copy_water.v):
             blocksToCopy = list(range(256))
-            if not self.copyAir:
+            if not CloneToolSettings.copy_air.v:
                 blocksToCopy.remove(0)
-            if not self.copyWater:
+            if not CloneToolSettings.copy_water.v:
                 blocksToCopy.remove(8)
-            if not self.copyWater:
+            if not CloneToolSettings.copy_water.v:
                 blocksToCopy.remove(9)
 
         with setWindowCaption("Copying - "):
@@ -132,7 +126,7 @@ class BlockCopyOperation(Operation):
 
 
 class CloneOperation (Operation):
-    def __init__(self, editor, sourceLevel, sourceBox, originSourceBox, destLevel, destPoint, copyAir, copyWater, repeatCount):
+    def __init__(self, editor, sourceLevel, sourceBox, originSourceBox, destLevel, destPoint, repeatCount):
         self.blockCopyOps = []
         dirtyBoxes = []
         if repeatCount > 1:  # clone tool only
@@ -141,7 +135,7 @@ class CloneOperation (Operation):
             delta = (0, 0, 0)
 
         for i in range(repeatCount):
-            op = BlockCopyOperation(editor, sourceLevel, sourceBox, destLevel, destPoint, copyAir, copyWater)
+            op = BlockCopyOperation(editor, sourceLevel, sourceBox, destLevel, destPoint)
             dirty = op.dirtyBox()
 
             # bounds check - xxx move to BoundingBox
@@ -214,19 +208,19 @@ class CloneToolPanel(Panel):
         self.tool = tool
 
         rotateRow = Row((
-            Label(config.config.get("Keys", "Rotate").upper()), Button("Rotate", width=80, action=tool.rotate, enable=self.transformEnable),
+            Label(Keys.rotate.v.upper()), Button("Rotate", width=80, action=tool.rotate, enable=self.transformEnable),
         ))
 
         rollRow = Row((
-            Label(config.config.get("Keys", "Roll").upper()), Button("Roll", width=80, action=tool.roll, enable=self.transformEnable),
+            Label(Keys.roll.v.upper()), Button("Roll", width=80, action=tool.roll, enable=self.transformEnable),
         ))
 
         flipRow = Row((
-            Label(config.config.get("Keys", "Flip").upper()), Button("Flip", width=80, action=tool.flip, enable=self.transformEnable),
+            Label(Keys.flip.v.upper()), Button("Flip", width=80, action=tool.flip, enable=self.transformEnable),
         ))
 
         mirrorRow = Row((
-            Label(config.config.get("Keys", "Mirror").upper()), Button("Mirror", width=80, action=tool.mirror, enable=self.transformEnable),
+            Label(Keys.mirror.v.upper()), Button("Mirror", width=80, action=tool.mirror, enable=self.transformEnable),
         ))
 
         alignRow = Row((
@@ -280,24 +274,24 @@ class CloneToolPanel(Panel):
 
         self.scaleField = scaleField
 
-        self.copyAirCheckBox = CheckBox(ref=AttrRef(self.tool, "copyAir"))
+        self.copyAirCheckBox = CheckBox(ref=CloneToolSettings.copy_air)
         self.copyAirLabel = Label("Copy Air")
         self.copyAirLabel.mouse_down = self.copyAirCheckBox.mouse_down
-        self.copyAirLabel.tooltipText = "Shortcut: ALT-1"
+        self.copyAirLabel.tooltipText = f"Shortcut: ALT-{Keys.tool_option_1}"
         self.copyAirCheckBox.tooltipText = self.copyAirLabel.tooltipText
 
         copyAirRow = Row((self.copyAirCheckBox, self.copyAirLabel))
 
-        self.copyWaterCheckBox = CheckBox(ref=AttrRef(self.tool, "copyWater"))
+        self.copyWaterCheckBox = CheckBox(ref=CloneToolSettings.copy_water)
         self.copyWaterLabel = Label("Copy Water")
         self.copyWaterLabel.mouse_down = self.copyWaterCheckBox.mouse_down
-        self.copyWaterLabel.tooltipText = "Shortcut: ALT-2"
+        self.copyWaterLabel.tooltipText = f"Shortcut: ALT-{Keys.tool_option_3}"
         self.copyWaterCheckBox.tooltipText = self.copyWaterLabel.tooltipText
 
         copyWaterRow = Row((self.copyWaterCheckBox, self.copyWaterLabel))
 
         self.performButton = Button("Clone", width=100, align="c")
-        self.performButton.tooltipText = "Shortcut: ENTER"
+        self.performButton.tooltipText = f"Shortcut: {Keys.confirm_construction.v.upper()}"
         self.performButton.action = tool.confirm
         self.performButton.enable = lambda: (tool.destPoint is not None)
         if self.useOffsetInput:
@@ -315,7 +309,7 @@ class CloneToolOptions(ToolOptions):
     def __init__(self, tool):
         Panel.__init__(self)
         self.tool = tool
-        self.autoPlaceCheckBox = CheckBox(ref=AttrRef(tool, "placeImmediately"))
+        self.autoPlaceCheckBox = CheckBox(ref=CloneToolSettings.place_immediately)
         self.autoPlaceLabel = Label("Place Immediately")
         self.autoPlaceLabel.mouse_down = self.autoPlaceCheckBox.mouse_down
 
@@ -361,10 +355,7 @@ class CloneTool(EditorTool):
             x, y, z = self.destPoint
             self.destPoint = (x >> 4) << 4, y, (z >> 4) << 4
 
-    placeImmediately = CloneSettings.placeImmediately.configProperty()
-
     panelClass = CloneToolPanel
-    # color = (0.89, 0.65, 0.35, 0.33)
     color = (0.3, 1.0, 0.3, 0.19)
 
     def __init__(self, *args):
@@ -385,13 +376,10 @@ class CloneTool(EditorTool):
         if self.draggingFace is not None:
             return "Mousewheel to move along the third axis. Hold SHIFT to only move along one axis."
 
-        return "Click and drag to reposition the item. Double-click to pick it up. Click Clone or press ENTER to confirm."
+        return f"Click and drag to reposition the item. Double-click to pick it up. Click Clone or press {Keys.confirm_construction.v.upper()} to confirm."
 
     def quickNudge(self, nudge):
         return list(map(int.__mul__, nudge, self.selectionBox().size))
-
-    copyAir = CloneSettings.copyAir.configProperty()
-    copyWater = CloneSettings.copyWater.configProperty()
 
     def nudge(self, nudge):
         if self.destPoint is None:
@@ -457,17 +445,11 @@ class CloneTool(EditorTool):
             self.editor.toolbar.selectTool(-1)
             return
 
-        if box.volume > self.maxBlocks:
-            self.editor.mouseLookOff()
-            alert("Selection exceeds {0:n} blocks. Increase the block buffer setting and try again.".format(self.maxBlocks))
-            self.editor.toolbar.selectTool(-1)
-            return
-
         self.rotation = 0
         self.repeatCount = 1
         self._scaleFactor = 1.0
 
-        if self.placeImmediately:
+        if CloneToolSettings.place_immediately.v:
             self.destPoint = list(box.origin)
         else:
             self.destPoint = None
@@ -581,7 +563,6 @@ class CloneTool(EditorTool):
         if size[1] >= self.editor.level.Height:
             direction = (0, 1, 0)  # always use the upward face whenever we're splicing full-height pieces, to avoid "jitter"
 
-        # print size; raise SystemExit
         if any(direction) and pos[1] >= 0:
             x, y, z = list(map(lambda p, s, d: p - s // 2 + s * d // 2 + (d > 0), pos, size, direction))
         else:
@@ -743,10 +724,10 @@ class CloneTool(EditorTool):
             self.previewRenderer.level = self.level
 
     def option1(self):
-        self.copyAir = not self.copyAir
+        CloneToolSettings.copy_air.invert()
 
     def option2(self):
-        self.copyWater = not self.copyWater
+        CloneToolSettings.copy_water.invert()
 
     draggingFace = None
     draggingStartPoint = None
@@ -811,7 +792,7 @@ class CloneTool(EditorTool):
 
             if self.panel and self.panel.useOffsetInput:
                 self.panel.offsetInput.setCoords(list(map(operator.sub, self.destPoint, box.origin)))
-            print("Destination: ", self.destPoint)
+            log.trace("Destination: ", self.destPoint)
 
     @alertException
     def mouseUp(self, evt, pos, direction):
@@ -875,8 +856,7 @@ class CloneTool(EditorTool):
         d = list(map(lambda a, b, c: abs(a - b - c / 2), self.editor.mainViewport.cameraPosition, self.destPoint, box.size))
         self.cloneCameraDistance = np.sqrt(d[0] * d[0] + d[1] * d[1] + d[2] * d[2])
         self.destPoint = None
-        # self.panel.performButton.enabled = False
-        print("Picked up")
+        log.trace("Picked up")
 
     @alertException
     def confirm(self):
@@ -896,8 +876,6 @@ class CloneTool(EditorTool):
                             originSourceBox=self.selectionBox(),
                             destLevel=destLevel,
                             destPoint=self.destPoint,
-                            copyAir=self.copyAir,
-                            copyWater=self.copyWater,
                             repeatCount=self.repeatCount)
 
         self.editor.toolbar.selectTool(-1)  # deselect tool so that the clone tool's selection change doesn't update its schematic
@@ -962,7 +940,7 @@ class ConstructionTool(CloneTool):
         if self.destPoint == None:
             return "Click to set this item down."
 
-        return "Click and drag to reposition the item. Double-click to pick it up. Click Import or press ENTER to confirm."
+        return f"Click and drag to reposition the item. Double-click to pick it up. Click Import or press {Keys.confirm_construction.v.upper()} to confirm."
 
     def showPanel(self):
         CloneTool.showPanel(self)
@@ -970,12 +948,6 @@ class ConstructionTool(CloneTool):
 
     def toolReselected(self):
         self.toolSelected()
-
-    #    def cancel(self):
-#        print "Cancelled Clone"
-#        self.level = None
-#        super(ConstructionTool, self).cancel(self)
-#
 
     def createTestBoard(self, anyBlock=True):
         if anyBlock:
@@ -1018,13 +990,11 @@ class ConstructionTool(CloneTool):
 
             self.loadSchematic(clipFilename)
 
-        print("Canceled")
+        log.trace("Canceled")
         if self.level is None:
-            print("No level selected.")
+            log.trace("No level selected.")
 
             self.editor.toolbar.selectTool(-1)
-
-        # CloneTool.toolSelected(self)
 
     originalLevelSize = (0, 0, 0)
 
@@ -1034,12 +1004,12 @@ class ConstructionTool(CloneTool):
             level = fromFile(filename)
             self.loadLevel(level)
         except Exception as e:
-            print(u"Unable to import file {0} : {1}".format(filename, e))
+            log.trace(f"Unable to import file {log.trace} : {e}")
 
             traceback.print_exc()
             if filename:
                 # self.editor.toolbar.selectTool(-1)
-                alert(u"I don't know how to import this file: {0}.\n\nError: {1!r}".format(os.path.basename(filename), e))
+                alert("I don't know how to import this file: {0}.\n\nError: {1!r}".format(os.path.basename(filename), e))
 
             return
 

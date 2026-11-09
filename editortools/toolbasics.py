@@ -40,9 +40,11 @@ from pymclevel.mclevelbase import exhaust
 from albow.root import Cancel
 import numpy as np
 from OpenGL import GLU
+from config import Keys
 
 from pymclevel.box import BoundingBox
 from pymclevel.material import materials
+import log
 
 class NudgeButton(GLBackground):
     """ A button that captures movement keys while pressed and sends them to a listener as nudge events.
@@ -57,12 +59,15 @@ class NudgeButton(GLBackground):
         self.add(nudgeLabel)
         self.shrink_wrap()
 
-        # tooltipBacking = Panel()
-        # tooltipBacking.bg_color = (0, 0, 0, 0.6)
-        keys = [config.config.get("Keys", k).upper() for k in ("Forward", "Back", "Left", "Right", "Up", "Down")]
-
-        nudgeLabel.tooltipText = "Click and hold.  While holding, use the movement keys ({0}{1}{2}{3}{4}{5}) to nudge. Hold SHIFT to nudge faster.".format(*keys)
-        # tooltipBacking.shrink_wrap()
+        nudgeLabel.tooltipText = ("Click and hold.  While holding, use the movement keys ("
+            f"{Keys.forward}"
+            f"{Keys.back}"
+            f"{Keys.left}"
+            f"{Keys.right}"
+            f"{Keys.up}"
+            f"{Keys.down}"
+            ") to nudge. Hold SHIFT to nudge faster."
+        )
 
     def mouse_down(self, event):
         self.focus()
@@ -72,10 +77,6 @@ class NudgeButton(GLBackground):
 
     def key_down(self, evt):
         keyname = key.name(evt.key)
-        if keyname == config.config.get("Keys", "Up"):
-            self.nudge((0, 1, 0))
-        if keyname == config.config.get("Keys", "Down"):
-            self.nudge((0, -1, 0))
 
         Z = self.get_root().mcedit.editor.mainViewport.cameraVector  # xxx mouthful
         absZ = list(map(abs, Z))
@@ -88,14 +89,12 @@ class NudgeButton(GLBackground):
         left = forward[2], forward[1], -forward[0]
         right = list(map(int.__neg__, left))
 
-        if keyname == config.config.get("Keys", "Forward"):
-            self.nudge(forward)
-        if keyname == config.config.get("Keys", "Back"):
-            self.nudge(back)
-        if keyname == config.config.get("Keys", "Left"):
-            self.nudge(left)
-        if keyname == config.config.get("Keys", "Right"):
-            self.nudge(right)
+        if keyname == Keys.up.v: self.nudge((0, 1, 0))
+        if keyname == Keys.down.v: self.nudge((0, -1, 0))
+        if keyname == Keys.forward.v: self.nudge(forward)
+        if keyname == Keys.back.v: self.nudge(back)
+        if keyname == Keys.left.v: self.nudge(left)
+        if keyname == Keys.right.v: self.nudge(right)
 
 
 class Operation(object):
@@ -112,7 +111,9 @@ class Operation(object):
         if sch is None:
             sch = MCSchematic((0, 0, 0))
 
-        sch.compress()
+        # Hack for checking the type because sch is sometimes an int for some reason
+        if isinstance(sch, MCSchematic):
+            sch.compress()
         return sch
 
     # represents a single undoable operation
@@ -382,7 +383,7 @@ class BlockButton(ButtonBase, Panel):
 
         self.recentBlockView.right = self.width
         self.add(self.recentBlockView)
-        print(self.rect, self.recentBlockView.rect)
+        log.trace(self.rect, self.recentBlockView.rect)
 
     recentBlockView = None
 
@@ -564,7 +565,7 @@ class BlockPicker(Dialog):
         except ValueError:
             pass
         except Exception as e:
-            print(repr(e))
+            log.error(repr(e))
 
         blocks = materials.allBlocks
 
@@ -691,7 +692,17 @@ class EditorTool(object):
         is picked, escape is pressed, or etc etc'''
         self.hidePanel()
 
-    #        pass
+    # Explicitly defining generic extra methods that tools can optionally use, these used to be done through python magic finding the function name
+    def option1(self):
+        pass
+    def option2(self):
+        pass
+    def option3(self):
+        pass
+    def option4(self):
+        pass
+    def option5(self):
+        pass
 
     def findBestTrackingPlane(self, face):
         cv = list(self.editor.mainViewport.cameraVector)
@@ -889,11 +900,6 @@ class EditorTool(object):
             return None
         return c.size
 
-    @property
-    def maxBlocks(self):
-        from leveleditor import Settings
-        return Settings.blockBuffer.get() / 2  # assume block buffer in megabytes
-
     def showPanel(self):
         pass
 
@@ -908,6 +914,3 @@ class EditorTool(object):
         except MemoryError:
             self.editor.invalidateAllChunks()
             op.perform(recordUndo)
-
-
-Operation.maxBlocks = EditorTool.maxBlocks
