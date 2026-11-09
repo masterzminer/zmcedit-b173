@@ -87,10 +87,10 @@ class _KeysSection(Section):
     
     toggle_fps_counter = KS("0")
     toggle_renderer = KS("m")
-    goto = KS("g")
     swap_view = KS("tab")
 
     # Hot keys with control
+    goto = KS("g", ["ctrl"])
     swap_view_distance = KS("f", ["ctrl"])
     select_all = KS("a", ["ctrl"])
     deselect = KS("d", ["ctrl"])
@@ -252,7 +252,7 @@ class _FillToolSection(Section):
 
     NAME = "fill tool"
 
-    chose_block_immediately = S(True)
+    chose_block_immediately = S(False)
 
 
 FillToolSettings = _FillToolSection(config)

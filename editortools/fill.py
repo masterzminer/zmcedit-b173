@@ -71,7 +71,7 @@ class FillToolPanel(Panel):
 
         self.fillWithLabel = Label("Fill with:", width=self.blockButton.width, align="c")
         self.fillButton = Button("Fill", action=tool.confirm, width=self.blockButton.width)
-        self.fillButton.tooltipText = "Shortcut: ENTER"
+        self.fillButton.tooltipText = f"Shortcut: {Keys.confirm_construction.v.upper()}"
 
         self.replaceLabel = replaceLabel = Label("Replace", width=self.blockButton.width)
         replaceLabel.mouse_down = lambda a: self.tool.toggleReplacing()
@@ -101,7 +101,7 @@ class FillToolPanel(Panel):
             self.swapButton.tooltipText = f"Shortcut: {Keys.swap.upper()}"
 
             self.fillButton = Button("Replace", action=tool.confirm, width=self.blockButton.width)
-            self.fillButton.tooltipText = "Shortcut: ENTER"
+            self.fillButton.tooltipText = f"Shortcut: {Keys.confirm_construction.v.upper()}"
 
             col = (self.fillWithLabel,
                     self.blockButton,
@@ -324,7 +324,7 @@ class FillTool(EditorTool):
 
     @property
     def statusText(self):
-        return f"Press {self.hotkey} to choose a block. Press {Keys.roll.upper()} to enter replace mode. Click Fill or press ENTER to confirm"
+        return f"Press {self.hotkey} to choose a block. Press {Keys.roll.v.upper()} to enter replace mode. Click Fill or press {Keys.confirm_construction.v.upper()} to confirm"
 
     @property
     def worldTooltipText(self):

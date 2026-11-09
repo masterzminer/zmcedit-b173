@@ -16,9 +16,18 @@ brush
 select
     fix the select tool icon showing a blank white square sometimes, seemingly from quick loading a world while a world is already open
 
+import
+    Fix the import not consistently placing immediately or not
+
+spawn
+    Fix undoDim being undefined when undoing
+
 level rendering
     fix buttons and other non full blocks rendering weirdly
     fix the fire rendering with a dumb texture
+
+menu
+    Allow recent worlds to be deleted from the ui
 
 
 

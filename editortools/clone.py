@@ -291,7 +291,7 @@ class CloneToolPanel(Panel):
         copyWaterRow = Row((self.copyWaterCheckBox, self.copyWaterLabel))
 
         self.performButton = Button("Clone", width=100, align="c")
-        self.performButton.tooltipText = "Shortcut: ENTER"
+        self.performButton.tooltipText = f"Shortcut: {Keys.confirm_construction.v.upper()}"
         self.performButton.action = tool.confirm
         self.performButton.enable = lambda: (tool.destPoint is not None)
         if self.useOffsetInput:
@@ -356,7 +356,6 @@ class CloneTool(EditorTool):
             self.destPoint = (x >> 4) << 4, y, (z >> 4) << 4
 
     panelClass = CloneToolPanel
-    # color = (0.89, 0.65, 0.35, 0.33)
     color = (0.3, 1.0, 0.3, 0.19)
 
     def __init__(self, *args):
@@ -377,7 +376,7 @@ class CloneTool(EditorTool):
         if self.draggingFace is not None:
             return "Mousewheel to move along the third axis. Hold SHIFT to only move along one axis."
 
-        return "Click and drag to reposition the item. Double-click to pick it up. Click Clone or press ENTER to confirm."
+        return f"Click and drag to reposition the item. Double-click to pick it up. Click Clone or press {Keys.confirm_construction.v.upper()} to confirm."
 
     def quickNudge(self, nudge):
         return list(map(int.__mul__, nudge, self.selectionBox().size))
@@ -450,7 +449,7 @@ class CloneTool(EditorTool):
         self.repeatCount = 1
         self._scaleFactor = 1.0
 
-        if CloneToolSettings.place_immediately:
+        if CloneToolSettings.place_immediately.v:
             self.destPoint = list(box.origin)
         else:
             self.destPoint = None
@@ -941,7 +940,7 @@ class ConstructionTool(CloneTool):
         if self.destPoint == None:
             return "Click to set this item down."
 
-        return "Click and drag to reposition the item. Double-click to pick it up. Click Import or press ENTER to confirm."
+        return f"Click and drag to reposition the item. Double-click to pick it up. Click Import or press {Keys.confirm_construction.v.upper()} to confirm."
 
     def showPanel(self):
         CloneTool.showPanel(self)

@@ -135,7 +135,7 @@ class ControlPanel(Panel):
                     (cmd + f"-{Keys.close_world.v.upper()}", "Close", editor.closeEditor),
                     ("", "", lambda: None),
 
-                    (Keys.goto.v.upper(), "Goto", editor.showGotoPanel),
+                    (cmd + f"-{Keys.goto.v.upper()}", "Goto", editor.showGotoPanel),
                     (cmd + f"-{Keys.info.v.upper()}", "World Info", editor.showWorldInfo),
                     (cmd + f"-{Keys.undo.v.upper()}", "Undo", editor.undo),
                     (cmd + f"-{Keys.select_all.v.upper()}", "Select All", editor.selectAll),
@@ -2356,8 +2356,6 @@ class LevelEditor(GLViewport):
         returns: True if this key event should discard all remaining key events to process
         """
         keyname = evt.dict.get('keyname', None) or key.name(evt.key)
-        if keyname == 'enter':
-            keyname = 'return'
 
         log.trace(f"Key down: {keyname}")
         d = self.cameraInputs
@@ -2379,6 +2377,7 @@ class LevelEditor(GLViewport):
                 self.currentTool.option5()
 
         if mods & KMOD_CTRL:
+            if keyname == Keys.goto.v: self.showGotoPanel()
             if keyname == Keys.swap_view_distance.v:
                 self.swapViewDistance()
             if keyname == Keys.select_all.v:
@@ -2447,7 +2446,6 @@ class LevelEditor(GLViewport):
         else:
             cp = self.cameraPanKeys
 
-            if keyname == Keys.goto.v: self.showGotoPanel()
             if keyname == Keys.swap_view.v: self.swapViewports()
 
             if keyname == Keys.brake.v: self.mainViewport.brakeOn()
