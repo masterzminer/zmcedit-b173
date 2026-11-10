@@ -25,6 +25,8 @@ from pymclevel.box import BoundingBox
 import arguments
 import log
 
+DEFAULT_FILTER_SEARCH_TEXT = "smooth_py"
+
 ALL_FILTER_DIRS = []
 
 def reload_filter_dirs():
@@ -363,7 +365,17 @@ class FilterToolPanel(Panel):
             return
 
         if self.selectedFilterName is None or self.selectedFilterName not in tool.filter_identifiers:
-            self.select_filter(tool.filter_identifiers[0])
+            # Try to use the default filter
+            to_select = None
+            for f in tool.filter_identifiers:
+                if DEFAULT_FILTER_SEARCH_TEXT in f:
+                    to_select = f
+
+            # Otherwise, use the first one in the list
+            if to_select is None:
+                to_select = tool.filter_identifiers[0]
+
+            self.select_filter(to_select)
 
         self.filterOptionsPanel = None
         while self.filterOptionsPanel is None:

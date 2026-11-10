@@ -1,5 +1,4 @@
 filters
-    make the default filter something generally useful
     Add a button in the filter controls to load the default settings
     forester
         figure out if it works
