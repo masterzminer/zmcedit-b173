@@ -12,7 +12,6 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
-import hashlib
 import re
 
 from .toolbasics import *
@@ -20,7 +19,7 @@ from albow.dialogs import wrapped_label
 from albow import *
 import importlib
 from pathlib import Path
-from config import LastDir, Settings
+from config import LastDir, Settings, LastFilter, save_config
 
 from pymclevel.box import BoundingBox
 import arguments
@@ -339,7 +338,11 @@ class FilterToolPanel(Panel):
         self.show_file_controls = False
 
         self.tool = tool
+
+        # Select the last selected filter if one was selected and it exists
         self.selectedFilterName = None
+        self.load_last_filter()
+
         if len(ALL_FILTER_MODULES):
             self.reload()
 
@@ -360,7 +363,7 @@ class FilterToolPanel(Panel):
             return
 
         if self.selectedFilterName is None or self.selectedFilterName not in tool.filter_identifiers:
-            self.selectedFilterName = tool.filter_identifiers[0]
+            self.select_filter(tool.filter_identifiers[0])
 
         self.filterOptionsPanel = None
         while self.filterOptionsPanel is None:
@@ -371,7 +374,8 @@ class FilterToolPanel(Panel):
                 alert("Error creating filter inputs for {0}: {1}".format(module, e))
                 traceback.print_exc()
                 ALL_FILTER_MODULES.pop(self.selectedFilterName)
-                self.selectedFilterName = tool.filter_identifiers[0]
+                if not self.selectedFilterName:
+                    self.select_filter(tool.filter_identifiers[0])
 
             if len(tool.filter_identifiers) == 0:
                 raise ValueError("No filters loaded!")
@@ -385,6 +389,8 @@ class FilterToolPanel(Panel):
         filterSelectRow = Row((filterLabel, self.filterSelect))
 
         self.input_columns = None
+
+        self.load_last_filter()
 
         class ShowControlsUpdate:
             def __init__(self):
@@ -480,7 +486,7 @@ class FilterToolPanel(Panel):
 
     def filterChanged(self):
         self.saveOptions()
-        self.selectedFilterName = self.filterSelect.selectedChoice
+        self.select_filter(self.filterSelect.selectedChoice)
         self.reload()
 
     filterOptionsPanel = None
@@ -488,7 +494,81 @@ class FilterToolPanel(Panel):
     def saveOptions(self):
         if self.filterOptionsPanel:
             self.savedOptions[self.selectedFilterName] = self.filterOptionsPanel.options
+        self.save_last_filter_options()
 
+
+    def select_filter(self, f):
+        # Save the last used filter
+        self.selectedFilterName = f
+        if f is not None and f != "":
+            # Update the filter
+            LastFilter.selected.set(f)
+            self.save_last_filter_options()
+
+    def save_last_filter_options(self):
+         if self.selectedFilterName in self.savedOptions:
+            options = self.savedOptions[self.selectedFilterName]
+            all_settings = LastFilter.all_settings.get_json()
+            all_settings[self.selectedFilterName] = self._options_to_dict(options)
+            LastFilter.all_settings.set_json(all_settings)
+            save_config()
+
+
+    def _options_to_dict(self, options):
+        # If it's a block, must convert it to just the id and block data
+        if isinstance(options, Block):
+            return {
+                "ID": options.ID,
+                "blockData": options.blockData,
+                "json_type": "Block"
+            }
+
+        # For a dict, convert each key
+        if isinstance(options, dict):
+            return {
+                key: self._options_to_dict(value)
+                for key, value in options.items()
+            }
+
+        # For a list, convert each value
+        if isinstance(options, list):
+            return [self._options_to_dict(value) for value in options]
+
+        # Otherwise, return the original object
+        return options
+
+
+    def load_last_filter(self):
+        last_filter = LastFilter.selected.v
+        if last_filter is not None and last_filter != "":
+            if last_filter in ALL_FILTER_MODULES:
+                self.select_filter(last_filter)
+                
+                # Load the last known settings
+                options = LastFilter.all_settings.get_json()
+                options = self._dict_to_options(options)
+                if last_filter in options:
+                    self.savedOptions[last_filter] = options[last_filter]
+
+    def _dict_to_options(self, d):
+        # If it's a dict, check for custom types
+        if isinstance(d, dict):
+            # For a block, convert it
+            if "json_type" in d and d["json_type"] == "Block":
+                return materials.blockWithID(d["ID"], d["blockData"])
+
+            # For a dict, convert each value 
+            return {
+                key: self._dict_to_options(value)
+                for key, value in d.items()
+            }
+
+        # For a list, convert each value
+        if isinstance(d, list):
+            return [self._dict_to_options(value) for value in d]
+
+        # Otherwise return the value directory
+        return d
 
 class FilterOperation(Operation):
     def __init__(self, level, box, filter, options):
@@ -584,3 +664,5 @@ class FilterTool(EditorTool):
             self.editor.addUnsavedEdit()
 
             self.editor.invalidateBox(self.selectionBox())
+
+        self.panel.saveOptions()

@@ -18,7 +18,7 @@ Configuration settings and storage.
 """
 
 from configparser import RawConfigParser
-from config_classes import Section, ListSection, Setting as S, DirectorySetting as DS, IndexSetting as IS, KeySetting as KS, KeyIndexSetting as KIS
+from config_classes import Section, ListSection, Setting as S, DirectorySetting as DS, IndexSetting as IS, KeySetting as KS, KeyIndexSetting as KIS, JsonSetting as JS
 
 from directories import INI_FILE
 import log
@@ -310,6 +310,20 @@ class _RecentWorldsSection(ListSection):
 
 
 RecentWorlds = _RecentWorldsSection(5, config)
+
+
+class _LastFilterSection(Section):
+    """Stores the settings of each last used filter"""
+    
+    NAME = "last filter"
+
+    selected = S("")
+    """The filter that was last selected"""
+
+    all_settings = JS("")
+    """A json string holding the settings of all filters as used"""
+
+LastFilter = _LastFilterSection(config)
 
 
 # Save the config after final init

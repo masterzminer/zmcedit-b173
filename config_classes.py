@@ -1,6 +1,7 @@
 from __future__ import annotations
 from configparser import RawConfigParser
 from pathlib import Path
+import json
 
 class Observer:
     def __init__(self, func, name=None):
@@ -295,4 +296,20 @@ class ListSection(Section):
             return None
         return values[index]
 
-    
+
+class JsonSetting(Setting):
+    """A section with utilities for loading and saving raw strings as json"""
+
+    def get_json(self):
+        """returns a dict of the json of this setting"""
+        j = self.get()
+        if j == "":
+            j = r"{}"
+        return json.loads(j)
+
+    def set_json(self, d):
+        """Sets the value of this setting to the given dict as a string with no new lines"""
+        if d == "" or d is None:
+            d = {}
+        # self.set(json.dumps(d, separators=(',' , ': ')))
+        self.set(json.dumps(d, indent=2))

@@ -1,8 +1,9 @@
 filters
-    make the last filter used, along with its settings, for the next time mc edit starts
     make the default filter something generally useful
+    Add a button in the filter controls to load the default settings
     forester
         figure out if it works
+        fix the display name, make it use the field for setting the display name
     topsoil
         figure out overflow error during subtraction
     Allow a new selection to be made or the existing selection modified with the mouse without changing out of the filters tool
@@ -28,6 +29,9 @@ level rendering
 
 menu
     Allow recent worlds to be deleted from the ui
+    fix mc edit crashing if you make the window too small
+
+make release 0.2
 
 
 
@@ -40,3 +44,5 @@ go through and clean up all the typos and general ide warnings
 go through and remove all the commented out code
 
 go through and fix all the deprecated method calls
+
+make release 1.0
