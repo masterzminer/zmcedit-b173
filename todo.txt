@@ -1,7 +1,6 @@
 filters
     forester
         figure out if it works
-        fix the display name, make it use the field for setting the display name
     topsoil
         figure out overflow error during subtraction
     Allow a new selection to be made or the existing selection modified with the mouse without changing out of the filters tool

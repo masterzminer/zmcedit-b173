@@ -90,9 +90,6 @@ def reload_filter_modules():
             spec = importlib.util.spec_from_file_location(module_name, p)
             module = importlib.util.module_from_spec(spec)
 
-            # Give the module a friendly name, or use the given one if needed
-            module._mcedit_name_display = (p.stem if hasattr(module, 'displayName') else p.stem).capitalize()
-
             # Give the module a unique name for mapping
             module._mcedit_name = module_name
 
@@ -101,6 +98,9 @@ def reload_filter_modules():
 
             # Add the module to sys
             sys.modules[module_name] = module
+
+            # Give the module a friendly name, or use the given one if needed
+            module._mcedit_name_display = (module.displayName if hasattr(module, 'displayName') else p.stem).capitalize()
 
             # Track the module
             all_modules.append(module)
