@@ -300,16 +300,15 @@ class ListSection(Section):
 class JsonSetting(Setting):
     """A section with utilities for loading and saving raw strings as json"""
 
-    def get_json(self):
+    def get(self):
         """returns a dict of the json of this setting"""
-        j = self.get()
+        j = super().get()
         if j == "":
             j = r"{}"
         return json.loads(j)
 
-    def set_json(self, d):
+    def set(self, d):
         """Sets the value of this setting to the given dict as a string with no new lines"""
         if d == "" or d is None:
             d = {}
-        # self.set(json.dumps(d, separators=(',' , ': ')))
-        self.set(json.dumps(d, indent=2))
+        super().set(json.dumps(d, indent=2))

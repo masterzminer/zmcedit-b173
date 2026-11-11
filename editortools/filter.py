@@ -538,9 +538,9 @@ class FilterToolPanel(Panel):
     def save_last_filter_options(self):
          if self.selectedFilterName in self.savedOptions:
             options = self.savedOptions[self.selectedFilterName]
-            all_settings = LastFilter.all_settings.get_json()
+            all_settings = LastFilter.all_settings.get()
             all_settings[self.selectedFilterName] = self._options_to_dict(options)
-            LastFilter.all_settings.set_json(all_settings)
+            LastFilter.all_settings.set(all_settings)
             save_config()
 
 
@@ -575,7 +575,7 @@ class FilterToolPanel(Panel):
                 self.select_filter(last_filter)
                 
                 # Load the last known settings
-                options = LastFilter.all_settings.get_json()
+                options = LastFilter.all_settings.get()
                 options = self._dict_to_options(options)
                 if last_filter in options:
                     self.savedOptions[last_filter] = options[last_filter]

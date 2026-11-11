@@ -1,5 +1,4 @@
 filters
-    override get and set for json settings instead of making a separate json getter/setter
     error handling when loading and saving json settings
     forester
         figure out if it works
