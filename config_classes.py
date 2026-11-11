@@ -2,6 +2,7 @@ from __future__ import annotations
 from configparser import RawConfigParser
 from pathlib import Path
 import json
+import log
 
 class Observer:
     def __init__(self, func, name=None):
@@ -303,12 +304,25 @@ class JsonSetting(Setting):
     def get(self):
         """returns a dict of the json of this setting"""
         j = super().get()
-        if j == "":
+        if j == "" or j == '""':
             j = r"{}"
-        return json.loads(j)
+        try:
+            return json.loads(j)
+        except:
+            # If it failed to load, use an empty map
+            return {}
 
     def set(self, d):
         """Sets the value of this setting to the given dict as a string with no new lines"""
         if d == "" or d is None:
             d = {}
-        super().set(json.dumps(d, indent=2))
+
+        # If it isn't valid json, don't set anything
+        new_json = None
+        try:
+            new_json = json.dumps(d, indent=2)
+        except:
+            log.error(f"Failed to parse json for section: {self.section.NAME}, field: {self.name}")
+            return
+
+        super().set(new_json)

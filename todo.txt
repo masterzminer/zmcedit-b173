@@ -1,5 +1,4 @@
 filters
-    error handling when loading and saving json settings
     forester
         figure out if it works
         fix the display name, make it use the field for setting the display name
