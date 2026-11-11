@@ -1,5 +1,6 @@
 filters
-    Add a button in the filter controls to load the default settings
+    override get and set for json settings instead of making a separate json getter/setter
+    error handling when loading and saving json settings
     forester
         figure out if it works
         fix the display name, make it use the field for setting the display name

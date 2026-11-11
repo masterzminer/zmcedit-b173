@@ -172,12 +172,19 @@ class FilterModuleOptions(Widget):
 
     def __init__(self, tool, module, *args, **kw):
         Widget.__init__(self, *args, **kw)
-        self.tool = tool
-        pages = TabPanel()
-        pages.is_gl_container = True
-        self.pages = pages
+        self.tool = ToolOptions
+        self.pages = None
         self.optionDict = {}
-        
+        self.module = module
+        self.init_options()
+
+    def init_options(self):
+        if self.pages is not None:
+            self.remove(self.pages)
+
+        self.pages = pages = TabPanel()
+        pages.is_gl_container = True
+        module = self.module
         log.debug("Creating options for ", module)
         if hasattr(module, "inputs"):
             if isinstance(module.inputs, list):
@@ -309,7 +316,6 @@ class FilterModuleOptions(Widget):
 
             cols.append(Column(rows[:i]))
             rows = rows[i:]
-        #cols.append(Column(rows))
 
         if len(rows):
             cols.append(Column(rows))
@@ -417,10 +423,13 @@ class FilterToolPanel(Panel):
         show_controls_button = CheckBoxLabel("Show File Controls", ref=ShowControlsUpdate())
         show_controls_button.value = self.show_file_controls
 
+        load_defaults_button = Button("Default Options", action=self.load_default_options)
+
         input_columns = Column((
             # Input rows
             filterSelectRow, self.filterOptionsPanel, self.confirmButton,
-            show_controls_button
+            load_defaults_button,
+            show_controls_button,
         ))
 
         self.add(input_columns)
@@ -440,6 +449,15 @@ class FilterToolPanel(Panel):
         ))
 
         self.update_file_controls(self.show_file_controls)
+
+
+    def load_default_options(self):
+        if self.filterOptionsPanel is not None:
+            # default_options = self.filterOptionsPanel.rebuild_default_options(ALL_FILTER_MODULES[self.selectedFilterName])
+            # self.filterOptionsPanel.options = default_options
+            # self.savedOptions[self.selectedFilterName] = default_options
+            self.filterOptionsPanel.init_options()
+        self.saveOptions()
 
 
     def update_file_controls(self, show):
