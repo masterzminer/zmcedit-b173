@@ -3,8 +3,8 @@ filters
     Retest all stock filters
 
 brush
-    make a max spacing feature so it can't skip long distances
     make the last selected block or blocks for the brush save with the config, similar to the last brush size
+    Add all other brush settings to configs
 
 select
     fix the select tool icon showing a blank white square sometimes, seemingly from quick loading a world while a world is already open

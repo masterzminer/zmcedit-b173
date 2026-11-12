@@ -24,6 +24,7 @@ import numpy as np
 from pymclevel.material import materials
 from config import LastDir, Keys, BrushToolSettings
 import log
+from bresenham import bresenham
 
 from pymclevel.box import BoundingBox
 
@@ -593,8 +594,10 @@ class BrushPanel(Panel):
         col = tool.brushMode.createOptions(self, tool)
 
         if self.tool.brushMode.name != "Flood Fill":
-            spaceRow = IntInputRow("Line Spacing", ref=AttrRef(tool, "minimumSpacing"), min=1, tooltipText="Hold SHIFT to draw lines")
+            spaceRow = IntInputRow("Line Spacing", ref=AttrRef(tool, "minimumSpacing"), min=1, tooltipText="Minimum number of blocks between brush strokes. Hold SHIFT to draw lines")
             col.append(spaceRow)
+            maxSpaceRow = CheckBoxLabel("Continuous", ref=AttrRef(tool, "continuous_brush"), tooltipText="Makes brush strokes have no gaps when dragging, ignores line spacing")
+            col.append(maxSpaceRow)
         col = Column(col)
 
         self.add(col)
@@ -649,6 +652,7 @@ class BrushTool(CloneTool):
     tooltipText = "Brush\nRight-click for options"
     toolIconName = "brush"
     minimumSpacing = 1
+    continuous_brush = False
 
     def __init__(self, *args):
         CloneTool.__init__(self, *args)
@@ -859,10 +863,19 @@ class BrushTool(CloneTool):
     def mouseDrag(self, evt, pos, _dir):
         direction = self.draggedDirection
         if self.brushMode.name != "Flood Fill":
-            if len(self.draggedPositions):  # if self.isDragging
+            if len(self.draggedPositions):
                 self.lastPosition = lastPoint = self.draggedPositions[-1]
-                if any([abs(a - b) >= self.minimumSpacing
-                        for a, b in zip(pos, lastPoint)]):
+                if self.continuous_brush:
+                    # Linearly interpolate between the previous point and the next point for all points to add in
+                    points = bresenham(pos, lastPoint)
+                    if pos not in points:
+                        points.append(pos)
+
+                    for p in points:
+                        self.dragLineToPoint(p)
+
+                # If the distance from this position to the previous position is larger than the minimum spacing, add it
+                elif any([abs(a - b) >= self.minimumSpacing for a, b in zip(pos, lastPoint)]):
                     point = [p + d * self.reticleOffset for p, d in zip(pos, direction)]
                     self.dragLineToPoint(point)
 
