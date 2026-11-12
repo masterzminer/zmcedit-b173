@@ -203,7 +203,6 @@ class NudgeBlocksOperation (Operation):
 
 
 class SelectionTool(EditorTool):
-    # selectionColor = (1.0, .9, .9)
     color = (0.7, 0., 0.7)
     surfaceBuild = False
     toolIconName = "selection"
