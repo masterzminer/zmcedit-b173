@@ -44,7 +44,7 @@ def perform(level, box, options):
     blocktype = options["Pick a block:"]
 
     #compute a truth table that we can index to find out whether a block
-    # is naturally occuring and should be considered in a height map
+    # is naturally occurring and should be considered in a height map
     block_mask = naturalBlockMask()
 
     # always consider the chosen blocktype to be "naturally occurring" to stop
@@ -65,7 +65,7 @@ def perform(level, box, options):
         height_map = extractHeights(maskedBlocks)
 
         for x, z in itertools.product(*list(map(range, height_map.shape))):
-            h = height_map[x, z]
+            h = int(height_map[x, z])
             if depth > 0:
                 blocks[x, z, max(0, h - depth):h] = blocktype.ID
                 data[x, z, max(0, h - depth):h] = blocktype.blockData
