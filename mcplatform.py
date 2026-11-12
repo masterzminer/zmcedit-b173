@@ -93,7 +93,7 @@ def askCreateWorld():
     # Find a valid name for a folder that doesn't already exist
     defaultName = name = "Untitled World"
     i = 0
-    while (initialDir / name).exists:
+    while (initialDir / name).exists():
         i += 1
         name = defaultName + " " + str(i)
 
