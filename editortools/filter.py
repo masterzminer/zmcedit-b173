@@ -147,6 +147,7 @@ def alertFilterException(func):
         try:
             func(*args, **kw)
         except Exception as e:
+            log.error("Exception during filter")
             alert(f"Exception during filter operation. See console for details.\n\n{e}")
 
     return _func

@@ -81,6 +81,7 @@ def perform(level, box, options):
     Forester.WOOD_INFO = {"B": wood.ID, "D": wood.blockData}
     Forester.LEAF_INFO = {"B": leaf.ID, "D": leaf.blockData}
     Forester.PLANT_ON = [grass.ID]
+    Forester.TREE_COUNT = options["Tree Count"]
 
     # calculate the plant-on center and radius
     x_center = int(box.minx + (box.width / 2))
@@ -91,12 +92,13 @@ def perform(level, box, options):
     if planting_radius <= 1:
         planting_radius = 1
         Forester.TREE_COUNT = 1
+        # TODO fix this always being logged
         log.warn("Box isn't wide and/or long enough. Only planting one tree.")
     # set the position to plant
     Forester.X = x_center
     Forester.Z = z_center
     Forester.RADIUS = planting_radius
-    log.warn(("Plant radius = " + str(planting_radius)))
+    log.debug("Plant radius:", planting_radius )
 
     # set the Forester settings that are not in the inputs
     # and should be a specific value

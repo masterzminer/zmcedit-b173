@@ -43,3 +43,6 @@ go through and remove all the commented out code
 go through and fix all the deprecated method calls
 
 make release 1.0
+
+
+consider adding a redo feature

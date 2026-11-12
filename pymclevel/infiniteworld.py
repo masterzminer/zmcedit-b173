@@ -2267,7 +2267,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
         for chunk, slices, point in self.getChunkSlices(box):
             count += chunk.removeEntitiesInBox(box)
 
-        log.info("Removed {count} entities")
+        log.info(f"Removed {count} entities")
         return count
 
     def removeTileEntitiesInBox(self, box):
