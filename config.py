@@ -230,6 +230,10 @@ class _BrushToolSection(Section):
     choose_block_immediately = S(False)
     alpha = S(0.66, min=0, max=1)
 
+    minimum_spacing = S(1)
+    continuous = S(False)
+    chance = S(100)
+
 
 BrushToolSettings = _BrushToolSection(config)
 

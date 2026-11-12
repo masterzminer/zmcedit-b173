@@ -70,7 +70,6 @@ class Modes:
                 blocks[brushMask] = op.blockInfo.ID
 
                 chunk.Data[slices][brushMask] = op.blockInfo.blockData
-                # chunk.chunkChanged()
 
     class FloodFill(BrushMode):
         name = "Flood Fill"
@@ -149,7 +148,7 @@ class Modes:
                     coords = processCoords(coords)
                     d = datetime.now() - start
                     progress = "Did {0} coords in {1}".format(num, d)
-                    debug(progress)
+                    log.debug(progress)
                     yield progress
 
             showProgress("Flood fill...", spread([point]), cancel=True)
@@ -394,7 +393,7 @@ class BrushOperation(Operation):
 
     @property
     def noise(self):
-        return self.options.get('brushNoise', 100)
+        return BrushToolSettings.chance.v
 
     @property
     def hollow(self):
@@ -461,23 +460,27 @@ class BrushOperation(Operation):
             threshold = chance / 100.0
             exposedBlockMask = np.ones(shape=outputShape, dtype='bool')
             exposedBlockMask[:] = mask
-            submask = mask[1:-1, 1:-1, 1:-1]
+            sub_mask = mask[1:-1, 1:-1, 1:-1]
             exposedBlockSubMask = exposedBlockMask[1:-1, 1:-1, 1:-1]
             exposedBlockSubMask[:] = False
 
+            # Finds blocks on the outside of the brush
             for dim in (0, 1, 2):
                 slices = [slice(1, -1), slice(1, -1), slice(1, -1)]
                 slices[dim] = slice(None, -2)
-                exposedBlockSubMask |= (submask & (mask[slices] != submask))
+                exposedBlockSubMask |= (sub_mask & (mask[tuple(slices)] != sub_mask))
                 slices[dim] = slice(2, None)
-                exposedBlockSubMask |= (submask & (mask[slices] != submask))
+                exposedBlockSubMask |= (sub_mask & (mask[tuple(slices)] != sub_mask))
 
+            # For hollow, all except those blocks will be excluded
             if hollow:
                 mask[~exposedBlockMask] = False
+            # For chance, all those outside blocks will have a chance of being excluded
+            # TODO probably make chance apply to all blocks in the brush instead of just some, or maybe make the ones at the center more likely to stay
             if chance < 100:
-                rmask = np.random.random(mask.shape) < threshold
+                r_mask = np.random.random(mask.shape) < threshold
 
-                mask[exposedBlockMask] = rmask[exposedBlockMask]
+                mask[exposedBlockMask] = r_mask[exposedBlockMask]
 
         if chance < 100 or hollow:
             return mask[1:-1, 1:-1, 1:-1]
@@ -573,7 +576,7 @@ class BrushPanel(Panel):
 
         self.brushSizeRows = Column(shapeRows)
 
-        self.noiseInput = IntInputRow("Chance: ", ref=AttrRef(tool, "brushNoise"), min=0, max=100)
+        self.noiseInput = IntInputRow("Chance: ", ref=BrushToolSettings.chance, min=0, max=100)
 
         hollowCheckBox = CheckBox(ref=AttrRef(tool, "brushHollow"))
         hollowLabel = Label("Hollow")
@@ -594,9 +597,9 @@ class BrushPanel(Panel):
         col = tool.brushMode.createOptions(self, tool)
 
         if self.tool.brushMode.name != "Flood Fill":
-            spaceRow = IntInputRow("Line Spacing", ref=AttrRef(tool, "minimumSpacing"), min=1, tooltipText="Minimum number of blocks between brush strokes. Hold SHIFT to draw lines")
+            spaceRow = IntInputRow("Line Spacing", ref=BrushToolSettings.minimum_spacing, min=1, tooltipText="Minimum number of blocks between brush strokes. Hold SHIFT to draw lines")
             col.append(spaceRow)
-            maxSpaceRow = CheckBoxLabel("Continuous", ref=AttrRef(tool, "continuous_brush"), tooltipText="Makes brush strokes have no gaps when dragging, ignores line spacing")
+            maxSpaceRow = CheckBoxLabel("Continuous", ref=BrushToolSettings.continuous, tooltipText="Makes brush strokes have no gaps when dragging, ignores line spacing")
             col.append(maxSpaceRow)
         col = Column(col)
 
@@ -651,8 +654,6 @@ from .clone import CloneTool
 class BrushTool(CloneTool):
     tooltipText = "Brush\nRight-click for options"
     toolIconName = "brush"
-    minimumSpacing = 1
-    continuous_brush = False
 
     def __init__(self, *args):
         CloneTool.__init__(self, *args)
@@ -729,7 +730,6 @@ class BrushTool(CloneTool):
         self.hidePanel()
         self.showPanel()
 
-    brushNoise = 100
     brushHollow = False
     topsoilDepth = 1
 
@@ -768,7 +768,6 @@ class BrushTool(CloneTool):
 
     def loadLevel(self, level):
         self.level = level
-        self.minimumSpacing = min([s / 4 for s in level.size])
         self.centerx, self.centery, self.centerz = -level.Width / 2, 0, -level.Length / 2
         CloneTool.setupPreview(self)
 
@@ -830,7 +829,6 @@ class BrushTool(CloneTool):
         'brushStyle',
         'brushMode',
         'brushSize',
-        'brushNoise',
         'brushHollow',
         'replaceBlockInfo',
     ]
@@ -865,7 +863,7 @@ class BrushTool(CloneTool):
         if self.brushMode.name != "Flood Fill":
             if len(self.draggedPositions):
                 self.lastPosition = lastPoint = self.draggedPositions[-1]
-                if self.continuous_brush:
+                if BrushToolSettings.continuous.v:
                     # Linearly interpolate between the previous point and the next point for all points to add in
                     points = bresenham(pos, lastPoint)
                     if pos not in points:
@@ -875,7 +873,7 @@ class BrushTool(CloneTool):
                         self.dragLineToPoint(p)
 
                 # If the distance from this position to the previous position is larger than the minimum spacing, add it
-                elif any([abs(a - b) >= self.minimumSpacing for a, b in zip(pos, lastPoint)]):
+                elif any([abs(a - b) >= BrushToolSettings.minimum_spacing.v for a, b in zip(pos, lastPoint)]):
                     point = [p + d * self.reticleOffset for p, d in zip(pos, direction)]
                     self.dragLineToPoint(point)
 
