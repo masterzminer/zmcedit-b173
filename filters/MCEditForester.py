@@ -86,13 +86,11 @@ def perform(level, box, options):
     # calculate the plant-on center and radius
     x_center = int(box.minx + (box.width / 2))
     z_center = int(box.minz + (box.length / 2))
-    edge_padding = int(Forester.EDGE_HEIGHT * 0.618)
     max_dim = min(box.width, box.length)
-    planting_radius = (max_dim / 2) - edge_padding
-    if planting_radius <= 1:
+    planting_radius = max_dim * 0.2
+    if planting_radius <= 1 and Forester.TREE_COUNT > 1:
         planting_radius = 1
         Forester.TREE_COUNT = 1
-        # TODO fix this always being logged
         log.warn("Box isn't wide and/or long enough. Only planting one tree.")
     # set the position to plant
     Forester.X = x_center

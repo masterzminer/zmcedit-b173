@@ -1,6 +1,4 @@
 filters
-    forester
-        figure out if it works
     topsoil
         figure out overflow error during subtraction
     Allow a new selection to be made or the existing selection modified with the mouse without changing out of the filters tool
