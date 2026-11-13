@@ -418,7 +418,7 @@ class ChoiceButton(ValueButton):
     align = "c"
     choose = None
 
-    def __init__(self, choices, choice_display={}, **kw):
+    def __init__(self, choices: list, choice_display={}, default_choice=None, **kw):
         self.choice_display = choice_display
         """Maps the choice to text for how to display it"""
 
@@ -435,7 +435,10 @@ class ChoiceButton(ValueButton):
         if len(widths):
             self.width = max(widths) + self.margin * 2
 
-        self.choiceIndex = 0
+        if default_choice is None:
+            self.choiceIndex = 0
+        else:
+            self.choiceIndex = choices.index(default_choice)
 
     def _display_value(self, c):
         if c in self.choice_display:

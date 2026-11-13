@@ -5,6 +5,7 @@ filters
 brush
     make the last selected block or blocks for the brush save with the config, similar to the last brush size
     Add all other brush settings to configs
+    investigate middle click jumping the brush up to max height, make a shortcut to remove all height
     Fix the paste brush being broken
         It doesn't always save everything in the undo?
         Got this error AttributeError: 'FakeLevel' object has no attribute 'Blocks'

@@ -233,6 +233,8 @@ class _BrushToolSection(Section):
     minimum_spacing = S(1)
     continuous = S(False)
     chance = S(100)
+    chance_type = S("full")
+    """One of edge, full"""
 
 
 BrushToolSettings = _BrushToolSection(config)

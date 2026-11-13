@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Copyright (c) 2010-2012 David Rio Vierra
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -59,14 +61,14 @@ class Modes:
             ]
             return col
 
-        def performAtPoint(self, op, point, dirtyBox):
+        def performAtPoint(self, op: BrushOperation, point, dirtyBox):
             for chunk, slices, point in op.level.getChunkSlices(dirtyBox):
                 worldPoint = [p + o for p, o in zip(point, dirtyBox.origin)]
                 blocks = chunk.Blocks[slices]
 
                 box = BoundingBox(worldPoint, (blocks.shape[0], blocks.shape[2], blocks.shape[1]))  # xzy reorder
 
-                brushMask = op.createBrushMask(op.brushSize, op.brushStyle, dirtyBox.origin, box, op.noise, op.hollow)
+                brushMask = op.createBrushMask(op.brushSize, op.brushStyle, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
                 blocks[brushMask] = op.blockInfo.ID
 
                 chunk.Data[slices][brushMask] = op.blockInfo.blockData
@@ -161,7 +163,7 @@ class Modes:
         def createOptions(self, panel, tool):
             return Modes.Fill.createOptions(self, panel, tool) + [panel.replaceBlockButton]
 
-        def performAtPoint(self, op, point, dirtyBox):
+        def performAtPoint(self, op: BrushOperation, point, dirtyBox):
             for i, (chunk, slices, point) in enumerate(op.level.getChunkSlices(dirtyBox)):
                 yield i, dirtyBox.chunkCount
 
@@ -171,7 +173,7 @@ class Modes:
                 # box = BoundingBox(worldPoint,
                 box = BoundingBox(worldPoint, (blocks.shape[0], blocks.shape[2], blocks.shape[1]))  # xzy reorder
 
-                brushMask = op.createBrushMask(op.brushSize, op.brushStyle, dirtyBox.origin, box, op.noise, op.hollow)
+                brushMask = op.createBrushMask(op.brushSize, op.brushStyle, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
 
                 replaceWith = op.options['replaceBlockInfo']
                 # xxx pasted from fill.py
@@ -205,7 +207,7 @@ class Modes:
             col.append(IntInputRow("Strength: ", ref=AttrRef(tool, 'erosionStrength'), min=1, max=20, tooltipText="Number of times to apply erosion. Larger numbers are slower."))
             return col
 
-        def performAtPoint(self, op, point, dirtyBox):
+        def performAtPoint(self, op: BrushOperation, point, dirtyBox):
             if dirtyBox.volume > 1048576:
                 raise ValueError("Affected area is too big for this brush mode")
             box = dirtyBox.expand(1)
@@ -262,7 +264,7 @@ class Modes:
             col.extend([depthRow, naturalRow])
             return col
 
-        def performAtPoint(self, op, point, dirtyBox):
+        def performAtPoint(self, op: BrushOperation, point, dirtyBox):
 
             for chunk, slices, point in op.level.getChunkSlices(dirtyBox):
                 depth = op.options['topsoilDepth']
@@ -273,7 +275,7 @@ class Modes:
 
                 box = BoundingBox(worldPoint, (blocks.shape[0], blocks.shape[2], blocks.shape[1]))  # xzy reorder
 
-                brushMask = op.createBrushMask(op.brushSize, op.brushStyle, dirtyBox.origin, box, op.noise, op.hollow)
+                brushMask = op.createBrushMask(op.brushSize, op.brushStyle, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
 
                 blocktype = op.blockInfo
 
@@ -381,7 +383,6 @@ class BrushOperation(Operation):
 
     undoSchematic = None
     brushStyles = ["Round", "Square", "Diamond"]
-    # brushModeNames = ["Fill", "Flood Fill", "Replace", "Erode", "Topsoil", "Paste"]  # "Smooth", "Flatten", "Raise", "Lower", "Build", "Erode", "Evert"]
     brushModeClasses = [
         Modes.Fill,
         Modes.FloodFill,
@@ -394,13 +395,17 @@ class BrushOperation(Operation):
     @property
     def noise(self):
         return BrushToolSettings.chance.v
+    
+    @property
+    def noise_type(self):
+        return BrushToolSettings.chance_type.v
 
     @property
     def hollow(self):
         return self.options.get('brushHollow', False)
 
     @classmethod
-    def createBrushMask(cls, shape, style="Round", offset=(0, 0, 0), box=None, chance=100, hollow=False):
+    def createBrushMask(cls, shape, style="Round", offset=(0, 0, 0), box=None, chance=100, chance_type="edge", hollow=False):
         """
         Return a boolean array for a brush with the given shape and style.
         If 'offset' and 'box' are given, then the brush is offset into the world
@@ -420,10 +425,10 @@ class BrushOperation(Operation):
         offset = array(offset) - array(box.origin)
         offset = offset[[0, 2, 1]]
 
-        inds = np.indices(outputShape, dtype=float)
-        halfshape = array([(i >> 1) - ((i & 1 == 0) and 0.5 or 0) for i in shape])
+        indices = np.indices(outputShape, dtype=float)
+        half_shape = array([(i >> 1) - ((i & 1 == 0) and 0.5 or 0) for i in shape])
 
-        blockCenters = inds - halfshape[:, np.newaxis, np.newaxis, np.newaxis]
+        blockCenters = indices - half_shape[:, np.newaxis, np.newaxis, np.newaxis]
         blockCenters -= offset[:, np.newaxis, np.newaxis, np.newaxis]
 
         # odd diameter means measure from the center of the block at 0,0,0 to each block center
@@ -442,8 +447,6 @@ class BrushOperation(Operation):
             distances = sum(blockCenters, 0)
             mask = distances < 1
         elif style == "Square":
-            # mask = ones(outputShape, dtype=bool)
-            # mask = blockCenters[:, newaxis, newaxis, newaxis] < shape
             blockCenters /= shape[:, np.newaxis, np.newaxis, np.newaxis]
 
             distances = np.absolute(blockCenters).max(0)
@@ -458,29 +461,46 @@ class BrushOperation(Operation):
 
         if (chance < 100 or hollow) and max(shape) > 1:
             threshold = chance / 100.0
-            exposedBlockMask = np.ones(shape=outputShape, dtype='bool')
-            exposedBlockMask[:] = mask
-            sub_mask = mask[1:-1, 1:-1, 1:-1]
-            exposedBlockSubMask = exposedBlockMask[1:-1, 1:-1, 1:-1]
-            exposedBlockSubMask[:] = False
 
-            # Finds blocks on the outside of the brush
-            for dim in (0, 1, 2):
-                slices = [slice(1, -1), slice(1, -1), slice(1, -1)]
-                slices[dim] = slice(None, -2)
-                exposedBlockSubMask |= (sub_mask & (mask[tuple(slices)] != sub_mask))
-                slices[dim] = slice(2, None)
-                exposedBlockSubMask |= (sub_mask & (mask[tuple(slices)] != sub_mask))
+            exposedBlockMask = None
+            def compute_exposed():
+                exposedBlockMask = np.ones(shape=outputShape, dtype='bool')
+                exposedBlockMask[:] = mask
+                sub_mask = mask[1:-1, 1:-1, 1:-1]
+                exposedBlockSubMask = exposedBlockMask[1:-1, 1:-1, 1:-1]
+                exposedBlockSubMask[:] = False
+
+                # Finds blocks on the outside of the brush
+                for dim in (0, 1, 2):
+                    slices = [slice(1, -1), slice(1, -1), slice(1, -1)]
+                    slices[dim] = slice(None, -2)
+                    exposedBlockSubMask |= (sub_mask & (mask[tuple(slices)] != sub_mask))
+                    slices[dim] = slice(2, None)
+                    exposedBlockSubMask |= (sub_mask & (mask[tuple(slices)] != sub_mask))
+
+                return exposedBlockMask
 
             # For hollow, all except those blocks will be excluded
             if hollow:
+                exposedBlockMask = compute_exposed()
                 mask[~exposedBlockMask] = False
-            # For chance, all those outside blocks will have a chance of being excluded
-            # TODO probably make chance apply to all blocks in the brush instead of just some, or maybe make the ones at the center more likely to stay
-            if chance < 100:
-                r_mask = np.random.random(mask.shape) < threshold
 
-                mask[exposedBlockMask] = r_mask[exposedBlockMask]
+            if chance < 100:
+                # All outside blocks will have a chance of being excluded
+                if chance_type == "edge":
+                    if exposedBlockMask is None:
+                        exposedBlockMask = compute_exposed()
+
+                    r_mask = np.random.random(mask.shape) < threshold
+                    mask[exposedBlockMask] = r_mask[exposedBlockMask]
+
+                # All blocks have the same chance of being filled in
+                elif chance_type == "full":
+                    r_mask = np.random.random(mask.shape) < threshold
+                    fullBlockMask = np.ones(shape=outputShape, dtype='bool')
+                    fullBlockMask[:] = mask
+                    mask[fullBlockMask] = r_mask[fullBlockMask]
+
 
         if chance < 100 or hollow:
             return mask[1:-1, 1:-1, 1:-1]
@@ -576,7 +596,13 @@ class BrushPanel(Panel):
 
         self.brushSizeRows = Column(shapeRows)
 
-        self.noiseInput = IntInputRow("Chance: ", ref=BrushToolSettings.chance, min=0, max=100)
+        self.noiseInputValue = IntInputRow("Chance: ", ref=BrushToolSettings.chance, min=0, max=100)
+        self.noiseTypeInput = ChoiceButton(
+            ["edge", "full"], choice_display={"edge": "Edge", "full": "Full"}, 
+            choose=lambda: BrushToolSettings.chance_type.set(self.noiseTypeInput.selectedChoice),
+            default_choice=BrushToolSettings.chance_type.v
+        )
+        self.noiseInput = Row([self.noiseInputValue, self.noiseTypeInput])
 
         hollowCheckBox = CheckBox(ref=AttrRef(tool, "brushHollow"))
         hollowLabel = Label("Hollow")
