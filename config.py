@@ -234,6 +234,8 @@ class _BrushToolSection(Section):
     continuous = S(False)
     chance = S(100)
     chance_type = S("full")
+    hollow = S(False)
+    
     """One of edge, full"""
 
 

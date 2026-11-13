@@ -402,7 +402,7 @@ class BrushOperation(Operation):
 
     @property
     def hollow(self):
-        return self.options.get('brushHollow', False)
+        return BrushToolSettings.hollow.v
 
     @classmethod
     def createBrushMask(cls, shape, style="Round", offset=(0, 0, 0), box=None, chance=100, chance_type="edge", hollow=False):
@@ -604,7 +604,7 @@ class BrushPanel(Panel):
         )
         self.noiseInput = Row([self.noiseInputValue, self.noiseTypeInput])
 
-        hollowCheckBox = CheckBox(ref=AttrRef(tool, "brushHollow"))
+        hollowCheckBox = CheckBox(ref=BrushToolSettings.hollow)
         hollowLabel = Label("Hollow")
         hollowLabel.mouse_down = hollowCheckBox.mouse_down
         hollowLabel.tooltipText = hollowCheckBox.tooltipText = f"Shortcut: ALT-{Keys.tool_option_3}"
@@ -756,7 +756,6 @@ class BrushTool(CloneTool):
         self.hidePanel()
         self.showPanel()
 
-    brushHollow = False
     topsoilDepth = 1
 
     _blockInfo = materials.Stone
@@ -855,7 +854,6 @@ class BrushTool(CloneTool):
         'brushStyle',
         'brushMode',
         'brushSize',
-        'brushHollow',
         'replaceBlockInfo',
     ]
 
@@ -1158,4 +1156,4 @@ class BrushTool(CloneTool):
         self.swapBrushModes()
 
     def option3(self):
-        self.brushHollow = not self.brushHollow
+        BrushToolSettings.hollow.invert()
