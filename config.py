@@ -226,6 +226,11 @@ class _BrushToolSection(Section):
     length = S(3)
     height = S(3)
     width = S(3)
+    shape = S("Round")
+    """One of 'Round', 'Square', 'Diamond'"""
+    mode = S("Fill")
+    """One of 'Fill', 'Flood Fill', 'Replace', 'Erode', 'Topsoil', 'Paste' """
+
     update_offset = S(False)
     choose_block_immediately = S(False)
     alpha = S(0.66, min=0, max=1)
@@ -235,8 +240,8 @@ class _BrushToolSection(Section):
     chance = S(100)
     chance_type = S("full")
     hollow = S(False)
-    
-    """One of edge, full"""
+
+    """One of 'edge', 'full'"""
 
 
 BrushToolSettings = _BrushToolSection(config)

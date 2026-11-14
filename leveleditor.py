@@ -2376,7 +2376,7 @@ class LevelEditor(GLViewport):
             if keyname == Keys.tool_option_5.v:
                 self.currentTool.option5()
 
-        if mods & KMOD_CTRL:
+        elif mods & KMOD_CTRL:
             if keyname == Keys.goto.v: self.showGotoPanel()
             if keyname == Keys.swap_view_distance.v:
                 self.swapViewDistance()
