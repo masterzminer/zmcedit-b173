@@ -12,6 +12,8 @@ brush
         Fix it drawing blocks in areas where chunks are not present
         Make it show no brush and not allow any drawing if a schematic isn't selected
     fix the random yellow brush stroke preview boxes sticking around sometimes, ensure they are cleared after a brush stroke completes, seems to happen if an error occurs during the brush
+    make pressing escape always cancel selecting a block
+    remove the random block showing up in the bottom left after changing brush modes, moving the mouse makes it go away
 
 select
     fix the select tool icon showing a blank white square sometimes, seemingly from quick loading a world while a world is already open
@@ -47,4 +49,7 @@ go through and fix all the deprecated method calls
 make release 1.0
 
 
+
 consider adding a redo feature
+
+consider adding brush presets

@@ -37,7 +37,7 @@ import leveleditor
 import mceutils
 import mcplatform
 from mcplatform import platform_open
-import numpy
+import numpy as np
 
 
 from OpenGL import GL
@@ -1039,7 +1039,7 @@ class GLDisplayContext(object):
 
         def makeTerrainTexture(mats):
             w, h = 1, 1
-            tex_image = numpy.zeros((w, h, 4), dtype='uint8')
+            tex_image = np.zeros((w, h, 4), dtype='uint8')
             tex_image[:] = 127, 127, 127, 255
 
             GL.glTexImage2D(

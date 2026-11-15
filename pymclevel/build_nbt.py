@@ -2,13 +2,13 @@
 
 from setuptools import setup, Extension
 from Cython.Build import cythonize
-import numpy
+import numpy as np
 
 extensions = [
     Extension(
         "pymclevel._nbt",
         ["pymclevel/_nbt.pyx"],
-        include_dirs=[numpy.get_include()],
+        include_dirs=[np.get_include()],
     )
 ]
 

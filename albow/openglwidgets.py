@@ -7,6 +7,7 @@
 
 from OpenGL import GL, GLU
 from .widget import Widget
+import numpy as np
 
 
 class GLViewport(Widget):
@@ -48,7 +49,7 @@ class GLViewport(Widget):
     def augment_mouse_event(self, event):
         Widget.augment_mouse_event(self, event)
         w, h = self.size
-        viewport = numpy.array((0, 0, w, h), dtype='int32')
+        viewport = np.array((0, 0, w, h), dtype='int32')
         self.setup_matrices()
         gf = GL.glGetDoublev
         pr_mat = gf(GL.GL_PROJECTION_MATRIX)
@@ -62,8 +63,6 @@ class GLViewport(Widget):
             event.dict['ray'] = (p0, p1)
         except ValueError:  # projection failed!
             pass
-
-import numpy
 
 #-------------------------------------------------------------------------
 

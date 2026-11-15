@@ -68,7 +68,7 @@ class Modes:
 
                 box = BoundingBox(worldPoint, (blocks.shape[0], blocks.shape[2], blocks.shape[1]))  # xzy reorder
 
-                brushMask = op.createBrushMask(op.brushSize, op.brushStyle, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
+                brushMask = op.createBrushMask(op.brushSize, BrushToolSettings.shape.v, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
                 blocks[brushMask] = op.blockInfo.ID
 
                 chunk.Data[slices][brushMask] = op.blockInfo.blockData
@@ -173,7 +173,7 @@ class Modes:
                 # box = BoundingBox(worldPoint,
                 box = BoundingBox(worldPoint, (blocks.shape[0], blocks.shape[2], blocks.shape[1]))  # xzy reorder
 
-                brushMask = op.createBrushMask(op.brushSize, op.brushStyle, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
+                brushMask = op.createBrushMask(op.brushSize, BrushToolSettings.shape.v, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
 
                 replaceWith = op.options['replaceBlockInfo']
                 # xxx pasted from fill.py
@@ -237,7 +237,7 @@ class Modes:
                 solidBlocks = blocks != 0
                 neighbors = getNeighbors(solidBlocks)
 
-                brushMask = op.createBrushMask(op.brushSize, op.brushStyle)
+                brushMask = op.createBrushMask(op.brushSize, BrushToolSettings.shape.v)
                 erodeBlocks = neighbors < 5
                 erodeBlocks &= (np.random.random(erodeBlocks.shape) > 0.3)
                 erodeBlocks[1:-1, 1:-1, 1:-1] &= brushMask
@@ -275,7 +275,7 @@ class Modes:
 
                 box = BoundingBox(worldPoint, (blocks.shape[0], blocks.shape[2], blocks.shape[1]))  # xzy reorder
 
-                brushMask = op.createBrushMask(op.brushSize, op.brushStyle, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
+                brushMask = op.createBrushMask(op.brushSize, BrushToolSettings.shape.v, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
 
                 blocktype = op.blockInfo
 
@@ -366,6 +366,9 @@ brush_mode_name_list = [v.name for v in brush_mode_classes]
 def get_brush_mode():
     return brush_mode_map[BrushToolSettings.mode.v]
 
+
+brush_shapes = ["Round", "Square", "Diamond", "Pyramid"]
+
 class BrushOperation(Operation):
 
     def __init__(self, editor, points, options):
@@ -379,7 +382,6 @@ class BrushOperation(Operation):
 
         self.brushSize = options['brushSize']
         self.blockInfo = options['blockInfo']
-        self.brushStyle = options['brushStyle']
 
         if max(self.brushSize) > BrushTool.maxBrushSize:
             self.brushSize = (BrushTool.maxBrushSize,) * 3
@@ -390,7 +392,6 @@ class BrushOperation(Operation):
         self._dirtyBox = reduce(lambda a, b: a.union(b), boxes)
 
     undoSchematic = None
-    brushStyles = ["Round", "Square", "Diamond"]
 
 
     @property
@@ -432,13 +433,11 @@ class BrushOperation(Operation):
         blockCenters = indices - half_shape[:, np.newaxis, np.newaxis, np.newaxis]
         blockCenters -= offset[:, np.newaxis, np.newaxis, np.newaxis]
 
-        # odd diameter means measure from the center of the block at 0,0,0 to each block center
-        # even diameter means measure from the 0,0,0 grid point to each block center
-
-        # if diameter & 1 == 0: blockCenters += 0.5
         shape = array(shape, dtype='float32')
 
-        # if not isSphere(shape):
+        # Shapes that are then stretched based on the brush size
+
+        # Sphere
         if style == "Round":
             blockCenters *= blockCenters
             shape /= 2
@@ -447,18 +446,32 @@ class BrushOperation(Operation):
             blockCenters /= shape[:, np.newaxis, np.newaxis, np.newaxis]
             distances = sum(blockCenters, 0)
             mask = distances < 1
+
+        # Rectangular prism
         elif style == "Square":
             blockCenters /= shape[:, np.newaxis, np.newaxis, np.newaxis]
 
             distances = np.absolute(blockCenters).max(0)
             mask = distances < .5
 
+        # Diamond shape of square xz layers rotated 45 degrees
         elif style == "Diamond":
-            blockCenters = numpy.abs(blockCenters)
+            blockCenters = np.abs(blockCenters)
             shape /= 2
             blockCenters /= shape[:, np.newaxis, np.newaxis, np.newaxis]
             distances = sum(blockCenters, 0)
             mask = distances < 1
+
+        # Diamond shape of square xz layers aligned to the axes
+        elif style == "Pyramid":
+            blockCenters = np.abs(blockCenters)
+            shape /= 2
+            blockCenters /= shape[:, np.newaxis, np.newaxis, np.newaxis]
+
+            y = blockCenters[2]
+            xz = np.maximum(blockCenters[0], blockCenters[1])
+            mask = xz + np.abs(y) < 1
+
 
         if (chance < 100 or hollow) and max(shape) > 1:
             threshold = chance / 100.0
@@ -570,13 +583,14 @@ class BrushPanel(Panel):
 
         self.brushModeRow = Row((Label("Mode:"), self.brushModeButton))
 
-        self.brushStyleButton = ValueButton(width=self.brushModeButton.width,
-                                        ref=AttrRef(tool, "brushStyle"),
-                                        action=tool.swapBrushStyles)
+        self.brushShapeButton = ChoiceButton(brush_shapes,
+                                            width=self.brushModeButton.width,
+                                            default_choice=BrushToolSettings.shape.v,
+                                            choose=lambda: BrushToolSettings.shape.set(self.brushShapeButton.selectedChoice))
 
-        self.brushStyleButton.tooltipText = f"Shortcut: ALT-{Keys.tool_option_1}"
+        self.brushShapeButton.tooltipText = f"Shortcut: ALT-{Keys.tool_option_1}"
 
-        self.brushStyleRow = Row((Label("Brush:"), self.brushStyleButton))
+        self.brushStyleRow = Row((Label("Brush:"), self.brushShapeButton))
 
         self.modeStyleGrid = Column([
             self.brushModeRow,
@@ -695,6 +709,8 @@ class BrushTool(CloneTool):
         BrushToolSettings.height.add_observer(self._setBrushSize, "brush tool")
         BrushToolSettings.alpha.add_observer(lambda v: self.setupPreview(), "brush tool")
         BrushToolSettings.mode.add_observer(lambda v: self.brush_mode_changed(), "brush tool")
+        BrushToolSettings.shape.add_observer(lambda v: self.setupPreview(), "brush tool preview")
+        BrushToolSettings.shape.add_observer(lambda v: self.brush_mode_changed(), "brush tool mode")
 
     panel = None
 
@@ -735,9 +751,6 @@ class BrushTool(CloneTool):
         BrushToolSettings.width.set(w)
 
     maxBrushSize = 4096
-
-    brushStyles = BrushOperation.brushStyles
-    brushStyle = brushStyles[0]
 
 
     def brush_mode_changed(self):
@@ -793,11 +806,11 @@ class BrushTool(CloneTool):
     @property
     def statusText(self):
         return (
-            f"Click and drag to place blocks. ALT-Click to use the block under the cursor."
-            f"{Keys.roll.upper()} to increase and"
-            f"{Keys.flip.upper()} to decrease size."
-            f"{Keys.rotate.upper()} to rotate,"
-            f"{Keys.mirror.upper()} to roll. Mousewheel to adjust distance."
+            f"Click and drag to place blocks. ALT-Click to use the block under the cursor. "
+            f"{Keys.roll.v.upper()} to increase and "
+            f"{Keys.flip.v.upper()} to decrease size. "
+            f"{Keys.rotate.v.upper()} to rotate, "
+            f"{Keys.mirror.v.upper()} to roll. Mousewheel to adjust distance."
         )
 
     @property
@@ -826,11 +839,10 @@ class BrushTool(CloneTool):
             except Exception as e:
                 return repr(e)
 
-    def swapBrushStyles(self):
-        brushStyleIndex = self.brushStyles.index(self.brushStyle) + 1
-        brushStyleIndex %= len(self.brushStyles)
-        self.brushStyle = self.brushStyles[brushStyleIndex]
-        self.setupPreview()
+    def swapBrushShape(self):
+        index = brush_shapes.index(BrushToolSettings.shape.v) + 1
+        index %= len(brush_shapes)
+        BrushToolSettings.shape.set(brush_shapes[index])
 
     def swapBrushModes(self):
         # Go to the next brush in the list
@@ -842,7 +854,6 @@ class BrushTool(CloneTool):
 
     options = [
         'blockInfo',
-        'brushStyle',
         'brushSize',
         'replaceBlockInfo',
     ]
@@ -982,7 +993,6 @@ class BrushTool(CloneTool):
     def setupPreview(self):
         self.previewDirty = False
         brushSize = self.brushSize
-        brushStyle = self.brushStyle
         if get_brush_mode().name == "Replace":
             blockInfo = self.replaceBlockInfo
         else:
@@ -1013,7 +1023,7 @@ class BrushTool(CloneTool):
                 f.world = self
                 f.chunkPosition = (cx, cz)
 
-                mask = BrushOperation.createBrushMask(brushSize, brushStyle, (0, 0, 0), BoundingBox((cx << 4, 0, cz << 4), (16, self.Height, 16)))
+                mask = BrushOperation.createBrushMask(brushSize, BrushToolSettings.shape.v, (0, 0, 0), BoundingBox((cx << 4, 0, cz << 4), (16, self.Height, 16)))
                 f.Blocks = np.zeros(mask.shape, dtype='uint8')
                 f.Data = np.zeros(mask.shape, dtype='uint8')
                 f.BlockLight = self.zero_light
@@ -1138,7 +1148,7 @@ class BrushTool(CloneTool):
         pass
 
     def option1(self):
-        self.swapBrushStyles()
+        self.swapBrushShape()
 
     def option2(self):
         self.swapBrushModes()

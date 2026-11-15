@@ -80,10 +80,11 @@ class Setting:
         self.set(not self.get())
 
     def add_observer(self, func, name=None):
-        # Skip if the observer already exists
+        # If the observer already exists, replace it
         if name is not None:
-            for obs in self.observers:
+            for i, obs in enumerate(self.observers):
                 if obs.name == name:
+                    self.observers[i] = Observer(func, name)
                     return
         
         # Add the observer

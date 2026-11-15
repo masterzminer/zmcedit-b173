@@ -227,7 +227,7 @@ class _BrushToolSection(Section):
     height = S(3)
     width = S(3)
     shape = S("Round")
-    """One of 'Round', 'Square', 'Diamond'"""
+    """One of 'Round', 'Square', 'Diamond', 'Pyramid'"""
     mode = S("Fill")
     """One of 'Fill', 'Flood Fill', 'Replace', 'Erode', 'Topsoil', 'Paste' """
 
