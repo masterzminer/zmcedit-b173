@@ -25,6 +25,7 @@ from functools import reduce
 import numpy as np
 from pymclevel.material import materials
 from config import LastDir, Keys, BrushToolSettings
+from config_classes import Observers
 import log
 from bresenham import bresenham
 
@@ -170,12 +171,11 @@ class Modes:
                 worldPoint = [p + o for p, o in zip(point, dirtyBox.origin)]
                 blocks = chunk.Blocks[slices]
                 data = chunk.Data[slices]
-                # box = BoundingBox(worldPoint,
                 box = BoundingBox(worldPoint, (blocks.shape[0], blocks.shape[2], blocks.shape[1]))  # xzy reorder
 
                 brushMask = op.createBrushMask(op.brushSize, BrushToolSettings.shape.v, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
 
-                replaceWith = op.options['replaceBlockInfo']
+                replaceWith = BrushToolSettings.replace_block.get()
                 # xxx pasted from fill.py
                 if op.blockInfo.wildcard:
                     log.trace("Wildcard replace")
@@ -187,13 +187,10 @@ class Modes:
 
                 replaceTable = op.level.blockReplaceTable(blocksToReplace)
                 replaceMask = replaceTable[blocks, data]
-                # replaceMask = blocks == op.blockInfo.ID
-                # replaceMask &= data == op.blockInfo.blockData
                 brushMask &= replaceMask
 
                 blocks[brushMask] = replaceWith.ID
                 data[brushMask] = replaceWith.blockData
-                # chunk.chunkChanged()
 
     class Erode(BrushMode):
         name = "Erode"
@@ -381,7 +378,7 @@ class BrushOperation(Operation):
         self.points = points
 
         self.brushSize = options['brushSize']
-        self.blockInfo = options['blockInfo']
+        self.blockInfo = BrushToolSettings.fill_block.get()
 
         if max(self.brushSize) > BrushTool.maxBrushSize:
             self.brushSize = (BrushTool.maxBrushSize,) * 3
@@ -627,14 +624,25 @@ class BrushPanel(Panel):
         self.hollowRow = Row((hollowCheckBox, hollowLabel))
 
         self.blockButton = BlockButton(
-            ref=AttrRef(tool, 'blockInfo'),
+            blockInfo=BrushToolSettings.fill_block.v,
+            # TODO save recent blocks to config and fix the recent blocks not updating
             recentBlocks=tool.recentFillBlocks,
             allowWildcards=(get_brush_mode().name == "Replace"))
 
         self.replaceBlockButton = BlockButton(
-            ref=AttrRef(tool, 'replaceBlockInfo'),
+            blockInfo=BrushToolSettings.replace_block.v,
             recentBlocks=tool.recentReplaceBlocks)
+
+        # Always update the block buttons when the settings change
+        def update_block_button(v):
+            self.blockButton.blockInfo = v
         
+        def update_replace_button(v):
+            self.replaceBlockButton.blockInfo = v
+
+        BrushToolSettings.fill_block.add_observer(update_block_button, "brush panel")
+        BrushToolSettings.replace_block.add_observer(update_replace_button, "brush panel")
+
         brush_mode = get_brush_mode()
         col = brush_mode.createOptions(self, tool)
 
@@ -650,12 +658,12 @@ class BrushPanel(Panel):
 
     def pickFillBlock(self):
         self.blockButton.action()
-        self.tool.blockInfo = self.blockButton.blockInfo
+        BrushToolSettings.fill_block.set(self.blockButton.blockInfo)
         self.tool.setupPreview()
 
     def pickReplaceBlock(self):
         self.replaceBlockButton.action()
-        self.tool.replaceBlockInfo = self.replaceBlockButton.blockInfo
+        BrushToolSettings.replace_block.set(self.replaceBlockButton.blockInfo)
         self.tool.setupPreview()
 
     def swap(self):
@@ -663,11 +671,9 @@ class BrushPanel(Panel):
         self.blockButton.recentBlocks = self.replaceBlockButton.recentBlocks
         self.replaceBlockButton.recentBlocks = t
 
-        self.blockButton.updateRecentBlockView()
-        self.replaceBlockButton.updateRecentBlockView()
-        b = self.blockButton.blockInfo
-        self.blockButton.blockInfo = self.replaceBlockButton.blockInfo
-        self.replaceBlockButton.blockInfo = b
+        b = BrushToolSettings.fill_block.get()
+        BrushToolSettings.fill_block.set(BrushToolSettings.replace_block.get())
+        BrushToolSettings.replace_block.set(b)
 
 
 class BrushToolOptions(ToolOptions):
@@ -708,9 +714,14 @@ class BrushTool(CloneTool):
         BrushToolSettings.width.add_observer(self._setBrushSize, "brush tool")
         BrushToolSettings.height.add_observer(self._setBrushSize, "brush tool")
         BrushToolSettings.alpha.add_observer(lambda v: self.setupPreview(), "brush tool")
-        BrushToolSettings.mode.add_observer(lambda v: self.brush_mode_changed(), "brush tool")
+        def mode_change(v):
+            self.brush_mode_changed()
+            self.setupPreview()
+        BrushToolSettings.mode.add_observer(mode_change, "brush tool")
         BrushToolSettings.shape.add_observer(lambda v: self.setupPreview(), "brush tool preview")
         BrushToolSettings.shape.add_observer(lambda v: self.brush_mode_changed(), "brush tool mode")
+        BrushToolSettings.fill_block.add_observer(lambda v: self.setupPreview(), "brush tool")
+        BrushToolSettings.replace_block.add_observer(lambda v: self.setupPreview(), "brush tool")
 
     panel = None
 
@@ -758,28 +769,6 @@ class BrushTool(CloneTool):
         self.showPanel()
 
     topsoilDepth = 1
-
-    _blockInfo = materials.Stone
-
-    @property
-    def blockInfo(self):
-        return self._blockInfo
-
-    @blockInfo.setter
-    def blockInfo(self, bi):
-        self._blockInfo = bi
-        self.setupPreview()
-
-    _replaceBlockInfo = materials.Stone
-
-    @property
-    def replaceBlockInfo(self):
-        return self._replaceBlockInfo
-
-    @replaceBlockInfo.setter
-    def replaceBlockInfo(self, bi):
-        self._replaceBlockInfo = bi
-        self.setupPreview()
 
     def importPaste(self):
         clipFilename = mcplatform.askOpenFile(LastDir.schematic, title='Choose a schematic...')
@@ -853,9 +842,7 @@ class BrushTool(CloneTool):
         BrushToolSettings.mode.set(brush_mode_name_list[index])
 
     options = [
-        'blockInfo',
         'brushSize',
-        'replaceBlockInfo',
     ]
 
     def getBrushOptions(self):
@@ -872,9 +859,9 @@ class BrushTool(CloneTool):
             id = self.editor.level.blockAt(*pos)
             data = self.editor.level.blockDataAt(*pos)
             if get_brush_mode().name == "Replace":
-                self.panel.replaceBlockButton.blockInfo = materials.blockWithID(id, data)
+                BrushToolSettings.replace_block.set_block(id, data)
             else:
-                self.panel.blockButton.blockInfo = materials.blockWithID(id, data)
+                BrushToolSettings.fill_block.set_block(id, data)
 
             return
 
@@ -994,9 +981,9 @@ class BrushTool(CloneTool):
         self.previewDirty = False
         brushSize = self.brushSize
         if get_brush_mode().name == "Replace":
-            blockInfo = self.replaceBlockInfo
+            blockInfo = BrushToolSettings.replace_block.get()
         else:
-            blockInfo = self.blockInfo
+            blockInfo = BrushToolSettings.fill_block.get()
 
         class FakeLevel(MCLevel):
             filename = None
@@ -1050,11 +1037,11 @@ class BrushTool(CloneTool):
 
         if BrushToolSettings.choose_block_immediately.v:
             blockPicker = BlockPicker(
-                self.blockInfo,
+                BrushToolSettings.fill_block.get(),
                 allowWildcards=get_brush_mode().name == "Replace")
 
             if blockPicker.present():
-                self.blockInfo = blockPicker.blockInfo
+                BrushToolSettings.fill_block.set(blockPicker.blockInfo)
 
         if BrushToolSettings.update_offset.v:
             self.reticleOffset = self.offsetMax()

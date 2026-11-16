@@ -371,7 +371,7 @@ class FilterToolPanel(Panel):
             self.shrink_wrap()
             return
 
-        if self.selectedFilterName is None or self.selectedFilterName not in tool.filter_identifiers:
+        if (self.selectedFilterName is None) or (self.selectedFilterName not in tool.filter_identifiers) or (self.selectedFilterName not in ALL_FILTER_MODULES):
             # Try to use the default filter
             to_select = None
             for f in tool.filter_identifiers:

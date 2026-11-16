@@ -18,7 +18,7 @@ Configuration settings and storage.
 """
 
 from configparser import RawConfigParser
-from config_classes import Section, ListSection, Setting as S, DirectorySetting as DS, IndexSetting as IS, KeySetting as KS, KeyIndexSetting as KIS, JsonSetting as JS
+from config_classes import Section, ListSection, Setting as S, DirectorySetting as DS, IndexSetting as IS, KeySetting as KS, KeyIndexSetting as KIS, JsonSetting as JS, BlockSetting as BS
 
 from directories import INI_FILE
 import log
@@ -239,13 +239,15 @@ class _BrushToolSection(Section):
     continuous = S(False)
     chance = S(100)
     chance_type = S("full")
+    """One of 'edge', 'full'"""
     hollow = S(False)
 
-    """One of 'edge', 'full'"""
+    fill_block = BS(r'{"ID": 1, "blockData": 0}')
+    replace_block = BS(r'{"ID": 0, "blockData": 0}')
+
 
 
 BrushToolSettings = _BrushToolSection(config)
-
 
 class _CloneToolSection(Section):
     """Settings for the clone tool"""

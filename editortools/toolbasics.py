@@ -222,23 +222,29 @@ class BlockThumbView(Widget):
     @blockInfo.setter
     def blockInfo(self, b):
         if self._blockInfo != b:
-            if self.thumb:
-                self.thumb.set_parent(None)
             self._blockInfo = b
-            if b is None:
-                return
+            self.update_view()
 
-            sch = MCSchematic(shape=(1, 1, 1))
-            if b:
-                sch.Blocks[:] = b.ID
-                sch.Data[:] = b.blockData
 
-            self.thumb = ThumbView(sch)
-            self.add(self.thumb)
-            self.thumb.size = self.size
-            self.thumb.drawBackground = False
-            for i in self.thumb.renderer.chunkWorker:
-                pass
+    def update_view(self):
+        if self.thumb:
+            self.thumb.set_parent(None)
+
+        b = self._blockInfo
+        if b is None:
+            return
+
+        sch = MCSchematic(shape=(1, 1, 1))
+        if b:
+            sch.Blocks[:] = b.ID
+            sch.Data[:] = b.blockData
+
+        self.thumb = ThumbView(sch)
+        self.add(self.thumb)
+        self.thumb.size = self.size
+        self.thumb.drawBackground = False
+        for i in self.thumb.renderer.chunkWorker:
+            pass
 
 
 class BlockView(GLOrtho):
@@ -297,55 +303,48 @@ class BlockView(GLOrtho):
 
 
 class BlockButton(ButtonBase, Panel):
-    _ref = None
-
-    def __init__(self, blockInfo=None, ref=None, recentBlocks=None, *a, **kw):
-        self.allowWildcards = False
-        Panel.__init__(self, *a, **kw)
-
-        self.bg_color = (1, 1, 1, 0.25)
-        self._ref = ref
-        if blockInfo is None and ref is not None:
-            blockInfo = ref.get()
-        blockInfo = blockInfo or materials.Air
+    def __init__(self, blockInfo=None, recentBlocks=None, *a, **kw):
+        self.blockView = None
 
         if recentBlocks is not None:
             self.recentBlocks = recentBlocks
         else:
             self.recentBlocks = []
 
+        self.allowWildcards = False
+        blockInfo = materials.Air if blockInfo is None else blockInfo
+        self._blockInfo = blockInfo
+
+        self.bg_color = (1, 1, 1, 0.25)
+
+        Panel.__init__(self, *a, **kw)
+
         self.blockView = BlockThumbView(blockInfo, size=(48, 48))
         self.blockLabel = ValueDisplay(ref=AttrRef(self, 'labelText'), width=180, align="l")
         row = Row((self.blockView, self.blockLabel), align="b")
+        self.blockInfo = blockInfo
 
         self.add(row)
         self.shrink_wrap()
-
-        self.blockInfo = blockInfo
-        # self._ref = ref
         self.updateRecentBlockView()
 
     recentBlockLimit = 7
 
     @property
     def blockInfo(self):
-        if self._ref:
-            return self._ref.get()
-        else:
-            return self._blockInfo
+        return self._blockInfo
 
     @blockInfo.setter
     def blockInfo(self, bi):
-        if self._ref:
-            self._ref.set(bi)
-        else:
-            self._blockInfo = bi
-        self.blockView.blockInfo = bi
-        if bi not in self.recentBlocks:
-            self.recentBlocks.append(bi)
-            if len(self.recentBlocks) > self.recentBlockLimit:
-                self.recentBlocks.pop(0)
-            self.updateRecentBlockView()
+        self._blockInfo = bi
+        if self.blockView is not None:
+            self.blockView.blockInfo = bi
+
+            if bi not in self.recentBlocks:
+                self.recentBlocks.append(bi)
+                if len(self.recentBlocks) > self.recentBlockLimit:
+                    self.recentBlocks.pop(0)
+                self.updateRecentBlockView()
 
     @property
     def labelText(self):
@@ -353,8 +352,6 @@ class BlockButton(ButtonBase, Panel):
         if len(labelText) > 24:
             labelText = labelText[:23] + "..."
         return labelText
-
-        # self.blockNameLabel.text =
 
     def createRecentBlockView(self):
         def makeBlockView(bi):

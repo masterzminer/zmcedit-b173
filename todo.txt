@@ -3,8 +3,8 @@ filters
     Retest all stock filters
 
 brush
-    make the last selected block or blocks for the brush save with the config, similar to the last brush size
     Add all other brush settings to configs
+    Probably make a separate config for each brush type
     investigate middle click jumping the brush up to max height, make a shortcut to remove all height
     Fix the paste brush being broken
         It doesn't always save everything in the undo?
@@ -12,8 +12,9 @@ brush
         Fix it drawing blocks in areas where chunks are not present
         Make it show no brush and not allow any drawing if a schematic isn't selected
     fix the random yellow brush stroke preview boxes sticking around sometimes, ensure they are cleared after a brush stroke completes, seems to happen if an error occurs during the brush
-    make pressing escape always cancel selecting a block
+    make pressing escape always cancel selecting a block from the block picker ui
     remove the random block showing up in the bottom left after changing brush modes, moving the mouse makes it go away
+    experiment with adding other erode brush algorithms
 
 select
     fix the select tool icon showing a blank white square sometimes, seemingly from quick loading a world while a world is already open
