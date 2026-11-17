@@ -359,23 +359,7 @@ class BlockSetting(JsonSetting):
 
     def get(self):
         raw = super().get()
-        return self.json_to_block(raw)
-
-    def json_to_block(self, raw):
-        # Default to air if data doesn't exist
-        if "ID" not in raw:
-            id = 0
-            log.error(f"No block id found for section: {self.section.NAME}, field: {self.name}, json: {raw}")
-        else:
-            id = raw["ID"]
-        
-        if "blockData" not in raw:
-            blockData = 0
-            log.error(f"No block data found for section: {self.section.NAME}, field: {self.name}, json: {raw}")
-        else:
-            blockData = raw["blockData"]
-
-        return materials.blockWithID(id, blockData)
+        return _json_to_block(self, raw)
 
     def set(self, value):
         j = {
@@ -389,4 +373,40 @@ class BlockSetting(JsonSetting):
 
     def as_observe_value(self, v):
         j = super().as_observe_value(v)
-        return self.json_to_block(j)
+        return _json_to_block(self, j)
+
+
+def _json_to_block(setting: JsonSetting, raw):
+    # Default to air if data doesn't exist
+    if "ID" not in raw:
+        id = 0
+        log.error(f"No block id found for section: {setting.section.NAME}, field: {setting.name}, json: {raw}")
+    else:
+        id = raw["ID"]
+    
+    if "blockData" not in raw:
+        blockData = 0
+        log.error(f"No block data found for section: {setting.section.NAME}, field: {setting.name}, json: {raw}")
+    else:
+        blockData = raw["blockData"]
+    return materials.blockWithID(id, blockData)
+
+
+class BlockListSetting(JsonSetting):
+    """A setting that stores a list of block id and data values"""
+
+    def get(self):
+        raw = super().get()
+        return [_json_to_block(self, b) for b in raw]
+
+
+    def set(self, blocks):
+        j = [{
+            "ID": value.ID,
+            "blockData": value.blockData
+        } for value in blocks]
+        return super().set(j) 
+
+    def as_observe_value(self, v):
+        j = super().as_observe_value(v)
+        return [_json_to_block(self, b) for b in j]

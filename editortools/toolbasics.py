@@ -303,13 +303,16 @@ class BlockView(GLOrtho):
 
 
 class BlockButton(ButtonBase, Panel):
-    def __init__(self, blockInfo=None, recentBlocks=None, *a, **kw):
+    def __init__(self, blockInfo=None, on_block_info_change=None, recentBlocks=None, on_recent_blocks_change=None, *a, **kw):
         self.blockView = None
+        self.on_block_info_change = on_block_info_change
+        self.on_recent_blocks_change = on_recent_blocks_change
+        """Function run when recent blocks are changed"""
 
         if recentBlocks is not None:
-            self.recentBlocks = recentBlocks
+            self._recentBlocks = recentBlocks
         else:
-            self.recentBlocks = []
+            self._recentBlocks = []
 
         self.allowWildcards = False
         blockInfo = materials.Air if blockInfo is None else blockInfo
@@ -327,6 +330,7 @@ class BlockButton(ButtonBase, Panel):
         self.add(row)
         self.shrink_wrap()
         self.updateRecentBlockView()
+        self._recent_blocks_changed(None)
 
     recentBlockLimit = 7
 
@@ -336,15 +340,39 @@ class BlockButton(ButtonBase, Panel):
 
     @blockInfo.setter
     def blockInfo(self, bi):
+        self.update_block_info(bi, True)
+
+
+    def update_block_info(self, bi, update_recent):
+        old_info = self._blockInfo
         self._blockInfo = bi
         if self.blockView is not None:
             self.blockView.blockInfo = bi
 
-            if bi not in self.recentBlocks:
-                self.recentBlocks.append(bi)
-                if len(self.recentBlocks) > self.recentBlockLimit:
-                    self.recentBlocks.pop(0)
-                self.updateRecentBlockView()
+            if update_recent:
+                old_recent = [b for b in self._recentBlocks]
+                if bi not in self._recentBlocks:
+                    self._recentBlocks.append(bi)
+                    if len(self._recentBlocks) > self.recentBlockLimit:
+                        self._recentBlocks.pop(0)
+                    self.updateRecentBlockView()
+                    self._recent_blocks_changed(old_recent)
+
+        if self.on_block_info_change is not None:
+            if old_info.ID != self._blockInfo.ID or old_info.blockData != self._blockInfo.blockData:
+                self.on_block_info_change(bi)
+
+    def replace_recent_blocks(self, blocks):
+        old_recent = [b for b in self._recentBlocks]
+        self._recentBlocks.clear()
+        self._recentBlocks.extend(blocks)
+        self.updateRecentBlockView()
+        self._recent_blocks_changed(old_recent)
+
+    def _recent_blocks_changed(self, old):
+        if old != self._recentBlocks:
+            if self.on_recent_blocks_change is not None:
+                self.on_recent_blocks_change(self._recentBlocks)
 
     @property
     def labelText(self):
@@ -363,7 +391,7 @@ class BlockButton(ButtonBase, Panel):
             bv.mouse_up = action
             return bv
 
-        row = [makeBlockView(bi) for bi in self.recentBlocks]
+        row = [makeBlockView(bi) for bi in self._recentBlocks]
         row = Row(row)
 
         widget = GLBackground()

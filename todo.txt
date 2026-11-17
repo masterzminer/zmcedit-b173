@@ -3,8 +3,7 @@ filters
     Retest all stock filters
 
 brush
-    Add all other brush settings to configs
-    Probably make a separate config for each brush type
+    Add all other brush settings to configs, check each brush type like erode has a strength field
     investigate middle click jumping the brush up to max height, make a shortcut to remove all height
     Fix the paste brush being broken
         It doesn't always save everything in the undo?
@@ -14,7 +13,6 @@ brush
     fix the random yellow brush stroke preview boxes sticking around sometimes, ensure they are cleared after a brush stroke completes, seems to happen if an error occurs during the brush
     make pressing escape always cancel selecting a block from the block picker ui
     remove the random block showing up in the bottom left after changing brush modes, moving the mouse makes it go away
-    experiment with adding other erode brush algorithms
 
 select
     fix the select tool icon showing a blank white square sometimes, seemingly from quick loading a world while a world is already open
@@ -53,4 +51,8 @@ make release 1.0
 
 consider adding a redo feature
 
-consider adding brush presets
+Brush
+    Add presets
+    Make a separate config for each brush type
+    experiment with adding other erode brush algorithms
+    Move brush types and shapes to separate classes with overridable methods

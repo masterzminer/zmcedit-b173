@@ -625,23 +625,20 @@ class BrushPanel(Panel):
 
         self.blockButton = BlockButton(
             blockInfo=BrushToolSettings.fill_block.v,
-            # TODO save recent blocks to config and fix the recent blocks not updating
-            recentBlocks=tool.recentFillBlocks,
+            on_block_info_change=BrushToolSettings.fill_block.set,
+            recentBlocks=BrushToolSettings.fill_recent.v,
+            on_recent_blocks_change=BrushToolSettings.fill_recent.set,
             allowWildcards=(get_brush_mode().name == "Replace"))
 
         self.replaceBlockButton = BlockButton(
             blockInfo=BrushToolSettings.replace_block.v,
-            recentBlocks=tool.recentReplaceBlocks)
+            on_block_info_change=BrushToolSettings.replace_block.set,
+            recentBlocks=BrushToolSettings.replace_recent.v,
+            on_recent_blocks_change=BrushToolSettings.replace_recent.set)
 
         # Always update the block buttons when the settings change
-        def update_block_button(v):
-            self.blockButton.blockInfo = v
-        
-        def update_replace_button(v):
-            self.replaceBlockButton.blockInfo = v
-
-        BrushToolSettings.fill_block.add_observer(update_block_button, "brush panel")
-        BrushToolSettings.replace_block.add_observer(update_replace_button, "brush panel")
+        BrushToolSettings.fill_block.add_observer(lambda v: self.blockButton.update_block_info(v, False), "brush panel")
+        BrushToolSettings.replace_block.add_observer(lambda v: self.replaceBlockButton.update_block_info(v, False), "brush panel")
 
         brush_mode = get_brush_mode()
         col = brush_mode.createOptions(self, tool)
@@ -658,23 +655,20 @@ class BrushPanel(Panel):
 
     def pickFillBlock(self):
         self.blockButton.action()
-        BrushToolSettings.fill_block.set(self.blockButton.blockInfo)
         self.tool.setupPreview()
 
     def pickReplaceBlock(self):
         self.replaceBlockButton.action()
-        BrushToolSettings.replace_block.set(self.replaceBlockButton.blockInfo)
         self.tool.setupPreview()
 
     def swap(self):
-        t = self.blockButton.recentBlocks
-        self.blockButton.recentBlocks = self.replaceBlockButton.recentBlocks
-        self.replaceBlockButton.recentBlocks = t
+        b = self.blockButton.blockInfo
+        self.blockButton.update_block_info(self.replaceBlockButton.blockInfo, False)
+        self.replaceBlockButton.update_block_info(b, False)
 
-        b = BrushToolSettings.fill_block.get()
-        BrushToolSettings.fill_block.set(BrushToolSettings.replace_block.get())
-        BrushToolSettings.replace_block.set(b)
-
+        t = [b for b in self.blockButton._recentBlocks]
+        self.blockButton.replace_recent_blocks([b for b in self.replaceBlockButton._recentBlocks])
+        self.replaceBlockButton.replace_recent_blocks(t)
 
 class BrushToolOptions(ToolOptions):
     def __init__(self):
@@ -703,8 +697,6 @@ class BrushTool(CloneTool):
     def __init__(self, *args):
         CloneTool.__init__(self, *args)
         self.optionsPanel = BrushToolOptions()
-        self.recentFillBlocks = []
-        self.recentReplaceBlocks = []
         self.draggedPositions = []
 
         for m in brush_mode_map.values():
@@ -858,10 +850,12 @@ class BrushTool(CloneTool):
         if key.get_mods() & KMOD_ALT:
             id = self.editor.level.blockAt(*pos)
             data = self.editor.level.blockDataAt(*pos)
+            b = materials.blockWithID(id, data)
             if get_brush_mode().name == "Replace":
                 BrushToolSettings.replace_block.set_block(id, data)
+                self.panel.replaceBlockButton.blockInfo = b
             else:
-                BrushToolSettings.fill_block.set_block(id, data)
+                self.panel.blockButton.blockInfo = b
 
             return
 
@@ -1041,7 +1035,7 @@ class BrushTool(CloneTool):
                 allowWildcards=get_brush_mode().name == "Replace")
 
             if blockPicker.present():
-                BrushToolSettings.fill_block.set(blockPicker.blockInfo)
+                self.panel.blockButton.blockInfo = blockPicker.blockInfo
 
         if BrushToolSettings.update_offset.v:
             self.reticleOffset = self.offsetMax()

@@ -18,7 +18,14 @@ Configuration settings and storage.
 """
 
 from configparser import RawConfigParser
-from config_classes import Section, ListSection, Setting as S, DirectorySetting as DS, IndexSetting as IS, KeySetting as KS, KeyIndexSetting as KIS, JsonSetting as JS, BlockSetting as BS
+from config_classes import Section, ListSection
+from config_classes import Setting as S
+from config_classes import DirectorySetting as DS
+from config_classes import KeySetting as KS
+from config_classes import KeyIndexSetting as KIS
+from config_classes import JsonSetting as JS
+from config_classes import BlockSetting as BS
+from config_classes import BlockListSetting as BLS
 
 from directories import INI_FILE
 import log
@@ -244,6 +251,9 @@ class _BrushToolSection(Section):
 
     fill_block = BS(r'{"ID": 1, "blockData": 0}')
     replace_block = BS(r'{"ID": 0, "blockData": 0}')
+
+    fill_recent = BLS("[]")
+    replace_recent = BLS("[]")
 
 
 
