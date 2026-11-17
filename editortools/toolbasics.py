@@ -344,6 +344,9 @@ class BlockButton(ButtonBase, Panel):
 
 
     def update_block_info(self, bi, update_recent):
+        if bi is None:
+            bi = materials.blockWithID(0, 0)
+
         old_info = self._blockInfo
         self._blockInfo = bi
         if self.blockView is not None:

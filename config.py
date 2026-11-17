@@ -259,6 +259,9 @@ class _BrushToolSection(Section):
 
     flood_indiscriminate = S(False)
 
+    topsoil_natural_earth = S(True)
+    topsoil_depth = S(1)
+
 
 
 BrushToolSettings = _BrushToolSection(config)

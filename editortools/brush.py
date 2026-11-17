@@ -23,7 +23,7 @@ import tempfile
 from .toolbasics import *
 from functools import reduce
 import numpy as np
-from pymclevel.material import materials
+from pymclevel.material import materials, natural_block_mask
 from config import LastDir, Keys, BrushToolSettings
 from config_classes import Observers
 import log
@@ -118,7 +118,7 @@ class Modes:
             op.level.setBlockDataAt(x, y, z, op.blockInfo.blockData)
 
             def processCoords(coords):
-                newcoords = deque()
+                new_coords = deque()
 
                 for (x, y, z) in coords:
                     for _dir, offsets in faceDirections:
@@ -138,9 +138,9 @@ class Modes:
                             saveUndoChunk(nx // 16, nz // 16)
                             op.level.setBlockAt(nx, ny, nz, op.blockInfo.ID)
                             op.level.setBlockDataAt(nx, ny, nz, op.blockInfo.blockData)
-                            newcoords.append(p)
+                            new_coords.append(p)
 
-                return newcoords
+                return new_coords
 
             def spread(coords):
                 while len(coords):
@@ -250,19 +250,18 @@ class Modes:
 
     class Topsoil(Fill):
         name = "Topsoil"
-        options = ['naturalEarth', 'topsoilDepth']
 
         def createOptions(self, panel, tool):
             col = Modes.Fill.createOptions(self, panel, tool)
-            depthRow = IntInputRow("Depth: ", ref=AttrRef(tool, 'topsoilDepth'))
-            naturalRow = CheckBoxLabel("Only Change Natural Earth", ref=AttrRef(tool, 'naturalEarth'))
+            depthRow = IntInputRow("Depth: ", ref=BrushToolSettings.topsoil_depth)
+            naturalRow = CheckBoxLabel("Only Change Natural Earth", ref=BrushToolSettings.topsoil_natural_earth)
             col.extend([depthRow, naturalRow])
             return col
 
         def performAtPoint(self, op: BrushOperation, point, dirtyBox):
 
             for chunk, slices, point in op.level.getChunkSlices(dirtyBox):
-                depth = op.options['topsoilDepth']
+                depth = BrushToolSettings.topsoil_depth.v
                 blocks = chunk.Blocks[slices]
                 data = chunk.Data[slices]
 
@@ -274,17 +273,10 @@ class Modes:
 
                 blocktype = op.blockInfo
 
-                if op.options['naturalEarth']:
-                    try:
-                        # try to get the block mask from the topsoil filter
-                        import topsoil  # @UnresolvedImport
-                        blockmask = topsoil.naturalBlockmask()
-                        blockmask[blocktype.ID] = True
-                        blocktypeMask = blockmask[blocks]
-
-                    except Exception as e:
-                        log.error(repr(e), " while using blockmask from filters.topsoil")
-                        blocktypeMask = blocks != 0
+                if BrushToolSettings.topsoil_natural_earth.v:
+                    block_mask = natural_block_mask()
+                    block_mask[blocktype.ID] = True
+                    blocktypeMask = block_mask[blocks]
 
                 else:
                     # topsoil any block
@@ -295,10 +287,10 @@ class Modes:
 
                 heightmap = extractHeights(blocktypeMask)
 
-                for x, z in itertools.product(*list(map(np.xrange, heightmap.shape))):
+                for x, z in np.ndindex(heightmap.shape):
                     h = heightmap[x, z]
                     if h >= box.height:
-                        continue
+                        return
                     if depth > 0:
                         idx = x, z, slice(max(0, h - depth), h)
                     else:
@@ -724,7 +716,6 @@ class BrushTool(CloneTool):
     previewDirty = False
 
     _reticleOffset = 1
-    naturalEarth = True
 
     @property
     def reticleOffset(self):
@@ -755,8 +746,6 @@ class BrushTool(CloneTool):
     def brush_mode_changed(self):
         self.hidePanel()
         self.showPanel()
-
-    topsoilDepth = 1
 
     def importPaste(self):
         clipFilename = mcplatform.askOpenFile(LastDir.schematic, title='Choose a schematic...')

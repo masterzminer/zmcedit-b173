@@ -1,37 +1,11 @@
 
 
-from numpy import zeros
+import numpy as np
 import itertools
 from pymclevel.material import materials
 from pymclevel.level import extractHeights
+from pymclevel.material import natural_block_mask
 
-#naturally occurring materials
-blocks = [
-  materials.Grass,
-  materials.Dirt,
-  materials.Stone,
-  materials.Bedrock,
-  materials.Sand,
-  materials.Gravel,
-  materials.GoldOre,
-  materials.IronOre,
-  materials.CoalOre,
-  materials.LapisLazuliOre,
-  materials.DiamondOre,
-  materials.RedstoneOre,
-  materials.RedstoneOreGlowing,
-  materials.Netherrack,
-  materials.SoulSand,
-  materials.Clay,
-  materials.Glowstone
-]
-block_types = [b.ID for b in blocks]
-
-
-def naturalBlockMask():
-    block_mask = zeros((256,), dtype='bool')
-    block_mask[block_types] = True
-    return block_mask
 
 inputs = (
   ("Depth", (4, -128, 128)),
@@ -45,7 +19,7 @@ def perform(level, box, options):
 
     #compute a truth table that we can index to find out whether a block
     # is naturally occurring and should be considered in a height map
-    block_mask = naturalBlockMask()
+    block_mask = natural_block_mask()
 
     # always consider the chosen blocktype to be "naturally occurring" to stop
     # it from adding extra layers
@@ -64,7 +38,7 @@ def perform(level, box, options):
 
         height_map = extractHeights(maskedBlocks)
 
-        for x, z in itertools.product(*list(map(range, height_map.shape))):
+        for x, z in np.ndindex(height_map.shape):
             h = int(height_map[x, z])
             if depth > 0:
                 blocks[x, z, max(0, h - depth):h] = blocktype.ID
