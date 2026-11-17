@@ -4,6 +4,8 @@ filters
 
 brush
     Add all other brush settings to configs, check each brush type like erode has a strength field
+        topsoil
+
     investigate middle click jumping the brush up to max height, make a shortcut to remove all height
     Fix the paste brush being broken
         It doesn't always save everything in the undo?

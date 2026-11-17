@@ -76,14 +76,13 @@ class Modes:
 
     class FloodFill(BrushMode):
         name = "Flood Fill"
-        options = ['indiscriminate']
 
         def createOptions(self, panel, tool):
             col = [
                 panel.brushModeRow,
                 panel.blockButton
             ]
-            indiscriminateButton = CheckBoxLabel("Indiscriminate", ref=AttrRef(tool, 'indiscriminate'))
+            indiscriminateButton = CheckBoxLabel("Indiscriminate", ref=BrushToolSettings.flood_indiscriminate)
 
             col.append(indiscriminateButton)
             return col
@@ -104,7 +103,7 @@ class Modes:
             doomedBlock = op.level.blockAt(*point)
             doomedBlockData = op.level.blockDataAt(*point)
             checkData = (doomedBlock not in (8, 9, 10, 11))
-            indiscriminate = op.options['indiscriminate']
+            indiscriminate = BrushToolSettings.flood_indiscriminate.v
 
             if doomedBlock == op.blockInfo.ID:
                 return
@@ -194,14 +193,13 @@ class Modes:
 
     class Erode(BrushMode):
         name = "Erode"
-        options = ['erosionStrength']
 
         def createOptions(self, panel, tool):
             col = [
                 panel.modeStyleGrid,
                 panel.brushSizeRows,
             ]
-            col.append(IntInputRow("Strength: ", ref=AttrRef(tool, 'erosionStrength'), min=1, max=20, tooltipText="Number of times to apply erosion. Larger numbers are slower."))
+            col.append(IntInputRow("Strength: ", ref=BrushToolSettings.erode_strength, min=1, max=20, tooltipText="Number of times to apply erosion. Larger numbers are slower."))
             return col
 
         def performAtPoint(self, op: BrushOperation, point, dirtyBox):
@@ -209,7 +207,7 @@ class Modes:
                 raise ValueError("Affected area is too big for this brush mode")
             box = dirtyBox.expand(1)
 
-            strength = op.options["erosionStrength"]
+            strength = BrushToolSettings.erode_strength.v
 
             erosionArea = op.level.extractSchematic(box, entities=False)
             if erosionArea is None:
@@ -727,8 +725,6 @@ class BrushTool(CloneTool):
 
     _reticleOffset = 1
     naturalEarth = True
-    erosionStrength = 1
-    indiscriminate = False
 
     @property
     def reticleOffset(self):

@@ -255,6 +255,10 @@ class _BrushToolSection(Section):
     fill_recent = BLS("[]")
     replace_recent = BLS("[]")
 
+    erode_strength = S(1)
+
+    flood_indiscriminate = S(False)
+
 
 
 BrushToolSettings = _BrushToolSection(config)
