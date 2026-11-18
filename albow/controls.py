@@ -300,14 +300,18 @@ class ValueDisplay(Control, Label):
     format = "%s"
     align = 'l'
 
-    def __init__(self, width=100, **kwds):
+    def __init__(self, width=100, format_func=None, **kwds):
         Label.__init__(self, "", **kwds)
         self.set_size_for_text(width)
+        self.format_func = format_func
 
     def get_text(self):
         return self.format_value(self.value)
 
     def format_value(self, value):
+        if self.format_func is not None:
+            return self.format_func(value)
+
         if value is not None:
             return self.format % value
         else:

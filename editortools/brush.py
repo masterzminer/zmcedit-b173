@@ -28,6 +28,7 @@ from config import LastDir, Keys, BrushToolSettings
 from config_classes import Observers
 import log
 from bresenham import bresenham
+from pathlib import Path
 
 from pymclevel.box import BoundingBox
 from pymclevel.schematic import MCSchematic
@@ -313,17 +314,34 @@ class Modes:
             col = [panel.brushModeRow]
 
             importButton = Button("Import", action=tool.importPaste)
-            importLabel = ValueDisplay(width=150, ref=AttrRef(tool, "importFilename"))
+            importLabel = ValueDisplay(width=150, ref=BrushToolSettings.copy_schematic, format_func=lambda v: Path(v).stem)
             importRow = Row((importButton, importLabel))
+
+            def update_copy_schematic(v):
+                if v != BrushToolSettings.copy_schematic.v:
+                    BrushToolSettings.copy_schematic.set(v)
+            BrushToolSettings.copy_schematic.add_observer(update_copy_schematic, "paste mode")
+
 
             # Found something to copy from, use it
             stack = tool.editor.copyStack
             if len(stack) > 0:
                 tool.loadLevel(stack[0])
 
-            # Nothing to copy, init with an empty level
+            # Nothing to copy from
             else:
-                tool.loadLevel(MCSchematic(shape=(1, 1, 1)))
+                # If a schematic was saved, use it
+                paste_imported = False
+                if BrushToolSettings.copy_schematic.v != "":
+                    paste_imported = tool.load_paste(BrushToolSettings.copy_schematic.v)
+                    # If it failed, reset the setting
+                    if not paste_imported:
+                        BrushToolSettings.copy_schematic.set("")
+
+                # If a schematic wasn't imported, init with an empty level
+                if not paste_imported:
+                    tool.loadLevel(MCSchematic(shape=(1, 1, 1)))
+
 
             tool.centery = 0
             tool.centerx = -(tool.level.Width // 2)
@@ -753,25 +771,25 @@ class BrushTool(CloneTool):
 
     def importPaste(self):
         clipFilename = mcplatform.askOpenFile(LastDir.schematic, title='Choose a schematic...')
-        # xxx mouthful
+        return self.load_paste(clipFilename)
+
+    def load_paste(self, clipFilename):
         if clipFilename:
             try:
                 self.loadLevel(fromFile(clipFilename))
             except Exception:
                 alert(f"Failed to load file {clipFilename}")
-                BrushToolSettings.mode.set("Fill")
-                return
+                # On failure, load an empty schematic
+                self.loadLevel(MCSchematic(shape=(1, 1, 1)))
+                return False
+
+        BrushToolSettings.copy_schematic.set(clipFilename)
+        return True
 
     def loadLevel(self, level):
         self.level = level
         self.centerx, self.centery, self.centerz = -level.Width // 2, 0, -level.Length // 2
         CloneTool.setupPreview(self)
-
-    @property
-    def importFilename(self):
-        if self.level:
-            return basename(self.level.filename or "No name")
-        return "Nothing selected"
 
     @property
     def statusText(self):
@@ -921,7 +939,9 @@ class BrushTool(CloneTool):
         self.editor.cameraToolDistance = dist
 
     def toolReselected(self):
-        if get_brush_mode().name == "Replace":
+        if get_brush_mode().name == "Paste":
+            self.importPaste()
+        elif get_brush_mode().name == "Replace":
             self.panel.pickReplaceBlock()
         else:
             self.panel.pickFillBlock()
@@ -1010,13 +1030,14 @@ class BrushTool(CloneTool):
 
     def toolSelected(self):
 
-        if BrushToolSettings.choose_block_immediately.v:
-            blockPicker = BlockPicker(
-                BrushToolSettings.fill_block.get(),
-                allowWildcards=get_brush_mode().name == "Replace")
+        if BrushToolSettings.mode.v == "Paste":
+            if BrushToolSettings.choose_block_immediately.v:
+                blockPicker = BlockPicker(
+                    BrushToolSettings.fill_block.get(),
+                    allowWildcards=get_brush_mode().name == "Replace")
 
-            if blockPicker.present():
-                self.panel.blockButton.blockInfo = blockPicker.blockInfo
+                if blockPicker.present():
+                    self.panel.blockButton.blockInfo = blockPicker.blockInfo
 
         if BrushToolSettings.update_offset.v:
             self.reticleOffset = self.offsetMax()

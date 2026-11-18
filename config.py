@@ -261,6 +261,8 @@ class _BrushToolSection(Section):
     topsoil_natural_earth = S(True)
     topsoil_depth = S(1)
 
+    copy_schematic = S("")
+
 
 
 BrushToolSettings = _BrushToolSection(config)
