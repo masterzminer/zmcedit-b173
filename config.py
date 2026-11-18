@@ -243,7 +243,6 @@ class _BrushToolSection(Section):
     alpha = S(0.66, min=0, max=1)
 
     minimum_spacing = S(1)
-    continuous = S(False)
     chance = S(100)
     chance_type = S("full")
     """One of 'edge', 'full'"""
