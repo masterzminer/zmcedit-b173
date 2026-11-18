@@ -4,11 +4,15 @@ filters
 
 brush
     Fix the paste brush being broken
-        Fix it selecting the previous brush shape when going from a mode like fill to paste
+        Don't allow alt click to change the block
+        Add a button to clear the currently selected schematic
+        Make it not remove the selected schematic if you exit out of the file picker
+        Make it remember the coordinate offset
         Fix it drawing blocks in areas where chunks are not present
         Fix undo not recording the full bounding box
     Erode
         Make it always display air as the preview block
+        Don't allow alt click to change the block
     investigate middle click jumping the brush up to max height, make a shortcut to remove all height
     fix the random yellow brush stroke preview boxes sticking around sometimes, ensure they are cleared after a brush stroke completes, seems to happen if an error occurs during the brush
     make pressing escape always cancel selecting a block from the block picker ui

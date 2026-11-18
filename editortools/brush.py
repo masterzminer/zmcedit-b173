@@ -25,7 +25,6 @@ from functools import reduce
 import numpy as np
 from pymclevel.material import materials, natural_block_mask
 from config import LastDir, Keys, BrushToolSettings
-from config_classes import Observers
 import log
 from bresenham import bresenham
 from pathlib import Path
@@ -322,7 +321,21 @@ class Modes:
                     BrushToolSettings.copy_schematic.set(v)
             BrushToolSettings.copy_schematic.add_observer(update_copy_schematic, "paste mode")
 
+            self.update_paste(tool)
 
+            tool.centery = 0
+            tool.centerx = -(tool.level.Width // 2)
+            tool.centerz = -(tool.level.Length // 2)
+
+            cx, cy, cz = [IntInputRow(c, ref=AttrRef(tool, "center" + c), max=a, min=-a)
+                          for a, c in zip(tool.level.size, "xyz")]
+            centerRow = Row((cx, cy, cz))
+
+            col.extend([importRow, centerRow])
+
+            return col
+
+        def update_paste(self, tool):
             # Found something to copy from, use it
             stack = tool.editor.copyStack
             if len(stack) > 0:
@@ -341,19 +354,6 @@ class Modes:
                 # If a schematic wasn't imported, init with an empty level
                 if not paste_imported:
                     tool.loadLevel(MCSchematic(shape=(1, 1, 1)))
-
-
-            tool.centery = 0
-            tool.centerx = -(tool.level.Width // 2)
-            tool.centerz = -(tool.level.Length // 2)
-
-            cx, cy, cz = [IntInputRow(c, ref=AttrRef(tool, "center" + c), max=a, min=-a)
-                          for a, c in zip(tool.level.size, "xyz")]
-            centerRow = Row((cx, cy, cz))
-
-            col.extend([importRow, centerRow])
-
-            return col
 
         def performAtPoint(self, op, point, dirtyBox):
             level = op.options['level']
@@ -975,6 +975,11 @@ class BrushTool(CloneTool):
     def setupPreview(self):
         self.previewDirty = False
         brushSize = self.brushSize
+
+        # No need to set anything else up for the paste brush
+        if get_brush_mode().name == "Paste":
+            return
+        
         if get_brush_mode().name == "Replace":
             blockInfo = BrushToolSettings.replace_block.get()
         else:
