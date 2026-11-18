@@ -1059,7 +1059,6 @@ class ChunkedLevelMixin(object):
             sourceBlocks = sourceLevel.Blocks[sx + point[0]:localSourceCorner2[0],
                                               sz + point[2]:localSourceCorner2[2],
                                               sy:localSourceCorner2[1]]
-            #sourceBlocks = filterTable[sourceBlocks]
             mask = sourceMask(sourceBlocks)
 
             #for small level slices, reduce the destination area

@@ -177,7 +177,7 @@ class MCLevel(object):
 
     @property
     def displayName(self):
-        return os.path.basename(self.filename)
+        return os.path.basename(self.filename) if self.filename is not None else None
 
     @property
     def size(self):

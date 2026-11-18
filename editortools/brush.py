@@ -30,7 +30,7 @@ import log
 from bresenham import bresenham
 
 from pymclevel.box import BoundingBox
-
+from pymclevel.schematic import MCSchematic
 
 class BrushMode(object):
     options = []
@@ -316,9 +316,15 @@ class Modes:
             importLabel = ValueDisplay(width=150, ref=AttrRef(tool, "importFilename"))
             importRow = Row((importButton, importLabel))
 
+            # Found something to copy from, use it
             stack = tool.editor.copyStack
             if len(stack) > 0:
                 tool.loadLevel(stack[0])
+
+            # Nothing to copy, init with an empty level
+            else:
+                tool.loadLevel(MCSchematic(shape=(1, 1, 1)))
+
             tool.centery = 0
             tool.centerx = -(tool.level.Width // 2)
             tool.centerz = -(tool.level.Length // 2)
@@ -874,7 +880,7 @@ class BrushTool(CloneTool):
             return
 
         if key.get_mods() & KMOD_SHIFT and len(self.draggedPositions):
-            points = bresenham.bresenham(self.draggedPositions[-1], point)
+            points = bresenham(self.draggedPositions[-1], point)
             self.draggedPositions.extend(points[1:])
         else:
             self.draggedPositions.append(point)
