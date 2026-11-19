@@ -4,9 +4,10 @@ filters
 
 brush
     Fix the paste brush being broken
-        Make it remember the coordinate offset
         Fix it drawing blocks in areas where chunks are not present
-        Fix undo not recording the full bounding box
+        Allow rotation, mirror, flip, etc, just not resizing
+        Make it remember the coordinate offset
+        Add an option to not paste air and or water
     Erode
         Make it always display air as the preview block
         Don't allow alt click to change the block

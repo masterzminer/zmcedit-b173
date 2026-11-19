@@ -33,11 +33,9 @@ from pymclevel.box import BoundingBox
 from pymclevel.schematic import MCSchematic
 
 class BrushMode(object):
-    options = []
-
-    def dirtyBoxForPointAndOptions(self, point, options={}):
+    def dirtyBoxForPointAndOptions(self, point):
         # also used to position the preview reticle
-        size = options['brushSize']
+        size = _get_brush_size()
         origin = list(map(lambda x, s: x - (s >> 1), point, size))
         return BoundingBox(origin, size)
 
@@ -47,6 +45,13 @@ class BrushMode(object):
     def createOptions(self, panel, tool):
         pass
 
+
+def _get_brush_size():
+    return (
+        BrushToolSettings.length.v,
+        BrushToolSettings.height.v,
+        BrushToolSettings.width.v,
+    )
 
 class Modes:
     class Fill(BrushMode):
@@ -303,29 +308,60 @@ class Modes:
     class Paste(BrushMode):
 
         name = "Paste"
-        options = ['level'] + ['center' + c for c in 'xyz']
 
-        def dirtyBoxForPointAndOptions(self, point, options={}):
-            point = [p + options.get('center' + c, 0) for p, c in zip(point, 'xyz')]
-            return BoundingBox(point, options['brushSize'])
+        _paste_offset = [0, 0, 0]
+        _paste_level = MCSchematic(shape=(1, 1, 1))
+
+        def find_centered_point(self, point):
+            return [p + c for p, c in zip(point, self._paste_offset)]
+        
+        def dirtyBoxForPointAndOptions(self, point):
+            p = self._paste_level
+            return BoundingBox(self.find_centered_point(point), [p.Width, p.Height, p.Length])
+
+        
+        def importPaste(self, tool):
+            filename = mcplatform.askOpenFile(LastDir.schematic, title='Choose a schematic...')
+            # No file selected, do nothing
+            if filename is None or filename == "":
+                return False
+
+            return self.load_paste(tool, filename)
+
+        def load_paste(self, tool, clipFilename):
+            if clipFilename:
+                try:
+                    self._load_level(tool, fromFile(clipFilename))
+                except Exception:
+                    alert(f"Failed to load file {clipFilename}")
+                    # On failure, load an empty schematic
+                    self.loadLevel(MCSchematic(shape=(1, 1, 1)))
+                    return False
+
+            BrushToolSettings.copy_schematic.set(clipFilename)
+            return True
 
         def createOptions(self, panel, tool):
             col = [panel.brushModeRow]
 
-            importButton = Button("Import", action=tool.importPaste)
+            importButton = Button("Import", action=lambda: self.importPaste(tool))
             self.clearButton = Button("Clear", action=lambda: BrushToolSettings.copy_schematic.set(""))
             self.importRow = Row((importButton, self.clearButton))
                 
             BrushToolSettings.copy_schematic.add_observer(lambda v: self.update_copy_schematic(v, tool), "paste mode")
 
-            self.update_paste(tool)
+            self._update_paste(tool)
 
-            tool.centery = 0
-            tool.centerx = -(tool.level.Width // 2)
-            tool.centerz = -(tool.level.Length // 2)
+            tool.centerx, tool.centery , tool.centerz = self._round_level(tool.level)
+            class CenterRef:
+                def __init__(c_self, i):
+                    c_self.i = i
+                def get(c_self):
+                    return self._paste_offset[c_self.i]
+                def set(c_self, v):
+                    self._paste_offset[c_self.i] = v
 
-            cx, cy, cz = [IntInputRow(c, width=40, ref=AttrRef(tool, "center" + c), max=a, min=-a)
-                          for a, c in zip(tool.level.size, "xyz")]
+            cx, cy, cz = [IntInputRow(c, width=40, ref=CenterRef(i)) for a, i, c in zip(tool.level.size, (0, 1, 2), "xyz")]
             centerRow = Row((cx, cy, cz))
 
             importLabel = ValueDisplay(width=150, ref=BrushToolSettings.copy_schematic, format_func=lambda v: ("Loaded: " + Path(v).stem) if v != "" else "")
@@ -351,39 +387,60 @@ class Modes:
                 # There's something to copy, copy it
                 stack = tool.editor.copyStack
                 if len(stack) > 0:
-                    tool.loadLevel(stack[0])
+                    self._load_level(tool, stack[0])
                 # Otherwise load an empty level
                 else:
-                    tool.loadLevel(MCSchematic(shape=(1, 1, 1)))
+                    self._load_level(tool, MCSchematic(shape=(1, 1, 1)))
 
             # There is a schematic, add the clear button
             else:
                 self.importRow.add(self.clearButton)
 
 
-        def update_paste(self, tool):
+        def _update_paste(self, tool):
             # Found something to copy from, use it
             stack = tool.editor.copyStack
             if len(stack) > 0:
-                tool.loadLevel(stack[0])
+                self._load_level(tool, stack[0])
 
             # Nothing to copy from
             else:
                 # If a schematic was saved, use it
                 paste_imported = False
                 if BrushToolSettings.copy_schematic.v != "":
-                    paste_imported = tool.load_paste(BrushToolSettings.copy_schematic.v)
+                    paste_imported = self.load_paste(tool, BrushToolSettings.copy_schematic.v)
                     # If it failed, reset the setting
                     if not paste_imported:
                         BrushToolSettings.copy_schematic.set("")
 
                 # If a schematic wasn't imported, init with an empty level
                 if not paste_imported:
-                    tool.loadLevel(MCSchematic(shape=(1, 1, 1)))
+                    self._load_level(tool, MCSchematic(shape=(1, 1, 1)))
+
+
+
+        def _round_brush(self, n):
+            return 0 if n < 2 else n // 2
+
+        def _round_level(self, level):
+            return [
+                -self._round_brush(level.Width),
+                -self._round_brush(level.Height),
+                -self._round_brush(level.Length),
+            ]
+            
+        # Keep track of the level when it changes
+        def _load_level(self, tool, level):
+            self._paste_level = level
+            tool.loadLevel(level)
+
+            # Load a default offset to be near the middle of the level
+            self._paste_offset = self._round_level(level)
+        
 
         def performAtPoint(self, op, point, dirtyBox):
-            level = op.options['level']
-            point = [p + op.options['center' + c] for p, c in zip(point, 'xyz')]
+            level = self._paste_level;
+            point = self.find_centered_point(point)
 
             return op.level.copyBlocksFromIter(level, level.bounds, point, create=True)
 
@@ -408,8 +465,7 @@ brush_shapes = ["Round", "Square", "Diamond", "Pyramid"]
 
 class BrushOperation(Operation):
 
-    def __init__(self, editor, points, options):
-        self.options = options
+    def __init__(self, editor, points):
         self.editor = editor
         self.level = editor.level
         if isinstance(points[0], (int, float)):
@@ -417,7 +473,7 @@ class BrushOperation(Operation):
 
         self.points = points
 
-        self.brushSize = options['brushSize']
+        self.brushSize = _get_brush_size()
         self.blockInfo = BrushToolSettings.fill_block.get()
 
         if max(self.brushSize) > BrushTool.maxBrushSize:
@@ -425,7 +481,7 @@ class BrushOperation(Operation):
         if max(self.brushSize) < 1:
             self.brushSize = (1, 1, 1)
 
-        boxes = [get_brush_mode().dirtyBoxForPointAndOptions(p, options) for p in points]
+        boxes = [get_brush_mode().dirtyBoxForPointAndOptions(p) for p in points]
         self._dirtyBox = reduce(lambda a, b: a.union(b), boxes)
 
     undoSchematic = None
@@ -601,10 +657,10 @@ class BrushOperation(Operation):
         for cPos in self._dirtyBox.chunkPositions:
             if self.level.containsChunk(*cPos):
                 ch = self.level.getChunk(*cPos)
-                ch.chunkChanged()  # xxxxxxx
+                ch.chunkChanged()
 
     def performAtPoint(self, point):
-        dirtyBox = get_brush_mode().dirtyBoxForPointAndOptions(point, self.options)
+        dirtyBox = get_brush_mode().dirtyBoxForPointAndOptions(point)
         return get_brush_mode().performAtPoint(self, point, dirtyBox)
 
 
@@ -744,9 +800,6 @@ class BrushTool(CloneTool):
         self.optionsPanel = BrushToolOptions()
         self.draggedPositions = []
 
-        for m in brush_mode_map.values():
-            self.options.extend(m.options)
-
         BrushToolSettings.length.add_observer(self._setBrushSize, "brush tool")
         BrushToolSettings.width.add_observer(self._setBrushSize, "brush tool")
         BrushToolSettings.height.add_observer(self._setBrushSize, "brush tool")
@@ -786,7 +839,7 @@ class BrushTool(CloneTool):
     def brushSize(self):
         if get_brush_mode().name == "Flood Fill":
             return 1, 1, 1
-        return [BrushToolSettings.width.v, BrushToolSettings.height.v, BrushToolSettings.length.v]
+        return _get_brush_size()
 
     @brushSize.setter
     def brushSize(self, val):
@@ -801,27 +854,6 @@ class BrushTool(CloneTool):
     def brush_mode_changed(self):
         self.hidePanel()
         self.showPanel()
-
-    def importPaste(self):
-        filename = mcplatform.askOpenFile(LastDir.schematic, title='Choose a schematic...')
-        # No file selected, do nothing
-        if filename is None or filename == "":
-            return False
-
-        return self.load_paste(filename)
-
-    def load_paste(self, clipFilename):
-        if clipFilename:
-            try:
-                self.loadLevel(fromFile(clipFilename))
-            except Exception:
-                alert(f"Failed to load file {clipFilename}")
-                # On failure, load an empty schematic
-                self.loadLevel(MCSchematic(shape=(1, 1, 1)))
-                return False
-
-        BrushToolSettings.copy_schematic.set(clipFilename)
-        return True
 
     def loadLevel(self, level):
         self.level = level
@@ -877,14 +909,6 @@ class BrushTool(CloneTool):
         # Update the current mode
         BrushToolSettings.mode.set(brush_mode_name_list[index])
 
-    options = [
-        'brushSize',
-    ]
-
-    def getBrushOptions(self):
-        return dict(((key, getattr(self, key))
-                       for key
-                       in self.options))
 
     draggedDirection = (0, 0, 0)
     centerx = centery = centerz = 0
@@ -938,9 +962,7 @@ class BrushTool(CloneTool):
         if get_brush_mode().name == "Flood Fill":
             self.draggedPositions = self.draggedPositions[-1:]
 
-        op = BrushOperation(self.editor,
-            self.draggedPositions,
-            self.getBrushOptions())
+        op = BrushOperation(self.editor, self.draggedPositions)
         self.performWithRetry(op)
 
         box = op.dirtyBox()
@@ -977,7 +999,7 @@ class BrushTool(CloneTool):
 
     def toolReselected(self):
         if get_brush_mode().name == "Paste":
-            self.importPaste()
+            brush_mode_map["Paste"].importPaste(self)
         elif get_brush_mode().name == "Replace":
             self.panel.pickReplaceBlock()
         else:
@@ -1158,7 +1180,7 @@ class BrushTool(CloneTool):
                 self.setupPreview()
 
             brush_mode = get_brush_mode()
-            dirtyBox = brush_mode.dirtyBoxForPointAndOptions(reticlePoint, self.getBrushOptions())
+            dirtyBox = brush_mode.dirtyBoxForPointAndOptions(reticlePoint)
             self.drawTerrainPreview(dirtyBox.origin)
             if key.get_mods() & KMOD_SHIFT and self.lastPosition and brush_mode.name != "Flood Fill":
                 glColor4f(1.0, 1.0, 1.0, 0.7)
