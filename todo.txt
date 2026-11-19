@@ -5,7 +5,6 @@ filters
 brush
     Fix the paste brush being broken
         Fix it drawing blocks in areas where chunks are not present
-        Allow rotation, mirror, flip, etc, just not resizing
         Make it remember the coordinate offset
         Add an option to not paste air and or water
     Erode

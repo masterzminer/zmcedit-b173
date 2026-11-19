@@ -978,7 +978,9 @@ class BrushTool(CloneTool):
         return True
 
     def rotate(self):
-        if get_brush_mode().name == "Paste": return
+        if get_brush_mode().name == "Paste":
+            CloneTool.rotate(self)
+            return
         
         offs = self.reticleOffset
         dist = self.editor.cameraToolDistance
@@ -988,7 +990,9 @@ class BrushTool(CloneTool):
         self.editor.cameraToolDistance = dist
 
     def mirror(self):
-        if get_brush_mode().name == "Paste": return
+        if get_brush_mode().name == "Paste":
+            CloneTool.mirror(self)
+            return
 
         offs = self.reticleOffset
         dist = self.editor.cameraToolDistance
@@ -1006,12 +1010,16 @@ class BrushTool(CloneTool):
             self.panel.pickFillBlock()
 
     def flip(self):
-        if get_brush_mode().name == "Paste": return
+        if get_brush_mode().name == "Paste":
+            CloneTool.flip(self)
+            return
 
         self.decreaseBrushSize()
 
     def roll(self):
-        if get_brush_mode().name == "Paste": return
+        if get_brush_mode().name == "Paste":
+            CloneTool.roll(self)
+            return
 
         self.increaseBrushSize()
 
