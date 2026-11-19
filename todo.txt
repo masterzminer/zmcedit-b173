@@ -4,7 +4,6 @@ filters
 
 brush
     Fix the paste brush being broken
-        Don't allow alt click to change the block
         Add a button to clear the currently selected schematic
         Make it not remove the selected schematic if you exit out of the file picker
         Make it remember the coordinate offset

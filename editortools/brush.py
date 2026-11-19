@@ -803,7 +803,7 @@ class BrushTool(CloneTool):
 
     @property
     def worldTooltipText(self):
-        if key.get_mods() & KMOD_ALT:
+        if (key.get_mods() & KMOD_ALT) and get_brush_mode().name != "Paste":
             try:
                 if self.editor.blockFaceUnderCursor is None:
                     return
@@ -854,7 +854,7 @@ class BrushTool(CloneTool):
 
     @alertException
     def mouseDown(self, evt, pos, direction):
-        if key.get_mods() & KMOD_ALT:
+        if (key.get_mods() & KMOD_ALT) and get_brush_mode().name != "Paste":
             id = self.editor.level.blockAt(*pos)
             data = self.editor.level.blockDataAt(*pos)
             b = materials.blockWithID(id, data)
@@ -1103,7 +1103,7 @@ class BrushTool(CloneTool):
     lastPosition = None
 
     def drawTerrainReticle(self):
-        if key.get_mods() & KMOD_ALT:
+        if (key.get_mods() & KMOD_ALT) and get_brush_mode().name != "Paste":
             # eyedropper mode
             self.editor.drawWireCubeReticle(color=(0.2, 0.6, 0.9, 1.0))
         else:
