@@ -803,8 +803,12 @@ class BrushTool(CloneTool):
         self.showPanel()
 
     def importPaste(self):
-        clipFilename = mcplatform.askOpenFile(LastDir.schematic, title='Choose a schematic...')
-        return self.load_paste(clipFilename)
+        filename = mcplatform.askOpenFile(LastDir.schematic, title='Choose a schematic...')
+        # No file selected, do nothing
+        if filename is None or filename == "":
+            return False
+
+        return self.load_paste(filename)
 
     def load_paste(self, clipFilename):
         if clipFilename:

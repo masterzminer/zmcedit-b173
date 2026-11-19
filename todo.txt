@@ -4,7 +4,6 @@ filters
 
 brush
     Fix the paste brush being broken
-        Make it not remove the selected schematic if you exit out of the file picker
         Make it remember the coordinate offset
         Fix it drawing blocks in areas where chunks are not present
         Fix undo not recording the full bounding box
