@@ -313,13 +313,10 @@ class Modes:
             col = [panel.brushModeRow]
 
             importButton = Button("Import", action=tool.importPaste)
-            importLabel = ValueDisplay(width=150, ref=BrushToolSettings.copy_schematic, format_func=lambda v: Path(v).stem)
-            importRow = Row((importButton, importLabel))
-
-            def update_copy_schematic(v):
-                if v != BrushToolSettings.copy_schematic.v:
-                    BrushToolSettings.copy_schematic.set(v)
-            BrushToolSettings.copy_schematic.add_observer(update_copy_schematic, "paste mode")
+            self.clearButton = Button("Clear", action=lambda: BrushToolSettings.copy_schematic.set(""))
+            self.importRow = Row((importButton, self.clearButton))
+                
+            BrushToolSettings.copy_schematic.add_observer(lambda v: self.update_copy_schematic(v, tool), "paste mode")
 
             self.update_paste(tool)
 
@@ -327,13 +324,42 @@ class Modes:
             tool.centerx = -(tool.level.Width // 2)
             tool.centerz = -(tool.level.Length // 2)
 
-            cx, cy, cz = [IntInputRow(c, ref=AttrRef(tool, "center" + c), max=a, min=-a)
+            cx, cy, cz = [IntInputRow(c, width=40, ref=AttrRef(tool, "center" + c), max=a, min=-a)
                           for a, c in zip(tool.level.size, "xyz")]
             centerRow = Row((cx, cy, cz))
 
-            col.extend([importRow, centerRow])
+            importLabel = ValueDisplay(width=150, ref=BrushToolSettings.copy_schematic, format_func=lambda v: ("Loaded: " + Path(v).stem) if v != "" else "")
+            col.extend([self.importRow, importLabel, centerRow])
+
+            self.update_copy_schematic(BrushToolSettings.copy_schematic.v, tool)
 
             return col
+
+        def post_panel_init(self, tool):
+            self.update_copy_schematic(BrushToolSettings.copy_schematic.v, tool)
+
+        def update_copy_schematic(self, v, tool):
+            # Keep the setting updated
+            if v != BrushToolSettings.copy_schematic.v:
+                BrushToolSettings.copy_schematic.set(v)
+
+            # No more schematic, remove the clear button
+            if v == "":
+                # Remove the button
+                self.importRow.remove(self.clearButton)
+                # Update the tool's loaded level
+                # There's something to copy, copy it
+                stack = tool.editor.copyStack
+                if len(stack) > 0:
+                    tool.loadLevel(stack[0])
+                # Otherwise load an empty level
+                else:
+                    tool.loadLevel(MCSchematic(shape=(1, 1, 1)))
+
+            # There is a schematic, add the clear button
+            else:
+                self.importRow.add(self.clearButton)
+
 
         def update_paste(self, tool):
             # Found something to copy from, use it
@@ -663,7 +689,14 @@ class BrushPanel(Panel):
         col = Column(col)
 
         self.add(col)
+
+        self.post_panel_init(tool)
+
         self.shrink_wrap()
+
+
+    def post_panel_init(self, tool):
+        pass
 
     def pickFillBlock(self):
         self.blockButton.action()
