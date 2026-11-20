@@ -1185,9 +1185,10 @@ class BrushTool(CloneTool):
         self.editor.cameraToolDistance = distance
 
     def toolSelected(self):
-
-        if BrushToolSettings.mode.v == "Paste":
-            if BrushToolSettings.choose_block_immediately.v:
+        if BrushToolSettings.choose_block_immediately.v:
+            if BrushToolSettings.mode.v == "Paste":
+                brush_mode_map["Paste"].importPaste(self)
+            else:
                 blockPicker = BlockPicker(
                     BrushToolSettings.fill_block.get(),
                     allowWildcards=get_brush_mode().name == "Replace")
