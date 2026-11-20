@@ -263,6 +263,10 @@ class _BrushToolSection(Section):
 
     copy_schematic = S("")
     copy_create_chunks = S(False)
+    copy_offset_x = S(0)
+    copy_offset_y = S(0)
+    copy_offset_z = S(0)
+    copy_reset_on_select = S(False)
 
 
 

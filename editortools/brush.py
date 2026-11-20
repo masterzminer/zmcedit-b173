@@ -306,11 +306,29 @@ class Modes:
 
         name = "Paste"
 
-        _paste_offset = [0, 0, 0]
+        _level_offset = [0, 0, 0]
         _paste_level = MCSchematic(shape=(1, 1, 1))
+        _loaded_schematic_name = None
+
+        def _get_paste_offset(self):
+            return (
+                BrushToolSettings.copy_offset_x.v,
+                BrushToolSettings.copy_offset_y.v,
+                BrushToolSettings.copy_offset_z.v,
+            )
+
+        def _update_paste_offset(self, index, value):
+            if index == 0: BrushToolSettings.copy_offset_x.set(value)
+            elif index == 1: BrushToolSettings.copy_offset_y.set(value)
+            elif index == 2: BrushToolSettings.copy_offset_z.set(value)
+
+        def _reset_paste_offset(self):
+            BrushToolSettings.copy_offset_x.set(0)
+            BrushToolSettings.copy_offset_y.set(0)
+            BrushToolSettings.copy_offset_z.set(0)
 
         def find_centered_point(self, point):
-            return [p + c for p, c in zip(point, self._paste_offset)]
+            return [p + c + lev for p, c, lev in zip(point, self._get_paste_offset(), self._level_offset)]
         
         def dirtyBoxForPointAndOptions(self, point):
             p = self._paste_level
@@ -328,11 +346,12 @@ class Modes:
         def load_paste(self, tool, clipFilename):
             if clipFilename:
                 try:
+                    self._loaded_schematic_name = None
                     self._load_level(tool, fromFile(clipFilename))
                 except Exception:
                     alert(f"Failed to load file {clipFilename}")
                     # On failure, load an empty schematic
-                    self.loadLevel(MCSchematic(shape=(1, 1, 1)))
+                    self._load_level(tool, MCSchematic(shape=(1, 1, 1)))
                     return False
 
             BrushToolSettings.copy_schematic.set(clipFilename)
@@ -354,11 +373,12 @@ class Modes:
                 def __init__(c_self, i):
                     c_self.i = i
                 def get(c_self):
-                    return self._paste_offset[c_self.i]
+                    return self._get_paste_offset()[c_self.i]
                 def set(c_self, v):
-                    self._paste_offset[c_self.i] = v
+                    self._update_paste_offset(c_self.i, v)
+            
+            cx, cy, cz = [IntInputRow(c, width=40, ref=CenterRef(i)) for i, c in zip((0, 1, 2), "xyz")]
 
-            cx, cy, cz = [IntInputRow(c, width=40, ref=CenterRef(i)) for a, i, c in zip(tool.level.size, (0, 1, 2), "xyz")]
             centerRow = Row((cx, cy, cz))
 
             importLabel = ValueDisplay(width=150, ref=BrushToolSettings.copy_schematic, format_func=lambda v: ("Loaded: " + Path(v).stem) if v != "" else "")
@@ -369,7 +389,9 @@ class Modes:
             createChunksLabel.mouse_down = createChunksCheckBox.mouse_down
             tooltipText = "When brushing into missing chunks, create new empty chunks"
             createChunksLabel.tooltipText = createChunksCheckBox.tooltipText = tooltipText
-            copy_chunks_row = Row((createChunksCheckBox, createChunksLabel))
+            reset_button = Button("Reset", action=self._reset_paste_offset)
+            
+            copy_chunks_row = Row((reset_button, createChunksCheckBox, createChunksLabel))
 
             col.extend([self.importRow, importLabel, centerRow, copy_chunks_row])
 
@@ -404,24 +426,34 @@ class Modes:
 
 
         def _update_paste(self, tool):
-            # Found something to copy from, use it
-            stack = tool.editor.copyStack
-            if len(stack) > 0:
-                self._load_level(tool, stack[0])
+            # If a schematic was saved, use it
+            imported = False
+            saved_schematic = BrushToolSettings.copy_schematic.v
+            if saved_schematic != "":
+                # If the schematic to load is already available, load the already loaded level
+                if self._loaded_schematic_name == saved_schematic and self._paste_level is not None:
+                    self._load_level(tool, self._paste_level)
+                    imported = True
 
-            # Nothing to copy from
-            else:
-                # If a schematic was saved, use it
-                paste_imported = False
-                if BrushToolSettings.copy_schematic.v != "":
-                    paste_imported = self.load_paste(tool, BrushToolSettings.copy_schematic.v)
+                # Otherwise try to load it
+                else:
+                    loaded = self.load_paste(tool, saved_schematic)
                     # If it failed, reset the setting
-                    if not paste_imported:
+                    if not loaded:
                         BrushToolSettings.copy_schematic.set("")
+                    imported = loaded
 
-                # If a schematic wasn't imported, init with an empty level
-                if not paste_imported:
-                    self._load_level(tool, MCSchematic(shape=(1, 1, 1)))
+            # If nothing was imported
+            if not imported:
+                # Found something to copy from, use it
+                stack = tool.editor.copyStack
+                if len(stack) > 0:
+                    self._load_level(tool, stack[0])
+                    imported = True
+
+            # If still nothing was imported, init with an empty level
+            if not imported:
+                self._load_level(tool, MCSchematic(shape=(1, 1, 1)))
 
 
 
@@ -437,11 +469,31 @@ class Modes:
             
         # Keep track of the level when it changes
         def _load_level(self, tool, level):
+            old_level = self._paste_level
+
             self._paste_level = level
             tool.loadLevel(level)
 
             # Load a default offset to be near the middle of the level
-            self._paste_offset = self._round_level(level)
+            loaded = self._round_level(level)
+            Width, Height, Length = loaded
+            self._level_offset = [Width, Height, Length]
+
+            if BrushToolSettings.copy_reset_on_select.v:
+                reset = True
+                if old_level == level:
+                    reset = False
+                elif hasattr(level, "filename") and hasattr(old_level, "filename"):
+                    if level.filename is not None and old_level.filename is not None:
+                        if level.filename != old_level.filename:
+                            reset = False
+
+                if reset:
+                    self._reset_paste_offset()
+
+            
+            if hasattr(self._paste_level, "filename"):
+                self._loaded_schematic_name = self._paste_level.filename
         
 
         def performAtPoint(self, op, point, dirtyBox):
@@ -788,8 +840,11 @@ class BrushToolOptions(ToolOptions):
 
         updateOffsetCheckBox = CheckBoxLabel("Reset Distance When Brush Size Changes", ref=BrushToolSettings.update_offset,
                                             tooltipText="Whenever the brush size changes, reset the distance to the brush blocks.")
+        
+        auto_reset_on_select_check_box = CheckBoxLabel("Reset Schematic Position On Select", ref=BrushToolSettings.copy_reset_on_select,
+                                            tooltipText="When selecting a new schematic for the paste brush, reset the offset to the center")
 
-        col = Column((Label("Brush Options"), alphaRow, autoChooseCheckBox, updateOffsetCheckBox, Button("OK", action=self.dismiss)))
+        col = Column((Label("Brush Options"), alphaRow, autoChooseCheckBox, updateOffsetCheckBox, auto_reset_on_select_check_box, Button("OK", action=self.dismiss)))
         self.add(col)
         self.shrink_wrap()
         return
