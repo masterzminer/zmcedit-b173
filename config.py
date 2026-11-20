@@ -267,6 +267,8 @@ class _BrushToolSection(Section):
     copy_offset_y = S(0)
     copy_offset_z = S(0)
     copy_reset_on_select = S(False)
+    copy_paste_air = S(True)
+    copy_paste_water = S(True)
 
 
 

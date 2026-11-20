@@ -384,20 +384,26 @@ class Modes:
             importLabel = ValueDisplay(width=150, ref=BrushToolSettings.copy_schematic, format_func=lambda v: ("Loaded: " + Path(v).stem) if v != "" else "")
 
 
-            createChunksCheckBox = CheckBox(ref=BrushToolSettings.copy_create_chunks)
-            createChunksLabel = Label("Create Chunks")
-            createChunksLabel.mouse_down = createChunksCheckBox.mouse_down
-            tooltipText = "When brushing into missing chunks, create new empty chunks"
-            createChunksLabel.tooltipText = createChunksCheckBox.tooltipText = tooltipText
+            create_chunks_box = self._checkbox("Create Chunks", BrushToolSettings.copy_create_chunks, "When brushing into missing chunks, create new empty chunks")
+            copy_air_check_box = self._checkbox("Copy Air", BrushToolSettings.copy_paste_air, "Paste air blocks from the brush")
+            copy_water_check_box = self._checkbox("Copy Water", BrushToolSettings.copy_paste_water, "Paste water and lava blocks from the brush")
+
             reset_button = Button("Reset", action=self._reset_paste_offset)
             
-            copy_chunks_row = Row((reset_button, createChunksCheckBox, createChunksLabel))
+            copy_chunks_row = Row((reset_button, create_chunks_box))
 
-            col.extend([self.importRow, importLabel, centerRow, copy_chunks_row])
+            col.extend([self.importRow, importLabel, centerRow, copy_chunks_row, copy_air_check_box, copy_water_check_box])
 
             self.update_copy_schematic(BrushToolSettings.copy_schematic.v, tool)
 
             return col
+
+        def _checkbox(self, title, ref, tooltip):
+            box = CheckBox(ref=ref)
+            lab = Label(title)
+            lab.mouse_down = box.mouse_down
+            lab.tooltipText = box.tooltipText = tooltip
+            return Row((box, lab))
 
         def post_panel_init(self, tool):
             self.update_copy_schematic(BrushToolSettings.copy_schematic.v, tool)
@@ -500,7 +506,16 @@ class Modes:
             level = self._paste_level;
             point = self.find_centered_point(point)
 
-            return op.level.copyBlocksFromIter(level, level.bounds, point, create=BrushToolSettings.copy_create_chunks.v)
+            blocksToCopy = None
+            if not (BrushToolSettings.copy_paste_air.v and BrushToolSettings.copy_paste_water.v):
+                blocksToCopy = list(range(256))
+                if not BrushToolSettings.copy_paste_air.v:
+                    blocksToCopy.remove(0)
+                if not BrushToolSettings.copy_paste_water.v:
+                    blocksToCopy.remove(8)
+                    blocksToCopy.remove(9)
+
+            return op.level.copyBlocksFromIter(level, level.bounds, point, blocksToCopy=blocksToCopy, create=BrushToolSettings.copy_create_chunks.v)
 
 
 brush_mode_classes = [

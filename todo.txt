@@ -3,8 +3,6 @@ filters
     Retest all stock filters
 
 brush
-    Fix the paste brush being broken
-        Add an option to not paste air and or water
     Erode
         Make it always display air as the preview block
         Don't allow alt click to change the block
