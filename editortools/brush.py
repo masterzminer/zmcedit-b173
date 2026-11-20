@@ -1186,6 +1186,7 @@ class BrushTool(CloneTool):
 
     def toolSelected(self):
         if BrushToolSettings.choose_block_immediately.v:
+            self.showPanel()
             if BrushToolSettings.mode.v == "Paste":
                 brush_mode_map["Paste"].importPaste(self)
             else:

@@ -147,7 +147,6 @@ class ThumbView(GLPerspective):
         self.schematic = sch
         self.renderer = PreviewRenderer(sch)
         self.fboSize = (128, 128)
-        # self.renderer.position = (sch.Length / 2, 0, sch.Height / 2)
 
     def setup_modelview(self):
         GLU.gluLookAt(-self.schematic.Width * 2.8, self.schematic.Height * 2.5 + 1, -self.schematic.Length * 1.5,
@@ -514,8 +513,6 @@ class BlockPicker(Dialog):
         blockView.centerx = self.centerx
         blockView.top = table_view.bottom
 
-        # self.add(blockview)
-
         but = Button("OK")
         but.action = self.ok
         but.top = blockView.bottom
@@ -524,7 +521,6 @@ class BlockPicker(Dialog):
         but.height = 30
 
         if self.allowWildcards:
-        # self.add(but)
             anyRow = CheckBoxLabel("Any Subtype", ref=AttrRef(self, 'anySubtype'), tooltipText="Replace blocks with any data value. Only useful for Replace operations.")
             col = Column((searchRow, tableWidget, anyRow, blockView, but))
         else:
