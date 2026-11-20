@@ -73,12 +73,13 @@ class CoordsInput(Widget):
 
 
 class BlockCopyOperation(Operation):
-    def __init__(self, editor, sourceLevel, sourceBox, destLevel, destPoint):
+    def __init__(self, editor, sourceLevel, sourceBox, destLevel, destPoint, create_chunks=False):
         self.editor = editor
         self.sourceLevel = sourceLevel
         self.sourceBox = sourceBox
         self.destLevel = destLevel
         self.destPoint = destPoint
+        self.create_chunks = create_chunks
         self.sourceBox, self.destPoint = self.destLevel.adjustCopyParameters(self.sourceLevel, self.sourceBox, self.destPoint)
 
     def dirtyBox(self):
@@ -109,7 +110,7 @@ class BlockCopyOperation(Operation):
                 blocksToCopy.remove(9)
 
         with setWindowCaption("Copying - "):
-            i = self.destLevel.copyBlocksFromIter(self.sourceLevel, self.sourceBox, self.destPoint, blocksToCopy, create=True)
+            i = self.destLevel.copyBlocksFromIter(self.sourceLevel, self.sourceBox, self.destPoint, blocksToCopy, create=self.create_chunks)
             showProgress("Copying {0:n} blocks...".format(self.sourceBox.volume), i)
 
     def undo(self):
@@ -126,7 +127,7 @@ class BlockCopyOperation(Operation):
 
 
 class CloneOperation (Operation):
-    def __init__(self, editor, sourceLevel, sourceBox, originSourceBox, destLevel, destPoint, repeatCount):
+    def __init__(self, editor, sourceLevel, sourceBox, originSourceBox, destLevel, destPoint, repeatCount, create_chunks=False):
         self.blockCopyOps = []
         dirtyBoxes = []
         if repeatCount > 1:  # clone tool only
@@ -135,7 +136,7 @@ class CloneOperation (Operation):
             delta = (0, 0, 0)
 
         for i in range(repeatCount):
-            op = BlockCopyOperation(editor, sourceLevel, sourceBox, destLevel, destPoint)
+            op = BlockCopyOperation(editor, sourceLevel, sourceBox, destLevel, destPoint, create_chunks=create_chunks)
             dirty = op.dirtyBox()
 
             # bounds check - xxx move to BoundingBox
@@ -312,11 +313,18 @@ class CloneToolOptions(ToolOptions):
         self.autoPlaceCheckBox = CheckBox(ref=CloneToolSettings.place_immediately)
         self.autoPlaceLabel = Label("Place Immediately")
         self.autoPlaceLabel.mouse_down = self.autoPlaceCheckBox.mouse_down
-
-        tooltipText = "When the clone tool is chosen, place the clone at the selection right away."
+        tooltipText = "When the clone tool is chosen, place the clone at the selection right away"
         self.autoPlaceLabel.tooltipText = self.autoPlaceCheckBox.tooltipText = tooltipText
-
         row = Row((self.autoPlaceCheckBox, self.autoPlaceLabel))
+
+        self.createChunksCheckBox = CheckBox(ref=CloneToolSettings.create_chunks)
+        self.createChunksLabel = Label("Create Chunks")
+        self.createChunksLabel.mouse_down = self.createChunksCheckBox.mouse_down
+        tooltipText = "When cloning into missing chunks, create new empty chunks"
+        self.createChunksLabel.tooltipText = self.createChunksCheckBox.tooltipText = tooltipText
+        row = Row((self.createChunksCheckBox, self.createChunksLabel))
+        
+
         col = Column((Label("Clone Options"), row, Button("OK", action=self.dismiss)))
 
         self.add(col)
@@ -876,7 +884,9 @@ class CloneTool(EditorTool):
                             originSourceBox=self.selectionBox(),
                             destLevel=destLevel,
                             destPoint=self.destPoint,
-                            repeatCount=self.repeatCount)
+                            repeatCount=self.repeatCount,
+                            create_chunks=CloneToolSettings.create_chunks.v
+        )
 
         self.editor.toolbar.selectTool(-1)  # deselect tool so that the clone tool's selection change doesn't update its schematic
 

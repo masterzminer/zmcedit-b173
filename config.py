@@ -262,6 +262,7 @@ class _BrushToolSection(Section):
     topsoil_depth = S(1)
 
     copy_schematic = S("")
+    copy_create_chunks = S(False)
 
 
 
@@ -275,6 +276,8 @@ class _CloneToolSection(Section):
     copy_air = S(True)
     copy_water = S(True)
     place_immediately = S(True)
+
+    create_chunks = S(False)
 
 
 CloneToolSettings = _CloneToolSection(config)

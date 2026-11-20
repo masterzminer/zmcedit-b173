@@ -16,7 +16,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
 
 
-from editortools.clone import BlockCopyOperation
 from mceutils import ChoiceButton
 from os.path import basename
 import tempfile
@@ -208,8 +207,6 @@ class Modes:
             return col
 
         def performAtPoint(self, op: BrushOperation, point, dirtyBox):
-            if dirtyBox.volume > 1048576:
-                raise ValueError("Affected area is too big for this brush mode")
             box = dirtyBox.expand(1)
 
             strength = BrushToolSettings.erode_strength.v
@@ -365,7 +362,16 @@ class Modes:
             centerRow = Row((cx, cy, cz))
 
             importLabel = ValueDisplay(width=150, ref=BrushToolSettings.copy_schematic, format_func=lambda v: ("Loaded: " + Path(v).stem) if v != "" else "")
-            col.extend([self.importRow, importLabel, centerRow])
+
+
+            createChunksCheckBox = CheckBox(ref=BrushToolSettings.copy_create_chunks)
+            createChunksLabel = Label("Create Chunks")
+            createChunksLabel.mouse_down = createChunksCheckBox.mouse_down
+            tooltipText = "When brushing into missing chunks, create new empty chunks"
+            createChunksLabel.tooltipText = createChunksCheckBox.tooltipText = tooltipText
+            copy_chunks_row = Row((createChunksCheckBox, createChunksLabel))
+
+            col.extend([self.importRow, importLabel, centerRow, copy_chunks_row])
 
             self.update_copy_schematic(BrushToolSettings.copy_schematic.v, tool)
 
@@ -442,7 +448,7 @@ class Modes:
             level = self._paste_level;
             point = self.find_centered_point(point)
 
-            return op.level.copyBlocksFromIter(level, level.bounds, point, create=True)
+            return op.level.copyBlocksFromIter(level, level.bounds, point, create=BrushToolSettings.copy_create_chunks.v)
 
 
 brush_mode_classes = [
