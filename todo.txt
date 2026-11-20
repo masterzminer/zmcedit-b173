@@ -4,7 +4,6 @@ filters
 
 brush
     investigate middle click jumping the brush up to max height, make a shortcut to remove all height
-    fix the random yellow brush stroke preview boxes sticking around sometimes, ensure they are cleared after a brush stroke completes, seems to happen if an error occurs during the brush
     make pressing escape always cancel selecting a block from the block picker ui
     remove the random block showing up in the bottom left after changing brush modes, moving the mouse makes it go away
 

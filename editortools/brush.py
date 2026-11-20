@@ -538,7 +538,8 @@ brush_shapes = ["Round", "Square", "Diamond", "Pyramid"]
 
 class BrushOperation(Operation):
 
-    def __init__(self, editor, points):
+    def __init__(self, tool, editor, points):
+        self.tool = tool
         self.editor = editor
         self.level = editor.level
         if isinstance(points[0], (int, float)):
@@ -733,8 +734,13 @@ class BrushOperation(Operation):
                 ch.chunkChanged()
 
     def performAtPoint(self, point):
-        dirtyBox = get_brush_mode().dirtyBoxForPointAndOptions(point)
-        return get_brush_mode().performAtPoint(self, point, dirtyBox)
+        try:
+            dirtyBox = get_brush_mode().dirtyBoxForPointAndOptions(point)
+            return get_brush_mode().performAtPoint(self, point, dirtyBox)
+        except Exception as e:
+            # If an exception happens, get rid of the original dragged positions
+            self.tool.draggedPositions = []
+            raise e
 
 
 class BrushPanel(Panel):
@@ -1038,7 +1044,7 @@ class BrushTool(CloneTool):
         if get_brush_mode().name == "Flood Fill":
             self.draggedPositions = self.draggedPositions[-1:]
 
-        op = BrushOperation(self.editor, self.draggedPositions)
+        op = BrushOperation(self, self.editor, self.draggedPositions)
         self.performWithRetry(op)
 
         box = op.dirtyBox()
