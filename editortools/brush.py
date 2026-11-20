@@ -948,7 +948,7 @@ class BrushTool(CloneTool):
 
     @property
     def worldTooltipText(self):
-        if (key.get_mods() & KMOD_ALT) and get_brush_mode().name != "Paste":
+        if (key.get_mods() & KMOD_ALT) and get_brush_mode().name != "Paste" and get_brush_mode().name != "Erode":
             try:
                 if self.editor.blockFaceUnderCursor is None:
                     return
@@ -1125,6 +1125,8 @@ class BrushTool(CloneTool):
         
         if get_brush_mode().name == "Replace":
             blockInfo = BrushToolSettings.replace_block.get()
+        if get_brush_mode().name == "Erode":
+            blockInfo = materials.blockWithID(0, 0)
         else:
             blockInfo = BrushToolSettings.fill_block.get()
 

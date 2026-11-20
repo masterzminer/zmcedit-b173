@@ -3,9 +3,6 @@ filters
     Retest all stock filters
 
 brush
-    Erode
-        Make it always display air as the preview block
-        Don't allow alt click to change the block
     investigate middle click jumping the brush up to max height, make a shortcut to remove all height
     fix the random yellow brush stroke preview boxes sticking around sometimes, ensure they are cleared after a brush stroke completes, seems to happen if an error occurs during the brush
     make pressing escape always cancel selecting a block from the block picker ui
