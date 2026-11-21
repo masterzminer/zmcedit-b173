@@ -862,10 +862,13 @@ class BrushToolOptions(ToolOptions):
         updateOffsetCheckBox = CheckBoxLabel("Reset Distance When Brush Size Changes", ref=BrushToolSettings.update_offset,
                                             tooltipText="Whenever the brush size changes, reset the distance to the brush blocks.")
         
+        update_offset_check_box = CheckBoxLabel("Reset Offset As Zero", ref=BrushToolSettings.reset_offset_to_zero,
+                                            tooltipText="Whenever resetting the offset of the brush from the mouse, set it to 0, otherwise set it to the maximum dimension of the brush")
+        
         auto_reset_on_select_check_box = CheckBoxLabel("Reset Schematic Position On Select", ref=BrushToolSettings.copy_reset_on_select,
                                             tooltipText="When selecting a new schematic for the paste brush, reset the offset to the center")
 
-        col = Column((Label("Brush Options"), alphaRow, autoChooseCheckBox, updateOffsetCheckBox, auto_reset_on_select_check_box, Button("OK", action=self.dismiss)))
+        col = Column((Label("Brush Options"), alphaRow, autoChooseCheckBox, updateOffsetCheckBox, auto_reset_on_select_check_box, update_offset_check_box, Button("OK", action=self.dismiss)))
         self.add(col)
         self.shrink_wrap()
         return
@@ -925,7 +928,7 @@ class BrushTool(CloneTool):
 
     @brushSize.setter
     def brushSize(self, val):
-        (w, h, l) = [max(1, min(i, self.maxBrushSize)) for i in val]
+        (l, h, w) = [max(1, min(i, self.maxBrushSize)) for i in val]
         BrushToolSettings.height.set(h)
         BrushToolSettings.length.set(l)
         BrushToolSettings.width.set(w)
@@ -1182,8 +1185,7 @@ class BrushTool(CloneTool):
 
     def resetToolDistance(self):
         # TODO do something different with this for resetting the distance when using the pase brush
-        distance = max(self.editor.cameraToolDistance, 6 + max(self.brushSize) * 1.25)
-        self.editor.cameraToolDistance = distance
+        self.editor.cameraToolDistance = 6 + max(self.brushSize) * 1.25
 
     def toolSelected(self):
         if BrushToolSettings.choose_block_immediately.v:
@@ -1232,7 +1234,11 @@ class BrushTool(CloneTool):
         if self.editor.mainViewport.mouseMovesCamera and not Settings.long_distance_mode.v:
             self.resetToolDistance()
         else:
-            self.reticleOffset = self.offsetMax()
+            if BrushToolSettings.reset_offset_to_zero.v:
+                self.reticleOffset = 0
+            else:
+                self.reticleOffset = self.offsetMax()
+
         return True
 
     cameraDistance = EditorTool.cameraDistance

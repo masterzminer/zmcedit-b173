@@ -239,6 +239,7 @@ class _BrushToolSection(Section):
     """One of 'Fill', 'Flood Fill', 'Replace', 'Erode', 'Topsoil', 'Paste' """
 
     update_offset = S(False)
+    reset_offset_to_zero = S(True)
     choose_block_immediately = S(False)
     alpha = S(0.66, min=0, max=1)
 

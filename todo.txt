@@ -2,9 +2,6 @@ filters
     Allow stock filters to be hidden
     Retest all stock filters
 
-brush
-    investigate middle click jumping the brush up to max height, make a shortcut to remove all height
-
 select
     fix the select tool icon showing a blank white square sometimes, seemingly from quick loading a world while a world is already open
 
