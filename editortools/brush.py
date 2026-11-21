@@ -1184,8 +1184,16 @@ class BrushTool(CloneTool):
         CloneTool.setupPreview(self, alpha=BrushToolSettings.alpha.v)
 
     def resetToolDistance(self):
-        # TODO do something different with this for resetting the distance when using the pase brush
-        self.editor.cameraToolDistance = 6 + max(self.brushSize) * 1.25
+        mode = get_brush_mode()
+        if mode.name == "Paste":
+            if mode._paste_level is not None:
+                lev = mode._paste_level
+                sizes = (lev.Width, lev.Height, lev.Length)
+            else:
+                sizes = 1
+        else:
+            sizes = self.brushSize
+        self.editor.cameraToolDistance = 6 + max(sizes) * 1.25
 
     def toolSelected(self):
         if BrushToolSettings.choose_block_immediately.v:
