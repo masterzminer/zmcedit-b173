@@ -4,7 +4,6 @@ filters
 
 brush
     investigate middle click jumping the brush up to max height, make a shortcut to remove all height
-    remove the random block showing up in the bottom left after changing brush modes, moving the mouse makes it go away
 
 select
     fix the select tool icon showing a blank white square sometimes, seemingly from quick loading a world while a world is already open

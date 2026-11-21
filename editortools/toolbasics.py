@@ -141,18 +141,19 @@ class ToolOptions(Panel):
 
 class ThumbView(GLPerspective):
 
-    def __init__(self, sch, **kw):
+    def __init__(self, sch, drawBackground=True, **kw):
+        self.drawBackground = drawBackground
         GLPerspective.__init__(self, **kw)  # self, xmin= -32, xmax=32, ymin= -32, ymax=32, near= -1000, far=1000)
         self.far = 16000
         self.schematic = sch
         self.renderer = PreviewRenderer(sch)
         self.fboSize = (128, 128)
+        self.fbo = None
 
     def setup_modelview(self):
         GLU.gluLookAt(-self.schematic.Width * 2.8, self.schematic.Height * 2.5 + 1, -self.schematic.Length * 1.5,
                       self.schematic.Width, 0, self.schematic.Length,
                       0, 1, 0)
-    fbo = None
 
     def gl_draw_tex(self):
         self.clear()
@@ -190,8 +191,6 @@ class ThumbView(GLPerspective):
                 self.fbo.bind()
                 GL.glDrawArrays(GL_QUADS, 0, 4)
             GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-
-    drawBackground = True
 
     def gl_draw_thumb(self):
         GL.glPushAttrib(GL.GL_SCISSOR_BIT)
@@ -238,10 +237,9 @@ class BlockThumbView(Widget):
             sch.Blocks[:] = b.ID
             sch.Data[:] = b.blockData
 
-        self.thumb = ThumbView(sch)
+        self.thumb = ThumbView(sch, drawBackground = False)
         self.add(self.thumb)
         self.thumb.size = self.size
-        self.thumb.drawBackground = False
         for i in self.thumb.renderer.chunkWorker:
             pass
 

@@ -2502,17 +2502,7 @@ class MCRenderer(object):
             GL.glColor(1.0, 1.0, 1.0, 1.0)
 
             self.floorTexture.bind()
-            # chunkColor = np.zeros(shape=(chunks.shape[0], 4, 4), dtype='float32')
-#            chunkColor[:]= (1, 1, 1, 0.15)
-#
-#            cc = np.array(chunks[:,0] + chunks[:,1], dtype='int32')
-#            cc &= 1
-#            coloredChunks = cc > 0
-#            chunkColor[coloredChunks] = (1, 1, 1, 0.28)
-#            chunkColor *= 255
-#            chunkColor = np.array(chunkColor, dtype='uint8')
-#
-            # GL.glColorPointer(4, GL.GL_UNSIGNED_BYTE, 0, chunkColor)
+            
             for size, chunks in sizedChunks.items():
                 if not len(chunks):
                     continue
@@ -2538,8 +2528,6 @@ class MCRenderer(object):
     def drawLoadableChunkMarkers(self):
         if not self.isPreviewer or isinstance(self.level, pymclevel.MCBetaLevel):
             self.loadableChunkMarkers.call(self._drawLoadableChunkMarkers)
-
-        # self.drawCompressedChunkMarkers()
 
     def drawCompressedChunkMarkers(self):
         chunkPositions = list(self.chunkRenderers.keys())
@@ -2691,7 +2679,6 @@ class MCRenderer(object):
 
             GL.glDisable(GL.GL_TEXTURE_2D)
             GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
-                # if self.drawLighting:
             self.drawLoadableChunkMarkers()
 
     renderErrorHandled = False
