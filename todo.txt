@@ -1,10 +1,6 @@
-menu: Allow recent worlds to be deleted from the ui
-
 filters: Allow stock filters to be hidden
 
 filters: Retest all stock filters
-
-level rendering: fix buttons and other non full blocks rendering weirdly
 
 Allow a .dat file to be drag and dropped into the window to open it
 
@@ -36,3 +32,4 @@ Brush
 
 level rendering
     Make fire render with a proper texture
+    Make buttons and other non full blocks render with proper models

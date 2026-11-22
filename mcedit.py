@@ -102,6 +102,7 @@ class FileOpener(albow.Widget):
 
         keysColumn = [albow.Label("")]
         buttonsColumn = [leveleditor.ControlPanel.getHeader()]
+        extra_column = [albow.Label("")]
 
         short_names = []
         for world in self.mcedit.recentWorlds():
@@ -130,7 +131,9 @@ class FileOpener(albow.Widget):
                 if world_key is None:
                     continue
                 # Each button is the display for the hot key, the world name, and the button itself to load the world
-                buttons.append((f'{world_key.upper()}', short_names[i], self.createLoadButtonHandler(world)))
+                buttons.append((f'{world_key.upper()}', short_names[i], 
+                                [self.createLoadButtonHandler(world), self.createCloseButtonHandler(world, i)]
+                                ))
                             
             return buttons
         
@@ -141,7 +144,7 @@ class FileOpener(albow.Widget):
             build_world_buttons()
         )
 
-        commandRow = mceutils.HotkeyColumn(hotkeys, keysColumn, buttonsColumn)
+        commandRow = mceutils.HotkeyColumn(hotkeys, keysColumn, buttonsColumn, extra_column)
         commandRow.anchor = 'lrh'
 
         sideColumn = self.mcedit.makeSideColumn(reset_parent=self.reset_content_row)
@@ -192,6 +195,22 @@ class FileOpener(albow.Widget):
 
     def createLoadButtonHandler(self, filename):
         return lambda: self.mcedit.loadFile(filename)
+
+    def createCloseButtonHandler(self, filename, i):
+        return lambda: self.remove_recent_world(filename, i)
+
+    def remove_recent_world(self, filename, i):
+        # Find the world, do nothing if it doesn't exist
+        all_worlds = RecentWorlds.get_all()
+        worlds = [w[1] for w in all_worlds if w[0] != str(i)]
+        if len(all_worlds) == len(worlds):
+            return
+
+        # Update the worlds with the removed world
+        RecentWorlds.set_list(worlds)
+
+        # Reload the ui
+        self.reset_content_row()
 
 
 class KeyConfigPanel(Dialog):
