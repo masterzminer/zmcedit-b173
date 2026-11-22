@@ -98,6 +98,12 @@ class PlayerSpawnMoveOperation(PlayerMoveOperation):
 
         self.tool.markerList.invalidate()
 
+    def undo(self):
+        if not (self.undoPos is None):
+            level = self.tool.editor.level
+            level.setPlayerSpawnPosition(self.undoPos)
+            self.tool.markerList.invalidate()
+
 
 class PlayerPositionPanel(Panel):
     def __init__(self, tool):
