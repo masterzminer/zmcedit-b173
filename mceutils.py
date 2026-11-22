@@ -322,11 +322,11 @@ def loadTextureFunc(w, h, n_data):
     return w, h
 
 
-def loadPNGTexture(filename, test=False):
+def loadPNGTexture(filename):
     try:
         w, h, n_data = loadPNGFile(filename)
 
-        tex = glutils.Texture(functools.partial(loadTextureFunc, w, h, n_data), test=test)
+        tex = glutils.Texture(functools.partial(loadTextureFunc, w, h, n_data))
         tex.data = n_data
         return tex
     except Exception as e:

@@ -3249,7 +3249,7 @@ class EditorToolbar(GLOrtho):
         for tool in self.tools:
             for icon in tool.all_tool_icons():
                 filename = Path(directories.TOOL_ICONS_NAME) / f"{icon}.png"
-                self.toolTextures[icon] = mceutils.loadPNGTexture(filename, True)
+                self.toolTextures[icon] = mceutils.loadPNGTexture(filename)
 
         for tool in self.tools:
             if hasattr(tool, 'reloadTextures'):

@@ -1001,9 +1001,7 @@ class ConstructionTool(CloneTool):
         self.editor.mouseLookOff()
 
         clipFilename = mcplatform.askOpenFile(LastDir.schematic, 'Import a schematic...')
-        # xxx mouthful
         if clipFilename:
-
             self.loadSchematic(clipFilename)
 
         log.trace("Canceled")
@@ -1020,11 +1018,9 @@ class ConstructionTool(CloneTool):
             level = fromFile(filename)
             self.loadLevel(level)
         except Exception as e:
-            log.trace(f"Unable to import file {log.trace} : {e}")
+            log.error(f"Unable to import file {filename}")
 
-            traceback.print_exc()
             if filename:
-                # self.editor.toolbar.selectTool(-1)
                 alert("I don't know how to import this file: {0}.\n\nError: {1!r}".format(os.path.basename(filename), e))
 
             return

@@ -154,8 +154,7 @@ class Texture(object):
     allTextures = []
     defaultFilter = GL.GL_NEAREST
 
-    def __init__(self, textureFunc=None, minFilter=None, magFilter=None, test=False):
-        self.test = test
+    def __init__(self, textureFunc=None, minFilter=None, magFilter=None):
         minFilter = minFilter or self.defaultFilter
         magFilter = magFilter or self.defaultFilter
         if textureFunc is None:
