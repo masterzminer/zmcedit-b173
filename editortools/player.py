@@ -248,6 +248,9 @@ class PlayerPositionTool(EditorTool):
 
     panel = None
 
+    def all_tool_icons(self):
+        return ["player"]
+
     def showPanel(self):
         if not self.panel:
             self.panel = PlayerPositionPanel(self)
@@ -398,6 +401,9 @@ class PlayerSpawnPositionTool(PlayerPositionTool):
     def __init__(self, *args):
         PlayerPositionTool.__init__(self, *args)
         self.optionsPanel = PlayerSpawnPositionOptions(self)
+
+    def all_tool_icons(self):
+        return ["playerspawn"]
 
     def toolEnabled(self):
         return self.editor.level.dimNo == 0

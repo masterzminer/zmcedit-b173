@@ -643,6 +643,9 @@ class EditorTool(object):
     def __init__(self, editor):
         self.editor = editor
 
+    def all_tool_icons(self):
+        return []
+
     def toolReselected(self):
         pass
 
@@ -775,10 +778,6 @@ class EditorTool(object):
 
         points = {}
 
-#        glPointSize(5.0)
-#        glColor(1.0, 1.0, 0.0, 1.0)
-#        glBegin(GL_POINTS)
-
         for dim in range(3):
             dim1 = dim + 1
             dim2 = dim + 2
@@ -799,12 +798,10 @@ class EditorTool(object):
                         scale = d / normal[dim]
 
                         point = list(map(lambda a, p: (a * scale + p), normal, p0))
-    #                    glVertex3f(*point)
 
                         if pointInBounds(point, dim1) and pointInBounds(point, dim2):
                             points[dim * 2 + side] = point
 
-#        glEnd()
 
         if not len(points):
             return None, None
@@ -826,11 +823,6 @@ class EditorTool(object):
         closest_distance = min(distances)
         face, point = distances[closest_distance]
 
-        # When holding alt, pick the face opposite the camera
-        # if key.get_mods() & KMOD_ALT:
-        #    minmax = max
-        # else:
-
         # if the point is near the edge of the face, and the edge is facing away,
         # return the away-facing face
 
@@ -845,17 +837,17 @@ class EditorTool(object):
         # to the opposite side
         for d in dim1, dim2:
             edge_width = box.size[d] * self.edge_factor
-            facenormal = [0, 0, 0]
+            face_normal = [0, 0, 0]
             cameraBehind = False
 
             if point[d] - box.origin[d] < edge_width:
-                facenormal[d] = -1
+                face_normal[d] = -1
                 cameraBehind = cam[d] - box.origin[d] > 0
             if point[d] - box.maximum[d] > -edge_width:
-                facenormal[d] = 1
+                face_normal[d] = 1
                 cameraBehind = cam[d] - box.maximum[d] < 0
 
-            if np.dot(facenormal, cv) > 0 or cameraBehind:
+            if np.dot(face_normal, cv) > 0 or cameraBehind:
                 # the face adjacent to the clicked edge faces away from the cam
                 return distances[max(distances.keys())]
 
@@ -880,7 +872,6 @@ class EditorTool(object):
             return None
 
         p1, p2 = list(p1), list(p2)
-        # d = [(a-b) for a,b in zip(p1,p2)]
         for i in range(3):
             if p1[i] > p2[i]:
                 t = p2[i]

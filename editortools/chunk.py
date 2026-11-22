@@ -97,6 +97,9 @@ class ChunkTool(EditorTool):
     toolIconName = "chunk"
     tooltipText = "Chunk Control"
 
+    def all_tool_icons(self):
+        return ["chunk"]
+
     @property
     def statusText(self):
         return "Click and drag to select chunks. Hold ALT to deselect chunks. Hold SHIFT to select chunks."

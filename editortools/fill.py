@@ -159,6 +159,9 @@ class FillTool(EditorTool):
         EditorTool.__init__(self, *args, **kw)
         self.optionsPanel = FillToolOptions(self)
 
+    def all_tool_icons(self):
+        return ["fill"]
+
     @property
     def blockInfo(self):
         return self._blockInfo

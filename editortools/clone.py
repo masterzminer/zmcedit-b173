@@ -377,6 +377,9 @@ class CloneTool(EditorTool):
 
         self.destPoint = None
 
+    def all_tool_icons(self):
+        return ["clone"]
+
     @property
     def statusText(self):
         if self.destPoint == None:
@@ -944,6 +947,9 @@ class ConstructionTool(CloneTool):
         CloneTool.__init__(self, *args)
         self.level = None
         self.optionsPanel = None
+
+    def all_tool_icons(self):
+        return ["crane"]
 
     @property
     def statusText(self):

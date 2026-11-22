@@ -80,6 +80,9 @@ from pymclevel.material import materials
 import pymclevel.mclevel as mclevel
 import log
 
+from pathlib import Path
+import directories
+
 arch = platform.architecture()[0]
 
 
@@ -1285,9 +1288,6 @@ class ChunkViewport(CameraViewport):
 
     def mouse_down(self, evt):
         if evt.button == 4:  # wheel up - zoom in
-#            if self.defaultScale == 4.0:
-#                self.editor.swapViewports()
-#            else:
             self.zoomIn()
         elif evt.button == 5:  # wheel down - zoom out
             self.zoomOut()
@@ -1930,7 +1930,6 @@ class LevelEditor(GLViewport):
     def loadLevel(self, level: MCLevel):
         self.level = level
 
-        self.toolbar.selectTool(-1)
         self.toolbar.removeToolPanels()
         self.selectedChunks = set()
 
@@ -3148,9 +3147,6 @@ class EditorToolbar(GLOrtho):
 
         return [x * f for x in self.toolbarSize]
 
-        # return ( self.toolbarWidthRatio * width,
-        #         self.toolbarWidthRatio * width * self.toolbarTextureSize[1] / self.toolbarTextureSize[0] )
-
     def __init__(self, rect, tools, *args, **kw):
         GLOrtho.__init__(self, xmin=0, ymin=0,
                                xmax=self.toolbarSize[0], ymax=self.toolbarSize[1],
@@ -3202,8 +3198,6 @@ class EditorToolbar(GLOrtho):
     def showToolOptions(self, toolNumber):
         if toolNumber < len(self.tools) and toolNumber >= 0:
             t = self.tools[toolNumber]
-            # if not t.toolEnabled():
-            #    return
             if t.optionsPanel:
                 t.optionsPanel.present()
 
@@ -3253,6 +3247,11 @@ class EditorToolbar(GLOrtho):
         self.toolTextures = {}
 
         for tool in self.tools:
+            for icon in tool.all_tool_icons():
+                filename = Path(directories.TOOL_ICONS_NAME) / f"{icon}.png"
+                self.toolTextures[icon] = mceutils.loadPNGTexture(filename, True)
+
+        for tool in self.tools:
             if hasattr(tool, 'reloadTextures'):
                 tool.reloadTextures()
             if hasattr(tool, 'markerList'):
@@ -3286,9 +3285,6 @@ class EditorToolbar(GLOrtho):
             if tool.toolIconName is None:
                 continue
             try:
-                if not tool.toolIconName in self.toolTextures:
-                    filename = "toolicons" + os.sep + "{0}.png".format(tool.toolIconName)
-                    self.toolTextures[tool.toolIconName] = mceutils.loadPNGTexture(filename)
                 x = 20 * i + 4
                 y = 4
                 w = 16

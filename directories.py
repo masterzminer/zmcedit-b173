@@ -23,6 +23,7 @@ FROZEN = getattr(sys, "frozen", False)
 
 # Names of directories
 ASSETS_NAME = "assets"
+TOOL_ICONS_NAME = "toolicons"
 CONFIG_NAME = ".zmcedit-b173"
 STOCK_SCHEMATICS_NAME = "stock-schematics"
 STOCK_FILTERS_NAME = "filters"

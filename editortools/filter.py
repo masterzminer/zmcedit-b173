@@ -642,6 +642,9 @@ class FilterTool(EditorTool):
         global filterToolPanel
         filterToolPanel = self
 
+    def all_tool_icons(self):
+        return ["filter"]
+
     @property
     def statusText(self):
         return f"Choose a filter, then click Filter or press {Keys.confirm_construction.v.upper()} to apply it."

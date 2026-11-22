@@ -898,6 +898,9 @@ class BrushTool(CloneTool):
         BrushToolSettings.fill_block.add_observer(lambda v: self.setupPreview(), "brush tool")
         BrushToolSettings.replace_block.add_observer(lambda v: self.setupPreview(), "brush tool")
 
+    def all_tool_icons(self):
+        return ["brush"]
+
     panel = None
 
     def _setBrushSize(self, brushSize):
