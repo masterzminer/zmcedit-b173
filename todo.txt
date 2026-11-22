@@ -1,17 +1,16 @@
-filters
-    Allow stock filters to be hidden
-    Retest all stock filters
+level rendering: fix the fire rendering with a dumb texture
 
-spawn
-    Fix undoDim being undefined when undoing
+spawn: Fix undoDim being undefined when undoing
 
-level rendering
-    fix buttons and other non full blocks rendering weirdly
-    fix the fire rendering with a dumb texture
+menu: Allow recent worlds to be deleted from the ui
 
-menu
-    Allow recent worlds to be deleted from the ui
-    fix mc edit crashing if you make the window too small
+filters: Allow stock filters to be hidden
+
+filters: Retest all stock filters
+
+level rendering: fix buttons and other non full blocks rendering weirdly
+
+Allow a .dat file to be drag and dropped into the window to open it
 
 make release 0.2
 

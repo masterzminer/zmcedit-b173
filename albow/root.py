@@ -260,10 +260,8 @@ class RootWidget(Widget):
                                     last_mouse_event_handler.setup_cursor(event)
                                 self.begin_frame()
                         elif type == VIDEORESIZE:
-                            #add_modifiers(event)
                             self.do_draw = True
                             self.size = (event.w, event.h)
-                            #self.dispatch_key('reshape', event)
                         elif type == ACTIVEEVENT:
                             add_modifiers(event)
                             self.dispatch_key('activeevent', event)

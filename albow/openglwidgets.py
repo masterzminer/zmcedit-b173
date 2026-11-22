@@ -16,14 +16,8 @@ class GLViewport(Widget):
 
     def gl_draw_self(self, root, offset):
         rect = self.rect.move(offset)
-        # GL_CLIENT_ALL_ATTRIB_BITS is borked: defined as -1 but
-        # glPushClientAttrib insists on an unsigned long.
-        #GL.glPushClientAttrib(0xffffffff)
-        #GL.glPushAttrib(GL.GL_ALL_ATTRIB_BITS)
-        GL.glViewport(rect.left, root.height - rect.bottom, rect.width, rect.height)
+        GL.glViewport(rect.left, root.height - rect.bottom, max(1, rect.width), max(1, rect.height))
         self.gl_draw_viewport()
-        #GL.glPopAttrib()
-        #GL.glPopClientAttrib()
 
     def gl_draw_viewport(self):
         self.setup_matrices()
