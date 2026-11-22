@@ -2,9 +2,6 @@ filters
     Allow stock filters to be hidden
     Retest all stock filters
 
-import
-    Fix the import not consistently placing immediately or not
-
 spawn
     Fix undoDim being undefined when undoing
 

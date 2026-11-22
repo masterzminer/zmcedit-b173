@@ -315,17 +315,17 @@ class CloneToolOptions(ToolOptions):
         self.autoPlaceLabel.mouse_down = self.autoPlaceCheckBox.mouse_down
         tooltipText = "When the clone tool is chosen, place the clone at the selection right away"
         self.autoPlaceLabel.tooltipText = self.autoPlaceCheckBox.tooltipText = tooltipText
-        row = Row((self.autoPlaceCheckBox, self.autoPlaceLabel))
+        auto_place_row = Row((self.autoPlaceCheckBox, self.autoPlaceLabel))
 
         self.createChunksCheckBox = CheckBox(ref=CloneToolSettings.create_chunks)
         self.createChunksLabel = Label("Create Chunks")
         self.createChunksLabel.mouse_down = self.createChunksCheckBox.mouse_down
         tooltipText = "When cloning into missing chunks, create new empty chunks"
         self.createChunksLabel.tooltipText = self.createChunksCheckBox.tooltipText = tooltipText
-        row = Row((self.createChunksCheckBox, self.createChunksLabel))
+        create_chunks_row = Row((self.createChunksCheckBox, self.createChunksLabel))
         
 
-        col = Column((Label("Clone Options"), row, Button("OK", action=self.dismiss)))
+        col = Column((Label("Clone Options"), auto_place_row, create_chunks_row, Button("OK", action=self.dismiss)))
 
         self.add(col)
         self.shrink_wrap()
@@ -1006,9 +1006,10 @@ class ConstructionTool(CloneTool):
 
         log.trace("Canceled")
         if self.level is None:
-            log.trace("No level selected.")
+            log.trace("No level selected")
 
             self.editor.toolbar.selectTool(-1)
+
 
     originalLevelSize = (0, 0, 0)
 
@@ -1041,7 +1042,7 @@ class ConstructionTool(CloneTool):
             self.setupPreview()
             self.originalLevelSize = (self.level.Width, self.level.Height, self.level.Length)
             self.showPanel()
-            return
+            self.destPoint = None
 
     def selectionSize(self):
         if not self.level:
