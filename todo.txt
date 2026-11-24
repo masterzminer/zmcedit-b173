@@ -1,8 +1,6 @@
-filters: Allow stock filters to be hidden
+Allow a .dat file to be drag and dropped into the window to open it
 
 filters: Retest all stock filters
-
-Allow a .dat file to be drag and dropped into the window to open it
 
 make release 0.2
 

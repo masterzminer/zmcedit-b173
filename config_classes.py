@@ -297,7 +297,10 @@ class ListSection(Section):
         """Overwrite all elements in the list"""
         
         # Limit to the max size input
-        new_values = value[:self.max_size]
+        if self.max_size is not None:
+            new_values = value[:self.max_size]
+        else:
+            new_values = value
 
         # Remove all existing values
         old_keys = [entry[0] for entry in self._config.items(self.NAME)]

@@ -19,7 +19,7 @@ from albow.dialogs import wrapped_label
 from albow import *
 import importlib
 from pathlib import Path
-from config import LastDir, Settings, LastFilter, save_config
+from config import LastDir, Settings, LastFilter, HiddenFilters, save_config
 
 from pymclevel.box import BoundingBox
 import arguments
@@ -77,12 +77,12 @@ def reload_filter_modules():
             # Skip anything that isn't a py file
             if not x.endswith(".py"): continue
 
-
             p = Path(filters_dir) / Path(x)
             log.debug("Loading filter", p)
 
             # Build a unique module name based on the path, replacing non alphanumerics with underscores
-            module_name = "_mcedit_filter_" + re.sub(r'\W+', '_', str(p))
+            path_name = str(p)
+            module_name = "_mcedit_filter_" + re.sub(r'\W+', '_', path_name)
 
             log.debug("Creating filter with module name:", module_name)
 
@@ -92,6 +92,9 @@ def reload_filter_modules():
 
             # Give the module a unique name for mapping
             module._mcedit_name = module_name
+
+            # Add the path for later lookup
+            module._filter_file_path = path_name
 
             # Import the module
             spec.loader.exec_module(module)
@@ -362,25 +365,49 @@ class FilterToolPanel(Panel):
             self.remove(i)
 
         tool = self.tool
+        
+        hidden_filter_paths = HiddenFilters.get_list()
+        enabled_filters = [id for id in tool.filter_identifiers if ALL_FILTER_MODULES[id]._filter_file_path not in hidden_filter_paths]
+
+        select_row = Row((
+            self.build_reload_button(),
+            Button("Visibility", action=self.open_hide_filters_panel),
+        ))
+
+        open_files_row = Row((
+            Button("Template", action=self.create_template),
+            Button("Guide", action=self.open_filter_guide),
+        ))
+
+        self.file_controls = Column((
+            select_row,
+            open_files_row
+        ))
 
         if len(ALL_FILTER_MODULES) == 0:
-            self.add(Label("No filter modules found!"))
+            lab = Label("No filter modules found")
             reload_button = self.build_reload_button()
-            reload_button.top = self.bottom
-            self.add_centered(reload_button)
+            self.add(Column((lab, reload_button, self.file_controls)))
             self.shrink_wrap()
             return
 
-        if (self.selectedFilterName is None) or (self.selectedFilterName not in tool.filter_identifiers) or (self.selectedFilterName not in ALL_FILTER_MODULES):
+        if len(enabled_filters) == 0:
+            lab = Label("No filter modules enabled")
+            reload_button = self.build_reload_button()
+            self.add(Column((lab, reload_button, self.file_controls)))
+            self.shrink_wrap()
+            return
+
+        if (self.selectedFilterName is None) or (self.selectedFilterName not in enabled_filters) or (self.selectedFilterName not in ALL_FILTER_MODULES):
             # Try to use the default filter
             to_select = None
-            for f in tool.filter_identifiers:
+            for f in enabled_filters:
                 if DEFAULT_FILTER_SEARCH_TEXT in f:
                     to_select = f
 
             # Otherwise, use the first one in the list
             if to_select is None:
-                to_select = tool.filter_identifiers[0]
+                to_select = enabled_filters[0]
 
             self.select_filter(to_select)
 
@@ -394,12 +421,12 @@ class FilterToolPanel(Panel):
                 traceback.print_exc()
                 ALL_FILTER_MODULES.pop(self.selectedFilterName)
                 if not self.selectedFilterName:
-                    self.select_filter(tool.filter_identifiers[0])
+                    self.select_filter(enabled_filters[0])
 
-            if len(tool.filter_identifiers) == 0:
+            if len(enabled_filters) == 0:
                 raise ValueError("No filters loaded!")
 
-        self.filterSelect = ChoiceButton(tool.filter_identifiers, choice_display=dict(tool.filter_identifiers_and_names), choose=self.filterChanged)
+        self.filterSelect = ChoiceButton(enabled_filters, choice_display=dict(tool.filter_identifiers_and_names), choose=self.filterChanged)
         self.filterSelect.selectedChoice = self.selectedFilterName
 
         self.confirmButton = Button("Confirm", action=self.tool.confirm)
@@ -443,20 +470,11 @@ class FilterToolPanel(Panel):
         if self.selectedFilterName in self.savedOptions:
             self.filterOptionsPanel.options = self.savedOptions[self.selectedFilterName]
 
-        self.file_controls = Row((
-            self.build_reload_button(),
-            Button("Template", action=self.create_template),
-            Button("Guide", action=self.open_filter_guide)
-        ))
-
         self.update_file_controls(self.show_file_controls)
 
 
     def load_default_options(self):
         if self.filterOptionsPanel is not None:
-            # default_options = self.filterOptionsPanel.rebuild_default_options(ALL_FILTER_MODULES[self.selectedFilterName])
-            # self.filterOptionsPanel.options = default_options
-            # self.savedOptions[self.selectedFilterName] = default_options
             self.filterOptionsPanel.init_options()
         self.saveOptions()
 
@@ -511,6 +529,9 @@ class FilterToolPanel(Panel):
 
         # Reload filters after adding a new one
         self.reload_filters_and_ui()
+
+    def open_hide_filters_panel(self):
+        FilterConfigModal().present()
 
     def open_filter_guide(self):
         mcplatform.platform_open(directories.FILTER_GUIDE_FILE);
@@ -700,3 +721,104 @@ class FilterTool(EditorTool):
             self.editor.invalidateBox(self.selectionBox())
 
         self.panel.saveOptions()
+
+class FilterConfigModal(Dialog):
+    def __init__(self):
+        super().__init__()
+        # Base table
+        table_view = TableView(columns=[TableColumn("Hide?", 50, "l"), TableColumn("Filter", 250, "l"), TableColumn("Path", 400, "l")])
+        table_widget = Widget()
+
+        # Displaying modules alphabetically by name
+        filter_modules = [f for f in ALL_FILTER_MODULES.values()]
+        filter_modules.sort(key=lambda m: m._mcedit_name_display)
+
+        # Setup rows of the table
+        def build_row(i):
+            title = filter_modules[i]._mcedit_name_display
+            path = filter_modules[i]._filter_file_path
+            path = filter_modules[i]._filter_file_path
+            max_path = 40
+            if len(path) > max_path:
+                path = f"...{path[-max_path:]}"
+
+            return ("hide", title, path)
+        table_view.num_rows = lambda: len(filter_modules)
+        table_view.anchor = "lrbt"
+        table_view.row_data = build_row
+        table_view.click_row = lambda i, e: self.refs[i].toggle()
+
+        # Find which filters are hidden
+        hidden_filter_paths = HiddenFilters.get_list()
+
+        # Keeping track of which filters are enabled
+        self.enabled_map = {}
+        class EnabledRef:
+            def __init__(e_self, m):
+                e_self.module = m
+                e_self.key = m._filter_file_path
+                e_self.hidden = e_self.key in hidden_filter_paths
+                e_self.update_enabled_map()
+
+            def update_enabled_map(e_self):
+                self.enabled_map[e_self.key] = e_self.hidden
+
+            def get(e_self):
+                return e_self.hidden
+            def set(e_self, h):
+                e_self.hidden = h
+                e_self.update_enabled_map()
+            
+            def toggle(e_self):
+                e_self.set(not e_self.get())
+
+        # Build check boxes for hiding or unhiding filters
+        self.refs = []
+        for m in filter_modules:
+            ref = EnabledRef(m)
+            self.refs.append(ref)
+
+        # Setup drawing custom elements
+        draw_table_cell = table_view.draw_table_cell
+        def draw_block_table_cell(surf, i, data, cell_rect, column):
+            # For the hide row, instead, draw depending on if the filter is hidden or not
+            if data == "hide":
+                r = self.refs[i]
+                draw_table_cell(surf, i, "X" if self.refs[i].get() else "", cell_rect, column)
+            # Draw the normal content for the other columns
+            else:
+                draw_table_cell(surf, i, data, cell_rect, column)
+        table_view.draw_table_cell = draw_block_table_cell
+
+        # Add contents 
+        table_widget.add(table_view)
+        table_widget.shrink_wrap()
+
+        # Add a button to exit
+        exit_button = Button("Return", action=lambda: self.dismiss(True))
+
+        # Setup layout to allow for scrolling properly
+        content_col = Column((table_widget, exit_button))
+
+        # Add the table to the modal
+        self.add(content_col)
+        self.shrink_wrap()
+
+    # On modal close, update a config for which filters are enabled and reload the filters
+    def dismiss(self, value=True):
+        result = super().dismiss(value)
+
+        hidden = []
+        for f, enabled in self.enabled_map.items():
+            if enabled:
+                hidden.append(f)
+
+        # Update the config
+        HiddenFilters.set_list(hidden)
+        save_config()
+
+        # Reload filters for the ui
+        reload_filters()
+
+        return result
+    

@@ -369,6 +369,14 @@ class _LastFilterSection(Section):
 LastFilter = _LastFilterSection(config)
 
 
+class _HiddenFiltersSection(ListSection):
+    """Holds the filters that should be hidden in the ui"""
+
+    NAME = "hidden filters"
+
+HiddenFilters = _HiddenFiltersSection(None, config)
+
+
 # Save the config after final init
 save_config()
 
