@@ -24,7 +24,7 @@ if arguments.LOG_LEVEL == LogLevel.TRACE or arguments.LOG_LEVEL == LogLevel.DEBU
     OpenGL.ERROR_CHECKING = False
 
 import albow
-from albow.dialogs import Dialog
+from albow.dialogs import Dialog, alert
 from albow.openglwidgets import GLViewport
 from albow.root import RootWidget, schedule as albow_schedule
 from config import LastDir, Keys, WorldKeys, ToolKeys, Controls, Settings, RecentWorlds, save_config
@@ -53,6 +53,7 @@ from pymclevel.material import materials
 from mceutils import FilterControls
 from typing import Literal
 import log
+from pathlib import Path
 
 MCBetaLevel.loadedChunkLimit = 0
 
@@ -901,6 +902,32 @@ class MCEdit(GLViewport):
         self.add(self.fileOpener)
         self.focus_switch = self.fileOpener
 
+    def file_dropped(self, file_path: Path):
+        file_name = None
+        
+        try:
+            # If it's a level.dat file, use it
+            if file_path.name == "level.dat":
+                file_name = str(file_path)
+            # If it's a directory, see if it has a level.dat file
+            elif file_path.is_dir():
+                for p in file_path.iterdir():
+                    if not p.is_file(): continue
+                    if p.name != "level.dat": continue
+
+                    # Found a .dat file, try to load it
+                    file_name = str(p)
+                    break
+        except:
+            pass
+
+        # Load the file if one was found
+        if file_name is not None:
+            self.loadFile(file_name)
+        # Otherwise, alert that it couldn't load
+        else:
+            alert(f"Cannot open file:\n{file_path}\nit is not a level.dat file or a folder with a level.dat file")
+
     def confirm_quit(self):
         if self.editor.unsavedEdits:
             result = albow.ask("There are {0} unsaved changes.".format(self.editor.unsavedEdits),
@@ -932,6 +959,7 @@ class MCEdit(GLViewport):
         root_widget.displayContext = displayContext
         root_widget.confirm_quit = mcedit.confirm_quit
         root_widget.mcedit = mcedit
+        root_widget.file_dropped = mcedit.file_dropped
 
         root_widget.add(mcedit)
         root_widget.focus_switch = mcedit

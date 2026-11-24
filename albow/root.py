@@ -21,6 +21,8 @@ from albow.dialogs import wrapped_label
 from config import Settings
 import log
 
+from pathlib import Path
+
 start_time = datetime.now()
 
 mod_cmd = KMOD_LCTRL | KMOD_RCTRL | KMOD_LMETA | KMOD_RMETA
@@ -259,6 +261,10 @@ class RootWidget(Widget):
                                     add_modifiers(event)
                                     last_mouse_event_handler.setup_cursor(event)
                                 self.begin_frame()
+                        elif type == DROPFILE:
+                            # Load a world from a dragged in .dat file
+                            filepath = event.file
+                            self.file_dropped(Path(filepath))
                         elif type == VIDEORESIZE:
                             self.do_draw = True
                             self.size = (event.w, event.h)
@@ -307,6 +313,9 @@ class RootWidget(Widget):
         return widget.dispatch_key(name, event)
 
     def begin_frame(self):
+        pass
+    
+    def file_dropped(self, file_path: Path):
         pass
 
     def get_root(self):

@@ -1951,10 +1951,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
                 for subdirname in subdirs:
                     if subdirname in self.dirhashes:
                         filenames = os.listdir(os.path.join(self.worldDir, dirname, subdirname))
-                        #def fullname(filename):
-                            #return os.path.join(self.worldDir, dirname, subdirname, filename);
 
-                        #fullpaths = map(fullname, filenames);
                         bits = [x.split('.') for x in filenames]
 
                         chunkfilenames = [x for x in bits if (len(x) == 4 and x[0].lower() == 'c' and x[3].lower() == 'dat')]
