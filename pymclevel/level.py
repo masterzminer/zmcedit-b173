@@ -713,6 +713,21 @@ class EntityLevel(MCLevel):
         self.Entities.value[:] = new_entities
 
         return entities_removed
+    
+    def remove_entities(self, entities_to_remove):
+
+        new_entities = []
+        for ent in self.Entities:
+            if ent in entities_to_remove:
+                continue
+            new_entities.append(ent)
+
+        entities_removed = len(self.Entities) - len(new_entities)
+        log.debug(f"Removed {entities_removed} entities")
+
+        self.Entities.value[:] = new_entities
+
+        return entities_removed
 
     def removeTileEntitiesInBox(self, box):
 

@@ -32,4 +32,4 @@ def perform(level, box, options):
 				chunk.TileEntities.append(spawner)
 		
 	for (chunk, entity) in entitiesToRemove:
-		chunk.Entities.remove(entity)
+		chunk.remove_entities([entity])
