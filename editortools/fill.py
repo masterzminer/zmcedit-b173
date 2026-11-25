@@ -98,7 +98,7 @@ class FillToolPanel(Panel):
             self.swapButton.fg_color = (255, 255, 255, 255)
             self.swapButton.highlight_color = (60, 255, 60, 255)
 
-            self.swapButton.tooltipText = f"Shortcut: {Keys.swap.upper()}"
+            self.swapButton.tooltipText = f"Shortcut: {Keys.swap.v.upper()}"
 
             self.fillButton = Button("Replace", action=tool.confirm, width=self.blockButton.width)
             self.fillButton.tooltipText = f"Shortcut: {Keys.confirm_construction.v.upper()}"
