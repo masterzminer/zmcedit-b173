@@ -34,5 +34,6 @@ def perform(level, box, options):
         # Replace the actual blocks using the mask to determine which blocks to replace
         blocks[mask] = replace_block.ID
         data[mask] = replace_block.blockData
-    
-    level.markDirtyBox(box)
+
+        # Indicate that the chunk has been changed
+        chunk.chunkChanged()
