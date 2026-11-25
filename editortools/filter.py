@@ -103,7 +103,7 @@ def reload_filter_modules():
             sys.modules[module_name] = module
 
             # Give the module a friendly name, or use the given one if needed
-            module._mcedit_name_display = (module.displayName if hasattr(module, 'displayName') else p.stem).capitalize()
+            module._mcedit_name_display = module.displayName if hasattr(module, 'displayName') else (p.stem.capitalize())
 
             # Track the module
             all_modules.append(module)
