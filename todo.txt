@@ -1,5 +1,3 @@
-filters: Retest all stock filters
-
 add random blocks filter
     make the input use actual block selectors
     make the process use numpy operations

@@ -123,9 +123,6 @@ def adj_height(orig, new, slice_no, cliff_pos, dir, adj, can_adj, max_step, slic
 
 
 def perform(level, box, options):
-    if box.volume > 16000000:
-        raise ValueError("Volume too big for this filter method!")
-
     RLOption = options["Raise/Lower"]
     schema = level.extractSchematic(box)
     schema.removeEntitiesInBox(schema.bounds)
@@ -231,9 +228,9 @@ def perform(level, box, options):
 
         water_depth = 0
         # Detect Water on top
-        if column[oh + 1:oh + 2] == materials.Water.ID or column[oh + 1:oh + 2] == materials.Ice.ID:
+        if oh + 1 < len(column) and column[oh + 1] in (materials.Water.ID, materials.Ice.ID):
             for cur_pos in range(oh + 1, schema.Height):
-                if column[cur_pos:cur_pos + 1] != materials.Water.ID and column[cur_pos:cur_pos + 1] != materials.Ice.ID: break
+                if cur_pos + 1 >= len(column) or (column[cur_pos + 1] != materials.Water.ID and column[cur_pos + 1] != materials.Ice.ID): break
                 water_depth = water_depth + 1
 
         if delta == 0:
