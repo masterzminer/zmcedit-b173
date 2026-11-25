@@ -81,9 +81,7 @@ class FillToolPanel(Panel):
 
         col = (self.fillWithLabel,
                 self.blockButton,
-                # swapRow,
                 replaceLabel,
-                # self.replaceBlockButton,
                 self.fillButton)
 
         if replacing:
@@ -140,9 +138,13 @@ class FillToolOptions(ToolOptions):
         self.tool = tool
         self.autoChooseCheckBox = CheckBoxLabel("Choose Block Immediately",
                                                 ref=FillToolSettings.chose_block_immediately,
-                                                tooltipText="When the fill tool is chosen, prompt for a block type.")
+                                                tooltipText="When the fill tool is chosen, prompt for a block type")
+        
+        self.choose_block_on_swap_check_box = CheckBoxLabel("Choose Block On Swap",
+                                                ref=FillToolSettings.chose_block_on_swap,
+                                                tooltipText="When the swapping from fill to replace mode, prompt for a block type")
 
-        col = Column((Label("Fill Options"), self.autoChooseCheckBox, Button("OK", action=self.dismiss)))
+        col = Column((Label("Fill Options"), self.autoChooseCheckBox, self.choose_block_on_swap_check_box, Button("OK", action=self.dismiss)))
 
         self.add(col)
         self.shrink_wrap()
@@ -255,7 +257,7 @@ class FillTool(EditorTool):
 
         self.hidePanel()
         self.showPanel()
-        if self.replacing:
+        if self.replacing and FillToolSettings.chose_block_on_swap.v:
             self.panel.pickReplaceBlock()
 
     @alertException

@@ -296,6 +296,7 @@ class _FillToolSection(Section):
     NAME = "fill tool"
 
     chose_block_immediately = S(False)
+    chose_block_on_swap = S(False)
 
 
 FillToolSettings = _FillToolSection(config)
