@@ -537,7 +537,6 @@ class MCLevel(object):
                 x = 0
             if x + sourceBox.size[0] > self.Width:
                 sourceBox.size[0] -= x + sourceBox.size[0] - self.Width
-                #x=self.Width-sourceBox.size[0]
 
         if self.Length != 0:
             if z < 0:
@@ -546,7 +545,6 @@ class MCLevel(object):
                 z = 0
             if z + sourceBox.size[2] > self.Length:
                 sourceBox.size[2] -= z + sourceBox.size[2] - self.Length
-                #z=self.Length-sourceBox.size[2]
 
         destinationPoint = (x, y, z)
 

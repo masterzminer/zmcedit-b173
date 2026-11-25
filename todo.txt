@@ -1,8 +1,3 @@
-add random blocks filter
-    make the input use actual block selectors
-    make the process use numpy operations
-    make it the default filter
-
 make release 0.2
 
 

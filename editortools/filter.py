@@ -25,7 +25,7 @@ from pymclevel.box import BoundingBox
 import arguments
 import log
 
-DEFAULT_FILTER_SEARCH_TEXT = "smooth_py"
+DEFAULT_FILTER_SEARCH_TEXT = "RandomBlocks_py"
 
 ALL_FILTER_DIRS = []
 
@@ -404,6 +404,7 @@ class FilterToolPanel(Panel):
             for f in enabled_filters:
                 if DEFAULT_FILTER_SEARCH_TEXT in f:
                     to_select = f
+                    break
 
             # Otherwise, use the first one in the list
             if to_select is None:
