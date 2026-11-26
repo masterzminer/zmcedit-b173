@@ -311,7 +311,6 @@ class BlockButton(ButtonBase, Panel):
         else:
             self._recentBlocks = []
 
-        self.allowWildcards = False
         blockInfo = materials.Air if blockInfo is None else blockInfo
         self._blockInfo = blockInfo
 
@@ -417,33 +416,21 @@ class BlockButton(ButtonBase, Panel):
         return "{0}".format(self.blockInfo.name)
 
     def action(self):
-        blockPicker = BlockPicker(self.blockInfo, allowWildcards=self.allowWildcards)
+        blockPicker = BlockPicker(self.blockInfo)
         if blockPicker.present():
             self.blockInfo = blockPicker.blockInfo
             return True
         return False
 
-
-def anySubtype(self):
-    bl = material.Block(self.ID, self.blockData)
-    bl.wildcard = True
-    return bl
-
 from pymclevel.material import Block
-
-Block.anySubtype = anySubtype
-Block.wildcard = False  # True if
 
 
 class BlockPicker(Dialog):
     is_gl_container = True
 
     def __init__(self, blockInfo, *a, **kw):
-        self.allowWildcards = False
         Dialog.__init__(self, *a, **kw)
         panelWidth = 350
-
-        self.anySubtype = blockInfo.wildcard
 
         self.matchingBlocks = materials.allBlocks
 
@@ -520,11 +507,7 @@ class BlockPicker(Dialog):
         but.align = "c"
         but.height = 30
 
-        if self.allowWildcards:
-            anyRow = CheckBoxLabel("Any Subtype", ref=AttrRef(self, 'anySubtype'), tooltipText="Replace blocks with any data value. Only useful for Replace operations.")
-            col = Column((searchRow, tableWidget, anyRow, blockView, but))
-        else:
-            col = Column((searchRow, tableWidget, blockView, but))
+        col = Column((searchRow, tableWidget, blockView, but))
         col.anchor = "wh"
         self.anchor = "wh"
 
@@ -550,12 +533,7 @@ class BlockPicker(Dialog):
     @property
     def blockInfo(self):
         if len(self.matchingBlocks):
-            bl = self.matchingBlocks[self.selectedBlockIndex]
-            if self.anySubtype:
-                return bl.anySubtype()
-            else:
-                return bl
-
+            return self.matchingBlocks[self.selectedBlockIndex]
         else:
             return materials.Air
 

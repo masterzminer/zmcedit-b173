@@ -270,6 +270,8 @@ class _BrushToolSection(Section):
     copy_reset_on_select = S(False)
     copy_paste_air = S(True)
     copy_paste_water = S(True)
+    
+    replace_wildcard = S(False)
 
 
 
@@ -309,6 +311,8 @@ class _FillToolSection(Section):
 
     fill_recent = BLS("[]")
     replace_recent = BLS("[]")
+
+    replace_wildcard = S(False)
 
 
 FillToolSettings = _FillToolSection(config)

@@ -165,7 +165,8 @@ class Modes:
         name = "Replace"
 
         def createOptions(self, panel, tool):
-            return Modes.Fill.createOptions(self, panel, tool) + [panel.replaceBlockButton]
+            wildcard_check_box = CheckBoxLabel("Any Subtype", ref=BrushToolSettings.replace_wildcard, tooltipText="Replace all blocks with the same data value")
+            return Modes.Fill.createOptions(self, panel, tool) + [panel.replaceBlockButton, wildcard_check_box]
 
         def performAtPoint(self, op: BrushOperation, point, dirtyBox):
             for i, (chunk, slices, point) in enumerate(op.level.getChunkSlices(dirtyBox)):
@@ -179,7 +180,7 @@ class Modes:
                 brushMask = op.createBrushMask(op.brushSize, BrushToolSettings.shape.v, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
 
                 replaceWith = BrushToolSettings.replace_block.get()
-                if op.blockInfo.wildcard:
+                if BrushToolSettings.replace_wildcard.v:
                     log.trace("Wildcard replace")
                     blocksToReplace = []
                     for i in range(16):
@@ -801,8 +802,7 @@ class BrushPanel(Panel):
             blockInfo=BrushToolSettings.fill_block.v,
             on_block_info_change=BrushToolSettings.fill_block.set,
             recentBlocks=BrushToolSettings.fill_recent.v,
-            on_recent_blocks_change=BrushToolSettings.fill_recent.set,
-            allowWildcards=(get_brush_mode().name == "Replace"))
+            on_recent_blocks_change=BrushToolSettings.fill_recent.set)
 
         self.replaceBlockButton = BlockButton(
             blockInfo=BrushToolSettings.replace_block.v,
@@ -1203,9 +1203,7 @@ class BrushTool(CloneTool):
             if BrushToolSettings.mode.v == "Paste":
                 brush_mode_map["Paste"].importPaste(self)
             else:
-                blockPicker = BlockPicker(
-                    BrushToolSettings.fill_block.get(),
-                    allowWildcards=get_brush_mode().name == "Replace")
+                blockPicker = BlockPicker(BrushToolSettings.fill_block.get())
 
                 if blockPicker.present():
                     self.panel.blockButton.blockInfo = blockPicker.blockInfo

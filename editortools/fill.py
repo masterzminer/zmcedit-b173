@@ -107,12 +107,17 @@ class FillToolPanel(Panel):
             self.fillButton = Button("Replace", action=tool.confirm, width=self.blockButton.width)
             self.fillButton.tooltipText = f"Shortcut: {Keys.confirm_construction.v.upper()}"
 
+            wildcard_check_box = CheckBoxLabel("Any Subtype", ref=FillToolSettings.replace_wildcard, tooltipText="Replace all blocks with the same data value")
+
             col = (self.fillWithLabel,
                     self.blockButton,
                     replaceLabel,
                     self.replaceBlockButton,
+                    wildcard_check_box,
                     self.swapButton,
-                    self.fillButton)
+                    self.fillButton,
+                )
+            
 
         col = Column(col)
 
@@ -217,7 +222,7 @@ class FillTool(EditorTool):
             fill_info = FillToolSettings.fill_block.v
             if self.is_replacing():
                 blocksToReplace = []
-                if fill_info.wildcard:
+                if FillToolSettings.replace_wildcard.v:
                     log.trace("Wildcard replace")
                     for i in range(16):
                         blocksToReplace.append(materials.blockWithID(fill_info.ID, i))
