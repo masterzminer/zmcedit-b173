@@ -488,7 +488,7 @@ class CloneTool(EditorTool):
 
         if factor < 1.0:
             roundedShape = [int(int(x * factor) / factor) for x in old_shape]
-            roundedSlices = [slice(0, x) for x in roundedShape]
+            roundedSlices = tuple([slice(0, x) for x in roundedShape])
             blocks = blocks[roundedSlices]
             data = data[roundedSlices]
         else:
