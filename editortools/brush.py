@@ -1137,7 +1137,7 @@ class BrushTool(CloneTool):
         
         if get_brush_mode().name == "Replace":
             blockInfo = BrushToolSettings.replace_block.get()
-        if get_brush_mode().name == "Erode":
+        elif get_brush_mode().name == "Erode":
             blockInfo = materials.blockWithID(0, 0)
         else:
             blockInfo = BrushToolSettings.fill_block.get()
