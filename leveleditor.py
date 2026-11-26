@@ -1225,7 +1225,6 @@ class CameraViewport(GLViewport):
                 (blockPosition, faceDirection) = focusPair
                 if None != blockPosition:
                     self.editor.updateInspectionString(blockPosition)
-                    # for t in self.toolbar.tools:
 
                     if self.find_widget(mouse.get_pos()) == self:
                         ct = self.editor.currentTool
@@ -2044,7 +2043,6 @@ class LevelEditor(GLViewport):
 
         saveInfoLabel = Label(self.saveInfoLabelText)
         saveInfoLabel.anchor = "blwh"
-        # saveInfoLabel.width = 500
 
         saveInfoBackground.add(saveInfoLabel)
         saveInfoBackground.shrink_wrap()
@@ -2188,8 +2186,6 @@ class LevelEditor(GLViewport):
         self.key_up(evt)
 
     def mouse_drag(self, evt):
-        # if 'button' not in evt.dict or evt.button != 1:
-        #    return
         if self.level:
             f = self.blockFaceUnderCursor
             if None != f:
@@ -2203,20 +2199,6 @@ class LevelEditor(GLViewport):
         self.mcedit.focus_switch = self
         self.focus_switch = None
         self.key_down(evt)
-
-    '''
-    def mouseDragOn(self):
-
-        x,y = mouse.get_pos(0)
-        if None != self.currentOperation:
-            self.dragInProgress = True
-            self.dragStartPoint = (x,y)
-            self.currentOperation.dragStart(x,y)
-
-    def mouseDragOff(self):
-        if self.dragInProgress:
-            self.dragInProgress = False
-            '''
 
     def mouseLookOff(self):
         self.mouseWasCaptured = False

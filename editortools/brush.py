@@ -179,7 +179,6 @@ class Modes:
                 brushMask = op.createBrushMask(op.brushSize, BrushToolSettings.shape.v, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
 
                 replaceWith = BrushToolSettings.replace_block.get()
-                # xxx pasted from fill.py
                 if op.blockInfo.wildcard:
                     log.trace("Wildcard replace")
                     blocksToReplace = []

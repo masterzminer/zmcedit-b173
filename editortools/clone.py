@@ -310,25 +310,22 @@ class CloneToolOptions(ToolOptions):
     def __init__(self, tool):
         Panel.__init__(self)
         self.tool = tool
-        self.autoPlaceCheckBox = CheckBox(ref=CloneToolSettings.place_immediately)
-        self.autoPlaceLabel = Label("Place Immediately")
-        self.autoPlaceLabel.mouse_down = self.autoPlaceCheckBox.mouse_down
-        tooltipText = "When the clone tool is chosen, place the clone at the selection right away"
-        self.autoPlaceLabel.tooltipText = self.autoPlaceCheckBox.tooltipText = tooltipText
-        auto_place_row = Row((self.autoPlaceCheckBox, self.autoPlaceLabel))
 
-        self.createChunksCheckBox = CheckBox(ref=CloneToolSettings.create_chunks)
-        self.createChunksLabel = Label("Create Chunks")
-        self.createChunksLabel.mouse_down = self.createChunksCheckBox.mouse_down
-        tooltipText = "When cloning into missing chunks, create new empty chunks"
-        self.createChunksLabel.tooltipText = self.createChunksCheckBox.tooltipText = tooltipText
-        create_chunks_row = Row((self.createChunksCheckBox, self.createChunksLabel))
-        
+        auto_place_row = self.checkbox(CloneToolSettings.place_immediately, "Place Immediately", "When the clone tool is chosen, place the clone at the selection right away")
+        create_chunks_row = self.checkbox(CloneToolSettings.create_chunks, "Create Chunks", "When cloning into missing chunks, create new empty chunks")
+        select_after_row = self.checkbox(CloneToolSettings.select_tool_after, "Deselect After Clone", "After cloning, clear the current selection and move to the select tool")
 
-        col = Column((Label("Clone Options"), auto_place_row, create_chunks_row, Button("OK", action=self.dismiss)))
+        col = Column((Label("Clone Options"), auto_place_row, create_chunks_row, select_after_row, Button("OK", action=self.dismiss)))
 
         self.add(col)
         self.shrink_wrap()
+
+    def checkbox(self, setting, label_text, tooltip_text):
+        box = CheckBox(ref=setting)
+        lab = Label(label_text)
+        lab.mouse_down = box.mouse_down
+        lab.tooltipText = box.tooltipText = tooltip_text
+        return Row((box, lab))
 
 
 class CloneTool(EditorTool):
@@ -405,7 +402,6 @@ class CloneTool(EditorTool):
         if key.get_mods() & KMOD_SHIFT:
             nudge = self.quickNudge(nudge)
 
-        # self.panel.performButton.enabled = True
         self.destPoint = list(map(lambda a, b: a + b, self.destPoint, nudge))
         self.updateOffsets()
 
@@ -520,7 +516,6 @@ class CloneTool(EditorTool):
             box = self.selectionBox()
             self.level = self.editor.level.extractSchematic(box)
             self.originalLevel = self.level
-            # self.level.cloneToolScaleFactor = 1.0
             self.rescaleLevel(self.scaleFactor)
             self.setupPreview()
 
@@ -768,9 +763,7 @@ class CloneTool(EditorTool):
     def positionOnDraggingPlane(self):
         pos = self.editor.mainViewport.cameraPosition
         dim = self.draggingFace >> 1
-#        if key.get_mods() & KMOD_SHIFT:
-#            dim = self.findBestTrackingPlane(self.draggingFace)
-#
+
         distance = self.draggingStartPoint[dim] - pos[dim]
         distance += self.draggingY
 
@@ -891,8 +884,6 @@ class CloneTool(EditorTool):
                             create_chunks=CloneToolSettings.create_chunks.v
         )
 
-        self.editor.toolbar.selectTool(-1)  # deselect tool so that the clone tool's selection change doesn't update its schematic
-
         with setWindowCaption("COPYING - "):
             self.editor.freezeStatus("Copying %0.1f million blocks" % (float(destVolume) / 1048576.,))
             self.performWithRetry(op)
@@ -908,8 +899,17 @@ class CloneTool(EditorTool):
 
         self.editor.currentOperation = None
 
-        self.destPoint = None
-        self.level = None
+        if CloneToolSettings.select_tool_after.v:
+            self.destPoint = None
+            self.level = None
+            self.editor.toolbar.selectTool(0)
+
+        else:
+            box = self.selectionBox()
+            self.level = self.editor.level.extractSchematic(box)
+            self.destPoint = list(box.origin)
+            self.updateSchematic()
+            self.cloneCameraDistance = max(self.cloneCameraDistance, self.safeToolDistance())
 
     def discardPreviewer(self):
         if self.previewRenderer is None:

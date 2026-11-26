@@ -420,6 +420,8 @@ class BlockButton(ButtonBase, Panel):
         blockPicker = BlockPicker(self.blockInfo, allowWildcards=self.allowWildcards)
         if blockPicker.present():
             self.blockInfo = blockPicker.blockInfo
+            return True
+        return False
 
 
 def anySubtype(self):

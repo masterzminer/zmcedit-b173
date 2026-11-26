@@ -286,6 +286,8 @@ class _CloneToolSection(Section):
 
     create_chunks = S(False)
 
+    select_tool_after = S(True)
+
 
 CloneToolSettings = _CloneToolSection(config)
 
@@ -297,6 +299,16 @@ class _FillToolSection(Section):
 
     chose_block_immediately = S(False)
     chose_block_on_swap = S(False)
+    select_tool_after = S(True)
+    
+    fill_block = BS(r'{"ID": 1, "blockData": 0}')
+    replace_block = BS(r'{"ID": 0, "blockData": 0}')
+
+    mode = S("fill")
+    """one of fill, replace"""
+
+    fill_recent = BLS("[]")
+    replace_recent = BLS("[]")
 
 
 FillToolSettings = _FillToolSection(config)
