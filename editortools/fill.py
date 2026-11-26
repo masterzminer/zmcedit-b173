@@ -128,7 +128,6 @@ class FillToolPanel(Panel):
         self.blockButton.replace_recent_blocks([b for b in self.replaceBlockButton._recentBlocks])
         self.replaceBlockButton.replace_recent_blocks(t)
 
-
 class FillToolOptions(ToolOptions):
     def __init__(self, tool):
         Panel.__init__(self)
@@ -198,7 +197,7 @@ class FillTool(EditorTool):
 
     def toolReselected(self):
         self.showPanel()
-        self.panel.replaceBlockButton.action()
+        self.panel.blockButton.action()
 
     def cancel(self):
         self.hidePanel()
