@@ -425,7 +425,7 @@ class BlockButton(ButtonBase, Panel):
 
 
 def anySubtype(self):
-    bl = material.Block(materials, self.ID, self.blockData)
+    bl = material.Block(self.ID, self.blockData)
     bl.wildcard = True
     return bl
 
