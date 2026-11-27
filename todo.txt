@@ -6,8 +6,6 @@ go through and remove all the commented out code
 
 go through and fix all the deprecated method calls
 
-fix alt+2 always reselecting the current block
-
 make release 1.0
 
 

@@ -2499,7 +2499,7 @@ class LevelEditor(GLViewport):
 
             # Check if a tool hotkey is pressed
             tool_hotkey = ToolKeys.get_from_value(keyname)
-            if tool_hotkey:
+            if tool_hotkey and not alt:
                 # Select the tool
                 self.toolbar.selectTool(tool_hotkey.index)
 
