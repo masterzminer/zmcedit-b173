@@ -540,10 +540,13 @@ class BlockPicker(Dialog):
     def selectTableRow(self, i, e):
         oldIndex = self.selectedBlockIndex
 
-        self.selectedBlockIndex = i
-        self.blockButton.blockInfo = self.blockInfo
+        self.select_table_index(i)
         if e.num_clicks > 1 and oldIndex == i:
             self.ok()
+
+    def select_table_index(self, i):
+        self.selectedBlockIndex = i
+        self.blockButton.blockInfo = self.blockInfo
 
     def textEntered(self):
         text = self.awesomeField.text
@@ -593,6 +596,21 @@ class BlockPicker(Dialog):
 
         self.tableview.rows.scroll_to_item(self.selectedBlockIndex)
         self.blockButton.blockInfo = self.blockInfo
+
+    def key_down(self, event):
+        k = event.key
+        # Move the selected element if this is an arrow key
+        size = len(self.matchingBlocks)
+        if k == K_UP:
+            self.select_table_index((self.selectedBlockIndex - 1 + size) % size)
+            self.tableview.rows.scroll_to_item(self.selectedBlockIndex)
+        elif k == K_DOWN:
+            self.select_table_index((self.selectedBlockIndex + 1) % size)
+            self.tableview.rows.scroll_to_item(self.selectedBlockIndex)
+        
+
+        # Do normal behavior
+        return super().key_down(event)
 
 
 class EditorTool(object):

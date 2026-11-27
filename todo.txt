@@ -2,8 +2,6 @@ Fix potential bug with entity duplication during undo
 
 Fix random error in BlockRenderer.setAlpha, somehow it caused a crash
 
-allow arrow keys to move up and down the selected block in the block picker
-
 make release 0.2
 
 
