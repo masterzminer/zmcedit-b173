@@ -669,7 +669,7 @@ class FilterTool(EditorTool):
 
     @property
     def statusText(self):
-        return f"Choose a filter, then click Filter or press {Keys.confirm_construction.v.upper()} to apply it."
+        return f"Choose a filter, then click Confirm or press {Keys.confirm_construction.v.upper()} to apply it."
 
     def toolEnabled(self):
         return not (self.selectionBox() is None)
