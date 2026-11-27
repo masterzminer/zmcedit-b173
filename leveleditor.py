@@ -2361,7 +2361,10 @@ class LevelEditor(GLViewport):
         im = [0., 0., 0.]
         mods = evt.dict.get('mod', 0)
 
-        if mods & KMOD_ALT:
+        alt = mods & KMOD_ALT
+        ctrl = mods & KMOD_CTRL
+
+        if alt:
             if keyname == Keys.long_distance_mode.v:
                 Settings.long_distance_mode.set(not Settings.long_distance_mode.v)
             if keyname == Keys.tool_option_1.v:
@@ -2375,7 +2378,7 @@ class LevelEditor(GLViewport):
             if keyname == Keys.tool_option_5.v:
                 self.currentTool.option5()
 
-        elif mods & KMOD_CTRL:
+        if ctrl:
             if keyname == Keys.goto.v: self.showGotoPanel()
             if keyname == Keys.swap_view_distance.v:
                 self.swapViewDistance()
@@ -2413,7 +2416,7 @@ class LevelEditor(GLViewport):
                 pygame.event.clear()
 
             if keyname == Keys.debug_1.v:
-                if mods & KMOD_ALT:
+                if alt:
                     # Weird magic that allows you to run arbitrary python code from in the gui
                     if arguments.DEBUG:
                         try:
@@ -2433,7 +2436,7 @@ class LevelEditor(GLViewport):
                 def causeError():
                     raise ValueError(f"User pressed CONTROL-{Keys.debug_2}, requesting a program error.")
 
-                if mods & KMOD_ALT:
+                if alt:
                     if arguments.DEBUG:
                         causeError()
                 elif mods & KMOD_SHIFT:
