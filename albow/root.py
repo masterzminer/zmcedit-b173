@@ -17,11 +17,13 @@ from .widget import Widget
 from .controls import Label
 
 from datetime import datetime, timedelta
-from albow.dialogs import wrapped_label
+from albow.dialogs import wrapped_label, ask
 from config import Settings
 import log
 
 from pathlib import Path
+
+import directories
 
 start_time = datetime.now()
 
@@ -76,6 +78,8 @@ def get_top_widget():
 def get_focus():
     return top_widget.get_focus()
 
+class SaveAndExitException(Exception):
+    pass
 
 class RootWidget(Widget):
     #  surface   Pygame display surface
@@ -277,6 +281,24 @@ class RootWidget(Widget):
 
                 except Cancel:
                     pass
+        except Exception as e:
+            log.error("Unexpected error")
+
+            ignore = "Ignore"
+            save_close = "Save and Close"
+            no_save = "Close Without Saving"
+            open_logs = "Open Logs"
+
+            choice = None
+            while choice != ignore:
+                choice = ask(f"An unexpected error has occurred:\n\n{e}\n\nFor more detailed information, see logs at:\n{directories.LOG_FILE}\n", [ignore, save_close, no_save, open_logs], default=0, cancel=0)
+                if choice == save_close:
+                    raise SaveAndExitException()
+                elif choice == no_save:
+                    raise e
+                elif choice == open_logs:
+                    import mcplatform
+                    mcplatform.platform_open(directories.LOG_FILE)
         finally:
             modal_widget.is_modal = was_modal
             top_widget = old_top_widget

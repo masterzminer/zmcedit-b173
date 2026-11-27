@@ -4,8 +4,6 @@ Fix random error in BlockRenderer.setAlpha, somehow it caused a crash
 
 allow arrow keys to move up and down the selected block in the block picker
 
-maybe put a try except around the main loop so the whole thing doesn't crash when an exception happens
-
 make release 0.2
 
 

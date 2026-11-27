@@ -26,7 +26,7 @@ if arguments.LOG_LEVEL == LogLevel.TRACE or arguments.LOG_LEVEL == LogLevel.DEBU
 import albow
 from albow.dialogs import Dialog, alert
 from albow.openglwidgets import GLViewport
-from albow.root import RootWidget, schedule as albow_schedule
+from albow.root import RootWidget, schedule as albow_schedule, SaveAndExitException
 from config import LastDir, Keys, WorldKeys, ToolKeys, Controls, Settings, RecentWorlds, save_config
 from config_classes import Setting
 import directories
@@ -989,6 +989,12 @@ class MCEdit(GLViewport):
         while True:
             try:
                 root_widget.run()
+            except SaveAndExitException:
+                mcedit.editor.saveFile()
+                save_config()
+                mcedit.editor.renderer.discardAllChunks()
+                mcedit.editor.deleteAllCopiedSchematics()
+                raise
             except SystemExit:
                 save_config()
                 mcedit.editor.renderer.discardAllChunks()

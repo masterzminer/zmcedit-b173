@@ -26,7 +26,7 @@ def warn(*values: object):
 def error(*values: object, hide_traceback = False):
     _log_at(values, level=LogLevel.ERROR)
     if not hide_traceback:
-        traceback.print_exc()
+        _log_at(traceback.format_exc(), level=LogLevel.ERROR)
 
 
 def _log_at(*values: object, level: LogLevel):
@@ -37,7 +37,7 @@ def _log_at(*values: object, level: LogLevel):
 
     _logger.log(
         # Log value
-        msg=" ".join(map(str, *values)),
+        msg=" ".join(map(str, values)),
         # Always using info for the built in log level, using a custom level instead
         level=logging.INFO,
         # Add the custom level
@@ -57,7 +57,16 @@ def init():
 
     _logger.setLevel(logging.INFO)
 
-    fmt = logging.Formatter('[%(custom_level)-5s][%(module)-15s][%(lineno)-4d]: %(message)s')
+    from datetime import datetime
+    class LogFormatter(logging.Formatter):
+        def formatTime(self, record, datefmt=None):
+            dt = datetime.fromtimestamp(record.created).astimezone()
+            return dt.strftime("%Y-%m-%d %H:%M:%S.") + f"{dt.microsecond // 1000:03d}"
+
+    fmt = LogFormatter(
+        fmt='%(asctime)s [%(custom_level)-5s][%(module)-15s][%(lineno)-4d]: %(message)s',
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
 
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
