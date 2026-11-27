@@ -152,6 +152,8 @@ _parsed_args = _init()
 # Values from command line arguments
 LOG_LEVEL: LogLevel = _parsed_args.log or LogLevel.INFO
 """The severity that logging should occur at, defaults to info"""
+DEBUG = LOG_LEVEL.value <= LogLevel.DEBUG.value
+"""True to do additional debug actions"""
 DEBUG_RENDER = _parsed_args.debugrender or False
 """True if debug rendering is enabled"""
 CONFIG_OVERRIDE = _parsed_args.config
