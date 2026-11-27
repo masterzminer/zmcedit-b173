@@ -1,7 +1,3 @@
-Fix potential bug with entity duplication during undo
-
-Fix random error in BlockRenderer.setAlpha, somehow it caused a crash
-
 make release 0.2
 
 
@@ -31,3 +27,7 @@ Brush
 level rendering
     Make fire render with a proper texture
     Make buttons and other non full blocks render with proper models
+
+Currently unproducible bugs
+    Fix potential bug with entity duplication during undo
+    Fix random error in BlockRenderer.setAlpha, somehow it caused a crash

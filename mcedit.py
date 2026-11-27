@@ -608,7 +608,7 @@ class OptionsPanel(Dialog):
         invertRow = mceutils.CheckBoxLabel("Invert Mouse", ref=Controls.invert_mouse_pitch,
             tooltipText="Reverse the up and down motion of the mouse.")
         
-        classicMouseRow = mceutils.CheckBoxLabel("Classic Mouse", ref=Settings.classic_mouse, invert=True,
+        classicMouseRow = mceutils.CheckBoxLabel("Classic Mouse", ref=Settings.classic_mouse,
             tooltipText="Use the mouse pointer from the original version of MC Edit")
            
         centerMouseFixRow = mceutils.CheckBoxLabel("Center Mouse", ref=Settings.center_mouse_fix,
