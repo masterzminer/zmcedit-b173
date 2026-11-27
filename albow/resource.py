@@ -20,13 +20,13 @@ def _resource_path(default_prefix, names, prefix=""):
     return os.path.join(directories.ASSETS, prefix or default_prefix, *names)
 
 
-def _get_image(names, border=0, optimize=optimize_images, noalpha=False,
+def _get_image(names, border=0, optimize=optimize_images, no_alpha=False,
         rle=run_length_encode, prefix="images"):
     path = _resource_path(prefix, names)
     image = image_cache.get(path)
     if not image:
         image = pygame.image.load(path)
-        if noalpha:
+        if no_alpha:
             image = image.convert(24)
         elif optimize:
             image = image.convert_alpha()
@@ -56,7 +56,7 @@ def get_font(size, *names, **kwds):
             try:
                 font = pygame.font.Font(path.encode(sys.getfilesystemencoding()), size)
             except Exception:
-                log.warn(f"Couldn't get font {path}, using sysfont")
+                log.warn(f"Couldn't get font {path}, using numpy SysFont Courier New")
                 font = pygame.font.SysFont("Courier New", size)
         font_cache[key] = font
     return font

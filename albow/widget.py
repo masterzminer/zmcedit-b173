@@ -1,6 +1,6 @@
 
 import sys
-from pygame import Rect, Surface, draw, image
+from pygame import Rect, Surface, image
 from pygame.locals import K_RETURN, K_KP_ENTER, K_ESCAPE, K_TAB, \
     KEYDOWN, SRCALPHA
 from pygame.mouse import set_cursor
@@ -58,18 +58,19 @@ def rect_property(name):
 
 
 class Widget(object):
-    #  rect            Rect       bounds in parent's coordinates
-    #  parent          Widget     containing widget
-    #  subwidgets      [Widget]   contained widgets
-    #  focus_switch    Widget     subwidget to receive key events
-    #  fg_color        color      or None to inherit from parent
-    #  bg_color        color      to fill background, or None
-    #  visible         boolean
-    #  border_width    int        width of border to draw around widget, or None
-    #  border_color    color      or None to use widget foreground color
-    #  tab_stop        boolean    stop on this widget when tabbing
-    #  anchor          string     of 'ltrb'
-
+    """
+    rect            Rect       bounds in parent's coordinates
+    parent          Widget     containing widget
+    subwidgets      [Widget]   contained widgets
+    focus_switch    Widget     subwidget to receive key events
+    fg_color        color      or None to inherit from parent
+    bg_color        color      to fill background, or None
+    visible         boolean
+    border_width    int        width of border to draw around widget, or None
+    border_color    color      or None to use widget foreground color
+    tab_stop        boolean    stop on this widget when tabbing
+    anchor          string     of 'ltrb'
+    """
     font = FontProperty('font')
     fg_color = ThemeProperty('fg_color')
     bg_color = ThemeProperty('bg_color')
@@ -277,9 +278,9 @@ class Widget(object):
                     bg_width, bg_height = bg_image.get_size()
                     width, height = self.size
                     if width > bg_width or height > bg_height:
-                        hscale = width / bg_width
-                        vscale = height / bg_height
-                        bg_image = rotozoom(bg_image, 0.0, max(hscale, vscale))
+                        h_scale = width / bg_width
+                        v_scale = height / bg_height
+                        bg_image = rotozoom(bg_image, 0.0, max(h_scale, v_scale))
                 r = bg_image.get_rect()
                 r.center = surf_rect.center
                 surface.blit(bg_image, r)
@@ -495,7 +496,6 @@ class Widget(object):
         self.modal_result = value
 
     def get_root(self):
-        # Deprecated, use root.get_root()
         return root_widget
 
     def get_top_widget(self):
@@ -535,11 +535,10 @@ class Widget(object):
         contents = self.subwidgets
         if contents:
             rects = [widget.rect for widget in contents]
-            #rmax = Rect.unionall(rects) # broken in PyGame 1.7.1
-            rmax = rects.pop()
+            r_max = rects.pop()
             for r in rects:
-                rmax = rmax.union(r)
-            self._rect.size = add(rmax.topleft, rmax.bottomright)
+                r_max = r_max.union(r)
+            self._rect.size = add(r_max.topleft, r_max.bottomright)
 
     def invalidate(self):
         root = self.get_root()
@@ -576,7 +575,7 @@ class Widget(object):
         r.inflate_ip(d, d)
         return r
 
-    def set_size_for_text(self, width, nlines=1):
+    def set_size_for_text(self, width, n_lines=1):
         if width is not None:
             font = self.font
             d = 2 * self.margin
@@ -585,7 +584,7 @@ class Widget(object):
                 width += d + 2
             else:
                 height = font.size("X")[1]
-            self.size = (width, height * nlines + d)
+            self.size = (width, height * n_lines + d)
 
     def tab_to_first(self):
         chain = self.get_tab_order()
@@ -662,9 +661,9 @@ class Widget(object):
         rect = self.rect.move(offset)
         if self.is_gl_container:
             self.gl_draw_self(root, offset)
-            suboffset = rect.topleft
+            sub_offset = rect.topleft
             for subwidget in self.subwidgets:
-                subwidget.gl_draw_all(root, suboffset)
+                subwidget.gl_draw_all(root, sub_offset)
         else:
             try:
                 surface = Surface(self.size, SRCALPHA)

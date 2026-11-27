@@ -1,11 +1,4 @@
-#
-#   Albow - Shell
-#
-
-
 from .root import RootWidget
-
-#------------------------------------------------------------------------------
 
 
 class Shell(RootWidget):

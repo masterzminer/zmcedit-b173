@@ -1,12 +1,4 @@
-#
-#   Albow - Screen
-#
-
-
 from .widget import Widget
-
-#------------------------------------------------------------------------------
-
 
 class Screen(Widget):
 

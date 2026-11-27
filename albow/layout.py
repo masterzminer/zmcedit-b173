@@ -1,8 +1,3 @@
-#
-#   Albow - Layout widgets
-#
-
-
 from pygame import Rect
 from .widget import Widget
 
@@ -58,8 +53,6 @@ class RowOrColumn(Widget):
             py = p[1] + sy
         self.shrink_wrap()
 
-#---------------------------------------------------------------------------
-
 
 class Row(RowOrColumn):
 
@@ -80,8 +73,6 @@ class Row(RowOrColumn):
         """
         RowOrColumn.__init__(self, width, items, kwds)
 
-#---------------------------------------------------------------------------
-
 
 class Column(RowOrColumn):
 
@@ -101,8 +92,6 @@ class Column(RowOrColumn):
         align = 'l', 'c' or 'r'
         """
         RowOrColumn.__init__(self, height, items, kwds)
-
-#---------------------------------------------------------------------------
 
 
 class Grid(Widget):
@@ -135,14 +124,11 @@ class Grid(Widget):
         Widget.__init__(self, r, **kwds)
         self.add(rows)
 
-#---------------------------------------------------------------------------
-
 
 class Frame(Widget):
-    #  margin  int        spacing between border and widget
-
     border_width = 1
     margin = 2
+    """spacing between border and widget"""
 
     def __init__(self, client, border_spacing=None, **kwds):
         Widget.__init__(self, **kwds)

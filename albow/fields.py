@@ -1,7 +1,3 @@
-#
-#   Albow - Fields
-#
-
 from pygame import draw
 import pygame
 from pygame.locals import K_LEFT, K_RIGHT, K_TAB, K_c, K_v, SCRAP_TEXT
@@ -9,8 +5,6 @@ from .widget import Widget, overridable_property
 from .controls import Control
 from config_classes import Setting
 import log
-
-#---------------------------------------------------------------------------
 
 
 class TextEditor(Widget):
@@ -181,13 +175,8 @@ class TextEditor(Widget):
         self.set_text(text)
         self.call_handler('change_action')
 
-#---------------------------------------------------------------------------
-
 
 class Field(Control, TextEditor):
-    #  type      func(string) -> value
-    #  editing   boolean
-
     empty = NotImplemented
     format = "%s"
     min = None
@@ -319,7 +308,6 @@ class IntField(Field):
             return self._shift_increment
         else:
             return self._increment
-        return self._increment
 
     @increment.setter
     def increment(self, val):
@@ -462,5 +450,3 @@ class FloatField(Field):
 
         else:
             Field.mouse_down(self, evt)
-
-

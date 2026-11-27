@@ -1,8 +1,4 @@
 
-from pygame import draw, Surface
-from pygame.locals import SRCALPHA
-
-
 def frame_rect(surface, color, rect, thick=1):
     o = 1
     surface.fill(color, (rect.left + o, rect.top, rect.width - o - o, thick))

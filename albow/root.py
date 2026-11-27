@@ -1,11 +1,3 @@
-#---------------------------------------------------------------------------
-#
-#   Albow - Root widget
-#
-#---------------------------------------------------------------------------
-
-
-
 import sys
 import pygame
 from pygame.locals import *
@@ -14,7 +6,6 @@ from pygame.event import Event
 from glbackground import *
 from . import widget
 from .widget import Widget
-from .controls import Label
 
 from datetime import datetime, timedelta
 from albow.dialogs import wrapped_label, ask
@@ -37,7 +28,7 @@ modifiers = dict(
     meta=False,
 )
 
-modkeys = {
+mod_keys = {
     K_LSHIFT: 'shift', K_RSHIFT: 'shift',
     K_LCTRL:  'ctrl', K_RCTRL:  'ctrl',
     K_LALT:   'alt', K_RALT:   'alt',
@@ -57,7 +48,7 @@ class Cancel(Exception):
 
 
 def set_modifier(key, value):
-    attr = modkeys.get(key)
+    attr = mod_keys.get(key)
     if attr:
         modifiers[attr] = value
 
@@ -82,8 +73,10 @@ class SaveAndExitException(Exception):
     pass
 
 class RootWidget(Widget):
-    #  surface   Pygame display surface
-    #  is_gl     True if OpenGL surface
+    """
+    surface   Pygame display surface
+    is_gl     True if OpenGL surface
+    """
 
     redraw_every_frame = False
     do_draw = False
@@ -192,7 +185,6 @@ class RootWidget(Widget):
 
                             if not mouse_widget.is_inside(modal_widget):
                                 mouse_widget = modal_widget
-                            #if event.button == 1:
                             clicked_widget = mouse_widget
                             last_mouse_event_handler = mouse_widget
                             last_mouse_event = event
@@ -377,9 +369,9 @@ class RootWidget(Widget):
             showTip(tip)
 
         else:
-            ttext = widget.tooltipText
-            if ttext is not None:
-                tip = TextTooltip(ttext)
+            tooltip_text = widget.tooltipText
+            if tooltip_text is not None:
+                tip = TextTooltip(tooltip_text)
                 showTip(tip)
 
     def update_tooltip(self, pos=None):
@@ -425,7 +417,6 @@ class RootWidget(Widget):
 
 #---------------------------------------------------------------------------
 
-from time import time
 from bisect import insort
 
 scheduled_calls = []

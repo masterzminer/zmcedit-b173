@@ -13,8 +13,8 @@ class ImageArray(object):
         else:
             self.nrows = 1
             self.ncols = shape
-        iwidth, iheight = image.get_size()
-        self.size = iwidth // self.ncols, iheight // self.nrows
+        i_width, i_height = image.get_size()
+        self.size = i_width // self.ncols, i_height // self.nrows
 
     def __len__(self):
         return self.shape
@@ -28,10 +28,6 @@ class ImageArray(object):
             col = index
         else:
             row, col = index
-        #left = iwidth * col // ncols
-        #top = iheight * row // nrows
-        #width = iwidth // ncols
-        #height = iheight // nrows
         width, height = self.size
         left = width * col
         top = height * row

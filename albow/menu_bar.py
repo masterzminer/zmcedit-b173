@@ -1,8 +1,3 @@
-#
-#    Albow - Menu bar
-#
-
-
 from pygame import Rect
 from .widget import Widget, overridable_property
 
@@ -16,7 +11,7 @@ class MenuBar(Widget):
         height = font.get_linesize()
         Widget.__init__(self, Rect(0, 0, width, height), **kwds)
         self.menus = menus or []
-        self._hilited_menu = None
+        self._highlighted_menu = None
 
     def get_menus(self):
         return self._menus
@@ -28,11 +23,11 @@ class MenuBar(Widget):
         fg = self.fg_color
         bg = self.bg_color
         font = self.font
-        hilited = self._hilited_menu
+        highlighted = self._highlighted_menu
         x = 0
         for menu in self._menus:
             text = " %s " % menu.title
-            if menu is hilited:
+            if menu is highlighted:
                 buf = font.render(text, True, bg, fg)
             else:
                 buf = font.render(text, True, fg, bg)
@@ -50,11 +45,11 @@ class MenuBar(Widget):
                 self.show_menu(menu, x)
 
     def show_menu(self, menu, x):
-        self._hilited_menu = menu
+        self._highlighted_menu = menu
         try:
             i = menu.present(self, (x, self.height))
         finally:
-            self._hilited_menu = None
+            self._highlighted_menu = None
         menu.invoke_item(i)
 
     def handle_command_key(self, e):

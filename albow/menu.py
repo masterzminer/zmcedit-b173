@@ -1,17 +1,6 @@
-#---------------------------------------------------------------------------
-#
-#    Albow - Pull-down or pop-up menu
-#
-#---------------------------------------------------------------------------
-
-
-import sys
 from .root import get_root, get_focus
 from .dialogs import Dialog
 from .theme import ThemeProperty
-
-#---------------------------------------------------------------------------
-
 
 class MenuItem(object):
 
@@ -39,8 +28,6 @@ class MenuItem(object):
                 self.alt = True
                 keyname = self.option_name + keyname
             self.keyname = self.cmd_name + keyname
-
-#---------------------------------------------------------------------------
 
 
 class Menu(Dialog):
@@ -75,7 +62,7 @@ class Menu(Dialog):
         if w2 > 0:
             width += w2 + margin
         self.size = (width, height)
-        self._hilited = None
+        self._highlighted = None
 
         root = get_root()
         self.rect.clamp_ip(root.rect)
@@ -104,14 +91,14 @@ class Menu(Dialog):
         xt = self.margin
         xk = self._key_margin
         y = h // 2
-        hilited = self._hilited
+        highlighted = self._highlighted
         for item in self._items:
             text = item.text
             if not text:
                 sep.top = y + h // 2
                 surf.fill(colors[0], sep)
             else:
-                if item is hilited:
+                if item is highlighted:
                     rect = surf.get_rect()
                     rect.top = y
                     rect.height = h
@@ -132,8 +119,8 @@ class Menu(Dialog):
 
     def mouse_drag(self, e):
         item = self.find_enabled_item(e)
-        if item is not self._hilited:
-            self._hilited = item
+        if item is not self._highlighted:
+            self._highlighted = item
             self.invalidate()
 
     def mouse_up(self, e):

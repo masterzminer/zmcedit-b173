@@ -1,8 +1,3 @@
-#
-#   Albow - Controls
-#
-
-
 from pygame import Rect, draw
 from .widget import Widget, overridable_property
 from .theme import ThemeProperty
@@ -10,8 +5,6 @@ from .utils import blit_in_rect, frame_rect
 from . import resource
 
 from typing import Protocol
-
-#---------------------------------------------------------------------------
 
 class ControlRef(Protocol):
     def get(self) -> any: ...
@@ -62,8 +55,6 @@ class Control(object):
     def set_enabled(self, x):
         self._enabled = x
 
-#---------------------------------------------------------------------------
-
 
 class AttrRef(object):
 
@@ -77,8 +68,6 @@ class AttrRef(object):
     def set(self, x):
         setattr(self.obj, self.attr, x)
 
-#---------------------------------------------------------------------------
-
 
 class ItemRef(object):
 
@@ -91,8 +80,6 @@ class ItemRef(object):
 
     def set(self, x):
         self.obj[self.item] = x
-
-#---------------------------------------------------------------------------
 
 
 class Label(Widget):
@@ -206,8 +193,6 @@ class GLLabel(Label):
 class SmallLabel(Label):
     """Small text size. See theme.py"""
 
-#---------------------------------------------------------------------------
-
 
 class ButtonBase(Control):
 
@@ -233,8 +218,6 @@ class ButtonBase(Control):
                 if self.enabled:
                     self.call_handler('action')
 
-#---------------------------------------------------------------------------
-
 
 class Button(ButtonBase, Label):
 
@@ -245,12 +228,8 @@ class Button(ButtonBase, Label):
             kwds['enable'] = enable
         Label.__init__(self, text, **kwds)
 
-#---------------------------------------------------------------------------
-
 
 class Image(Widget):
-    #  image   Image to display
-
     highlight_color = ThemeProperty('highlight_color')
 
     image = overridable_property('image')
@@ -282,17 +261,9 @@ class Image(Widget):
         r.center = frame.center
         surf.blit(image, r)
 
-#    def draw(self, surf):
-#        frame = self.get_margin_rect()
-#        surf.blit(self.image, frame)
-
-#---------------------------------------------------------------------------
-
 
 class ImageButton(ButtonBase, Image):
     pass
-
-#---------------------------------------------------------------------------
 
 
 class ValueDisplay(Control, Label):
@@ -329,8 +300,6 @@ class ValueButton(ButtonBase, ValueDisplay):
     def get_text(self):
         return self.format_value(self.value)
 
-#---------------------------------------------------------------------------
-
 
 class CheckControl(Control):
 
@@ -342,8 +311,6 @@ class CheckControl(Control):
 
     def get_highlighted(self):
         return self.value
-
-#---------------------------------------------------------------------------
 
 
 class CheckWidget(Widget):
@@ -372,8 +339,6 @@ class CheckWidget(Widget):
             else:
                 draw.lines(surf, fg, False, [p1, p2, p3])
 
-#---------------------------------------------------------------------------
-
 
 class CheckBox(CheckControl, CheckWidget):
 
@@ -381,8 +346,6 @@ class CheckBox(CheckControl, CheckWidget):
         super().__init__(**kwargs)
 
     pass
-
-#---------------------------------------------------------------------------
 
 
 class RadioControl(Control):
@@ -394,8 +357,6 @@ class RadioControl(Control):
 
     def mouse_down(self, e):
         self.value = self.setting
-
-#---------------------------------------------------------------------------
 
 
 class RadioButton(RadioControl, CheckWidget):

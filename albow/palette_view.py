@@ -6,22 +6,24 @@ from .theme import ThemeProperty
 
 
 class PaletteView(GridView):
-    #  nrows   int   No. of displayed rows
-    #  ncols   int   No. of displayed columns
-    #
-    #  Abstract methods:
-    #
-    #    num_items()  -->  no. of items
-    #    draw_item(surface, item_no, rect)
-    #    click_item(item_no, event)
-    #    item_is_selected(item_no)  -->  bool
+    """
+    nrows   int   No. of displayed rows
+    ncols   int   No. of displayed columns
+    
+    Abstract methods:
+    
+        num_items()  -->  no. of items
+        draw_item(surface, item_no, rect)
+        click_item(item_no, event)
+        item_is_selected(item_no)  -->  bool
+    """
 
     sel_width = ThemeProperty('sel_width')
     zebra_color = ThemeProperty('zebra_color')
     scroll_button_size = ThemeProperty('scroll_button_size')
     scroll_button_color = ThemeProperty('scroll_button_color')
     highlight_style = ThemeProperty('highlight_style')
-        # 'frame' or 'fill' or 'reverse' or None
+    """'frame' or 'fill' or 'reverse' or None"""
 
     def __init__(self, cell_size, nrows, ncols, scrolling=False, **kwds):
         GridView.__init__(self, cell_size, nrows, ncols, **kwds)
@@ -77,14 +79,14 @@ class PaletteView(GridView):
         if i % 2:
             surface.fill(self.zebra_color, rect)
         if highlight:
-            self.draw_prehighlight(surface, i, rect)
+            self.draw_pre_highlight(surface, i, rect)
         if highlight and self.highlight_style == 'reverse':
             fg = self.inherited('bg_color') or self.sel_color
         else:
             fg = self.fg_color
         self.draw_item_with(surface, i, rect, fg)
         if highlight:
-            self.draw_posthighlight(surface, i, rect)
+            self.draw_post_highlight(surface, i, rect)
 
     def draw_item_with(self, surface, i, rect, fg):
         old_fg = self.fg_color
@@ -94,21 +96,21 @@ class PaletteView(GridView):
         finally:
             self.fg_color = old_fg
 
-    def draw_prehighlight(self, surface, i, rect):
+    def draw_pre_highlight(self, surface, i, rect):
         if self.highlight_style == 'reverse':
             color = self.fg_color
         else:
             color = self.sel_color
-        self.draw_prehighlight_with(surface, i, rect, color)
+        self.draw_pre_highlight_with(surface, i, rect, color)
 
-    def draw_prehighlight_with(self, surface, i, rect, color):
+    def draw_pre_highlight_with(self, surface, i, rect, color):
         style = self.highlight_style
         if style == 'frame':
             frame_rect(surface, color, rect, self.sel_width)
         elif style == 'fill' or style == 'reverse':
             surface.fill(color, rect)
 
-    def draw_posthighlight(self, surface, i, rect):
+    def draw_post_highlight(self, surface, i, rect):
         pass
 
     def mouse_down(self, event):

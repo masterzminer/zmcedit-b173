@@ -1,6 +1,3 @@
-
-# Was importing some old package "Numeric" and silently failing before, just removing it
-
 import operator
 
 def add(x, y):

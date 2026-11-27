@@ -1,10 +1,3 @@
-#-------------------------------------------------------------------------
-#
-#   Albow - OpenGL widgets
-#
-#-------------------------------------------------------------------------
-
-
 from OpenGL import GL, GLU
 from .widget import Widget
 import numpy as np
@@ -55,10 +48,9 @@ class GLViewport(Widget):
             p0 = up(x, y, 0.0, mv_mat, pr_mat, viewport)
             p1 = up(x, y, 1.0, mv_mat, pr_mat, viewport)
             event.dict['ray'] = (p0, p1)
-        except ValueError:  # projection failed!
+        except ValueError:
+            #  Projection failed
             pass
-
-#-------------------------------------------------------------------------
 
 
 class GLOrtho(GLViewport):
@@ -88,18 +80,16 @@ class GLPixelOrtho(GLOrtho):
         self.ymax = self.height
 
 
-#-------------------------------------------------------------------------
-
 
 class GLPerspective(GLViewport):
 
-    def __init__(self, rect=None, fovy=20,
+    def __init__(self, rect=None, fov=20,
             near=0.1, far=1000, **kwds):
         GLViewport.__init__(self, rect, **kwds)
-        self.fovy = fovy
+        self.fov = fov
         self.near = near
         self.far = far
 
     def setup_projection(self):
         aspect = self.width / self.height
-        GLU.gluPerspective(self.fovy, aspect, self.near, self.far)
+        GLU.gluPerspective(self.fov, aspect, self.near, self.far)

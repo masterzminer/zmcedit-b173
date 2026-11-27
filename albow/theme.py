@@ -1,9 +1,3 @@
-#
-#    Albow - Themes
-#
-
-
-
 from . import resource
 
 import sys
@@ -56,9 +50,10 @@ class ThemeError(Exception):
 
 
 class Theme(object):
-    #  name   string          Name of theme, for debugging
-    #  base   Theme or None   Theme on which this theme is based
-
+    """
+    name   string          Name of theme, for debugging
+    base   Theme or None   Theme on which this theme is based
+    """
     def __init__(self, name, base=None):
         self.name = name
         self.base = base

@@ -4,14 +4,16 @@ from .widget import Widget
 
 
 class GridView(Widget):
-    #  cell_size   (width, height)   size of each cell
-    #
-    #  Abstract methods:
-    #
-    #    num_rows()  -->  no. of rows
-    #    num_cols()  -->  no. of columns
-    #    draw_cell(surface, row, col, rect)
-    #    click_cell(row, col, event)
+    """
+    cell_size   (width, height)   size of each cell
+    
+    Abstract methods:
+    
+        num_rows()  -->  no. of rows
+        num_cols()  -->  no. of columns
+        draw_cell(surface, row, col, rect)
+        click_cell(row, col, event)
+    """
 
     def __init__(self, cell_size, nrows, ncols, **kwds):
         """nrows, ncols are for calculating initial size of widget"""

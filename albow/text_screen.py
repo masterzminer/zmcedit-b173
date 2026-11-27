@@ -1,8 +1,3 @@
-#
-#   Albow - Text Screen
-#
-
-
 from pygame import Rect
 from pygame.locals import *
 from .screen import Screen
@@ -10,8 +5,6 @@ from .theme import FontProperty
 from .resource import get_image, get_font, get_text
 from .vectors import add, maximum
 from .controls import Button
-
-#------------------------------------------------------------------------------
 
 
 class Page(object):
@@ -39,15 +32,13 @@ class Page(object):
             surface.blit(buf, (x, y))
             y += buf.get_rect().height
 
-#------------------------------------------------------------------------------
-
 
 class TextScreen(Screen):
-
-#    bg_color = (0, 0, 0)
-#    fg_color = (255, 255, 255)
-#    border = 20
-
+    """
+    bg_color = (0, 0, 0)
+    fg_color = (255, 255, 255)
+    border = 20
+    """
     heading_font = FontProperty('heading_font')
     button_font = FontProperty('button_font')
 

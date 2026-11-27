@@ -1,16 +1,8 @@
-#
-#   Albow - Table View
-#
-
-
-
-
 from pygame import Rect
 from .layout import Column
 from .palette_view import PaletteView
 from .utils import blit_in_rect
 import log
-
 
 class TableView(Column):
 
@@ -49,8 +41,8 @@ class TableView(Column):
         Column.__init__(self, contents, align='l', spacing=s, **kwds)
         if header:
             header.font = self.header_font or self.font
-            header.fg_color = fg_color = self.header_fg_color or self.fg_color
-            header.bg_color = bg_color = self.header_bg_color or self.bg_color
+            header.fg_color = self.header_fg_color or self.fg_color
+            header.bg_color = self.header_bg_color or self.bg_color
         rows.font = self.font
         rows.fg_color = self.fg_color
         rows.bg_color = self.bg_color
@@ -101,11 +93,13 @@ class TableView(Column):
 
 
 class TableColumn(object):
-    #  title           string
-    #  width           int
-    #  alignment       'l' or 'c' or 'r'
-    #  formatter       func(data) -> string
-    #  format_string   string                Used by default formatter
+    """
+    title           string
+    width           int
+    alignment       'l' or 'c' or 'r'
+    formatter       func(data) -> string
+    format_string   string                Used by default formatter
+    """
 
     format_string = "%s"
 
@@ -156,7 +150,6 @@ class TableRowBase(PaletteView):
 class TableRowView(TableRowBase):
 
     highlight_style = 'fill'
-    vstretch = True
 
     def item_is_selected(self, n):
         return self.parent.row_is_selected(n)

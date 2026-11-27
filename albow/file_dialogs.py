@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-#
-#   Albow - File Dialogs
-#
-
 from pygame.locals import *
 from albow.widget import Widget
 from albow.dialogs import Dialog, ask, alert
