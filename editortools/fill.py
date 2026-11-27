@@ -257,7 +257,7 @@ class FillTool(EditorTool):
         self.hidePanel()
         self.showPanel()
         if self.is_replacing() and FillToolSettings.chose_block_on_swap.v:
-            self.panel.pickReplaceBlock()
+            self.panel.replaceBlockButton.action()
 
     @alertException
     def swap(self):
