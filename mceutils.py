@@ -385,7 +385,7 @@ class HotkeyColumn(Widget):
                 button = ValueButton(ref=title, action=action, width=200)
             button.anchor = self.anchor
 
-            label = Label(hotkey, width=20, margin=button.margin)
+            label = Label(hotkey, margin=button.margin)
             label.anchor = "wh"
             label.height = button.height
 

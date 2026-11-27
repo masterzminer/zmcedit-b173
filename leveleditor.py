@@ -149,9 +149,6 @@ class ControlPanel(Panel):
                     ("", "Quit", editor.quit),
                     ])
 
-        if cmd == "Cmd":
-            hotkeys[-1] = ("Cmd-Q", hotkeys[-1][1], hotkeys[-1][2])
-
         buttons = mceutils.HotkeyColumn(hotkeys, keysColumn, buttonsColumn)
 
         self.add(buttons)
