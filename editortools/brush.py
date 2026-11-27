@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Copyright (c) 2010-2012 David Rio Vierra
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -14,26 +16,25 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
 
 
-from editortools.clone import BlockCopyOperation
 from mceutils import ChoiceButton
 from os.path import basename
 import tempfile
 from .toolbasics import *
 from functools import reduce
 import numpy as np
-from pymclevel.material import materials
+from pymclevel.material import materials, natural_block_mask
 from config import LastDir, Keys, BrushToolSettings
 import log
+from bresenham import bresenham
+from pathlib import Path
 
 from pymclevel.box import BoundingBox
-
+from pymclevel.schematic import MCSchematic
 
 class BrushMode(object):
-    options = []
-
-    def dirtyBoxForPointAndOptions(self, point, options={}):
+    def dirtyBoxForPointAndOptions(self, point):
         # also used to position the preview reticle
-        size = options['brushSize']
+        size = _get_brush_size()
         origin = list(map(lambda x, s: x - (s >> 1), point, size))
         return BoundingBox(origin, size)
 
@@ -43,6 +44,13 @@ class BrushMode(object):
     def createOptions(self, panel, tool):
         pass
 
+
+def _get_brush_size():
+    return (
+        BrushToolSettings.length.v,
+        BrushToolSettings.height.v,
+        BrushToolSettings.width.v,
+    )
 
 class Modes:
     class Fill(BrushMode):
@@ -58,29 +66,27 @@ class Modes:
             ]
             return col
 
-        def performAtPoint(self, op, point, dirtyBox):
+        def performAtPoint(self, op: BrushOperation, point, dirtyBox):
             for chunk, slices, point in op.level.getChunkSlices(dirtyBox):
                 worldPoint = [p + o for p, o in zip(point, dirtyBox.origin)]
                 blocks = chunk.Blocks[slices]
 
                 box = BoundingBox(worldPoint, (blocks.shape[0], blocks.shape[2], blocks.shape[1]))  # xzy reorder
 
-                brushMask = op.createBrushMask(op.brushSize, op.brushStyle, dirtyBox.origin, box, op.noise, op.hollow)
+                brushMask = op.createBrushMask(op.brushSize, BrushToolSettings.shape.v, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
                 blocks[brushMask] = op.blockInfo.ID
 
                 chunk.Data[slices][brushMask] = op.blockInfo.blockData
-                # chunk.chunkChanged()
 
     class FloodFill(BrushMode):
         name = "Flood Fill"
-        options = ['indiscriminate']
 
         def createOptions(self, panel, tool):
             col = [
                 panel.brushModeRow,
                 panel.blockButton
             ]
-            indiscriminateButton = CheckBoxLabel("Indiscriminate", ref=AttrRef(tool, 'indiscriminate'))
+            indiscriminateButton = CheckBoxLabel("Indiscriminate", ref=BrushToolSettings.flood_indiscriminate)
 
             col.append(indiscriminateButton)
             return col
@@ -101,7 +107,7 @@ class Modes:
             doomedBlock = op.level.blockAt(*point)
             doomedBlockData = op.level.blockDataAt(*point)
             checkData = (doomedBlock not in (8, 9, 10, 11))
-            indiscriminate = op.options['indiscriminate']
+            indiscriminate = BrushToolSettings.flood_indiscriminate.v
 
             if doomedBlock == op.blockInfo.ID:
                 return
@@ -116,7 +122,7 @@ class Modes:
             op.level.setBlockDataAt(x, y, z, op.blockInfo.blockData)
 
             def processCoords(coords):
-                newcoords = deque()
+                new_coords = deque()
 
                 for (x, y, z) in coords:
                     for _dir, offsets in faceDirections:
@@ -136,9 +142,9 @@ class Modes:
                             saveUndoChunk(nx // 16, nz // 16)
                             op.level.setBlockAt(nx, ny, nz, op.blockInfo.ID)
                             op.level.setBlockDataAt(nx, ny, nz, op.blockInfo.blockData)
-                            newcoords.append(p)
+                            new_coords.append(p)
 
-                return newcoords
+                return new_coords
 
             def spread(coords):
                 while len(coords):
@@ -148,7 +154,7 @@ class Modes:
                     coords = processCoords(coords)
                     d = datetime.now() - start
                     progress = "Did {0} coords in {1}".format(num, d)
-                    debug(progress)
+                    log.debug(progress)
                     yield progress
 
             showProgress("Flood fill...", spread([point]), cancel=True)
@@ -159,23 +165,22 @@ class Modes:
         name = "Replace"
 
         def createOptions(self, panel, tool):
-            return Modes.Fill.createOptions(self, panel, tool) + [panel.replaceBlockButton]
+            wildcard_check_box = CheckBoxLabel("Any Subtype", ref=BrushToolSettings.replace_wildcard, tooltipText="Replace all blocks with the same data value")
+            return Modes.Fill.createOptions(self, panel, tool) + [panel.replaceBlockButton, wildcard_check_box]
 
-        def performAtPoint(self, op, point, dirtyBox):
+        def performAtPoint(self, op: BrushOperation, point, dirtyBox):
             for i, (chunk, slices, point) in enumerate(op.level.getChunkSlices(dirtyBox)):
                 yield i, dirtyBox.chunkCount
 
                 worldPoint = [p + o for p, o in zip(point, dirtyBox.origin)]
                 blocks = chunk.Blocks[slices]
                 data = chunk.Data[slices]
-                # box = BoundingBox(worldPoint,
                 box = BoundingBox(worldPoint, (blocks.shape[0], blocks.shape[2], blocks.shape[1]))  # xzy reorder
 
-                brushMask = op.createBrushMask(op.brushSize, op.brushStyle, dirtyBox.origin, box, op.noise, op.hollow)
+                brushMask = op.createBrushMask(op.brushSize, BrushToolSettings.shape.v, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
 
-                replaceWith = op.options['replaceBlockInfo']
-                # xxx pasted from fill.py
-                if op.blockInfo.wildcard:
+                replaceWith = BrushToolSettings.replace_block.get()
+                if BrushToolSettings.replace_wildcard.v:
                     log.trace("Wildcard replace")
                     blocksToReplace = []
                     for i in range(16):
@@ -185,32 +190,26 @@ class Modes:
 
                 replaceTable = op.level.blockReplaceTable(blocksToReplace)
                 replaceMask = replaceTable[blocks, data]
-                # replaceMask = blocks == op.blockInfo.ID
-                # replaceMask &= data == op.blockInfo.blockData
                 brushMask &= replaceMask
 
                 blocks[brushMask] = replaceWith.ID
                 data[brushMask] = replaceWith.blockData
-                # chunk.chunkChanged()
 
     class Erode(BrushMode):
         name = "Erode"
-        options = ['erosionStrength']
 
         def createOptions(self, panel, tool):
             col = [
                 panel.modeStyleGrid,
                 panel.brushSizeRows,
             ]
-            col.append(IntInputRow("Strength: ", ref=AttrRef(tool, 'erosionStrength'), min=1, max=20, tooltipText="Number of times to apply erosion. Larger numbers are slower."))
+            col.append(IntInputRow("Strength: ", ref=BrushToolSettings.erode_strength, min=1, max=20, tooltipText="Number of times to apply erosion. Larger numbers are slower."))
             return col
 
-        def performAtPoint(self, op, point, dirtyBox):
-            if dirtyBox.volume > 1048576:
-                raise ValueError("Affected area is too big for this brush mode")
+        def performAtPoint(self, op: BrushOperation, point, dirtyBox):
             box = dirtyBox.expand(1)
 
-            strength = op.options["erosionStrength"]
+            strength = BrushToolSettings.erode_strength.v
 
             erosionArea = op.level.extractSchematic(box, entities=False)
             if erosionArea is None:
@@ -235,7 +234,7 @@ class Modes:
                 solidBlocks = blocks != 0
                 neighbors = getNeighbors(solidBlocks)
 
-                brushMask = op.createBrushMask(op.brushSize, op.brushStyle)
+                brushMask = op.createBrushMask(op.brushSize, BrushToolSettings.shape.v)
                 erodeBlocks = neighbors < 5
                 erodeBlocks &= (np.random.random(erodeBlocks.shape) > 0.3)
                 erodeBlocks[1:-1, 1:-1, 1:-1] &= brushMask
@@ -253,19 +252,18 @@ class Modes:
 
     class Topsoil(Fill):
         name = "Topsoil"
-        options = ['naturalEarth', 'topsoilDepth']
 
         def createOptions(self, panel, tool):
             col = Modes.Fill.createOptions(self, panel, tool)
-            depthRow = IntInputRow("Depth: ", ref=AttrRef(tool, 'topsoilDepth'))
-            naturalRow = CheckBoxLabel("Only Change Natural Earth", ref=AttrRef(tool, 'naturalEarth'))
+            depthRow = IntInputRow("Depth: ", ref=BrushToolSettings.topsoil_depth)
+            naturalRow = CheckBoxLabel("Only Change Natural Earth", ref=BrushToolSettings.topsoil_natural_earth)
             col.extend([depthRow, naturalRow])
             return col
 
-        def performAtPoint(self, op, point, dirtyBox):
+        def performAtPoint(self, op: BrushOperation, point, dirtyBox):
 
             for chunk, slices, point in op.level.getChunkSlices(dirtyBox):
-                depth = op.options['topsoilDepth']
+                depth = BrushToolSettings.topsoil_depth.v
                 blocks = chunk.Blocks[slices]
                 data = chunk.Data[slices]
 
@@ -273,21 +271,14 @@ class Modes:
 
                 box = BoundingBox(worldPoint, (blocks.shape[0], blocks.shape[2], blocks.shape[1]))  # xzy reorder
 
-                brushMask = op.createBrushMask(op.brushSize, op.brushStyle, dirtyBox.origin, box, op.noise, op.hollow)
+                brushMask = op.createBrushMask(op.brushSize, BrushToolSettings.shape.v, dirtyBox.origin, box, op.noise, op.noise_type, op.hollow)
 
                 blocktype = op.blockInfo
 
-                if op.options['naturalEarth']:
-                    try:
-                        # try to get the block mask from the topsoil filter
-                        import topsoil  # @UnresolvedImport
-                        blockmask = topsoil.naturalBlockmask()
-                        blockmask[blocktype.ID] = True
-                        blocktypeMask = blockmask[blocks]
-
-                    except Exception as e:
-                        log.error(repr(e), " while using blockmask from filters.topsoil")
-                        blocktypeMask = blocks != 0
+                if BrushToolSettings.topsoil_natural_earth.v:
+                    block_mask = natural_block_mask()
+                    block_mask[blocktype.ID] = True
+                    blocktypeMask = block_mask[blocks]
 
                 else:
                     # topsoil any block
@@ -298,10 +289,10 @@ class Modes:
 
                 heightmap = extractHeights(blocktypeMask)
 
-                for x, z in itertools.product(*list(map(np.xrange, heightmap.shape))):
+                for x, z in np.ndindex(heightmap.shape):
                     h = heightmap[x, z]
                     if h >= box.height:
-                        continue
+                        return
                     if depth > 0:
                         idx = x, z, slice(max(0, h - depth), h)
                     else:
@@ -311,54 +302,244 @@ class Modes:
                     blocks[idx][mask] = blocktype.ID
                     data[idx][mask] = blocktype.blockData
 
-                # remember to do this to make sure the chunk is saved
-                # chunk.chunkChanged()
     class Paste(BrushMode):
 
         name = "Paste"
-        options = ['level'] + ['center' + c for c in 'xyz']
 
-        def dirtyBoxForPointAndOptions(self, point, options={}):
-            point = [p + options.get('center' + c, 0) for p, c in zip(point, 'xyz')]
-            return BoundingBox(point, options['brushSize'])
+        _level_offset = [0, 0, 0]
+        _paste_level = MCSchematic(shape=(1, 1, 1))
+        _loaded_schematic_name = None
+
+        def _get_paste_offset(self):
+            return (
+                BrushToolSettings.copy_offset_x.v,
+                BrushToolSettings.copy_offset_y.v,
+                BrushToolSettings.copy_offset_z.v,
+            )
+
+        def _update_paste_offset(self, index, value):
+            if index == 0: BrushToolSettings.copy_offset_x.set(value)
+            elif index == 1: BrushToolSettings.copy_offset_y.set(value)
+            elif index == 2: BrushToolSettings.copy_offset_z.set(value)
+
+        def _reset_paste_offset(self):
+            BrushToolSettings.copy_offset_x.set(0)
+            BrushToolSettings.copy_offset_y.set(0)
+            BrushToolSettings.copy_offset_z.set(0)
+
+        def find_centered_point(self, point):
+            return [p + c + lev for p, c, lev in zip(point, self._get_paste_offset(), self._level_offset)]
+        
+        def dirtyBoxForPointAndOptions(self, point):
+            p = self._paste_level
+            return BoundingBox(self.find_centered_point(point), [p.Width, p.Height, p.Length])
+
+        
+        def importPaste(self, tool):
+            filename = mcplatform.askOpenFile(LastDir.schematic, title='Choose a schematic...')
+            # No file selected, do nothing
+            if filename is None or filename == "":
+                return False
+
+            return self.load_paste(tool, filename)
+
+        def load_paste(self, tool, clipFilename):
+            if clipFilename:
+                try:
+                    self._loaded_schematic_name = None
+                    self._load_level(tool, fromFile(clipFilename))
+                except Exception:
+                    alert(f"Failed to load file {clipFilename}")
+                    # On failure, load an empty schematic
+                    self._load_level(tool, MCSchematic(shape=(1, 1, 1)))
+                    return False
+
+            BrushToolSettings.copy_schematic.set(clipFilename)
+            return True
 
         def createOptions(self, panel, tool):
             col = [panel.brushModeRow]
 
-            importButton = Button("Import", action=tool.importPaste)
-            importLabel = ValueDisplay(width=150, ref=AttrRef(tool, "importFilename"))
-            importRow = Row((importButton, importLabel))
+            importButton = Button("Import", action=lambda: self.importPaste(tool))
+            self.clearButton = Button("Clear", action=lambda: BrushToolSettings.copy_schematic.set(""))
+            self.importRow = Row((importButton, self.clearButton))
+                
+            BrushToolSettings.copy_schematic.add_observer(lambda v: self.update_copy_schematic(v, tool), "paste mode")
 
-            stack = tool.editor.copyStack
-            if len(stack) == 0:
-                tool.importPaste()
-            else:
-                tool.loadLevel(stack[0])
-            tool.centery = 0
-            tool.centerx = -(tool.level.Width / 2)
-            tool.centerz = -(tool.level.Length / 2)
+            self._update_paste(tool)
 
-            cx, cy, cz = [IntInputRow(c, ref=AttrRef(tool, "center" + c), max=a, min=-a)
-                          for a, c in zip(tool.level.size, "xyz")]
+            tool.centerx, tool.centery , tool.centerz = self._round_level(tool.level)
+            class CenterRef:
+                def __init__(c_self, i):
+                    c_self.i = i
+                def get(c_self):
+                    return self._get_paste_offset()[c_self.i]
+                def set(c_self, v):
+                    self._update_paste_offset(c_self.i, v)
+            
+            cx, cy, cz = [IntInputRow(c, width=40, ref=CenterRef(i)) for i, c in zip((0, 1, 2), "xyz")]
+
             centerRow = Row((cx, cy, cz))
 
-            col.extend([importRow, centerRow])
+            importLabel = ValueDisplay(width=150, ref=BrushToolSettings.copy_schematic, format_func=lambda v: ("Loaded: " + Path(v).stem) if v != "" else "")
+
+
+            create_chunks_box = self._checkbox("Create Chunks", BrushToolSettings.copy_create_chunks, "When brushing into missing chunks, create new empty chunks")
+            copy_air_check_box = self._checkbox("Copy Air", BrushToolSettings.copy_paste_air, "Paste air blocks from the brush")
+            copy_water_check_box = self._checkbox("Copy Water", BrushToolSettings.copy_paste_water, "Paste water and lava blocks from the brush")
+
+            reset_button = Button("Reset", action=self._reset_paste_offset)
+            
+            copy_chunks_row = Row((reset_button, create_chunks_box))
+
+            col.extend([self.importRow, importLabel, centerRow, copy_chunks_row, copy_air_check_box, copy_water_check_box])
+
+            self.update_copy_schematic(BrushToolSettings.copy_schematic.v, tool)
 
             return col
 
+        def _checkbox(self, title, ref, tooltip):
+            box = CheckBox(ref=ref)
+            lab = Label(title)
+            lab.mouse_down = box.mouse_down
+            lab.tooltipText = box.tooltipText = tooltip
+            return Row((box, lab))
+
+        def post_panel_init(self, tool):
+            self.update_copy_schematic(BrushToolSettings.copy_schematic.v, tool)
+
+        def update_copy_schematic(self, v, tool):
+            # Keep the setting updated
+            if v != BrushToolSettings.copy_schematic.v:
+                BrushToolSettings.copy_schematic.set(v)
+
+            # No more schematic, remove the clear button
+            if v == "":
+                # Remove the button
+                self.importRow.remove(self.clearButton)
+                # Update the tool's loaded level
+                # There's something to copy, copy it
+                stack = tool.editor.copyStack
+                if len(stack) > 0:
+                    self._load_level(tool, stack[0])
+                # Otherwise load an empty level
+                else:
+                    self._load_level(tool, MCSchematic(shape=(1, 1, 1)))
+
+            # There is a schematic, add the clear button
+            else:
+                self.importRow.add(self.clearButton)
+
+
+        def _update_paste(self, tool):
+            # If a schematic was saved, use it
+            imported = False
+            saved_schematic = BrushToolSettings.copy_schematic.v
+            if saved_schematic != "":
+                # If the schematic to load is already available, load the already loaded level
+                if self._loaded_schematic_name == saved_schematic and self._paste_level is not None:
+                    self._load_level(tool, self._paste_level)
+                    imported = True
+
+                # Otherwise try to load it
+                else:
+                    loaded = self.load_paste(tool, saved_schematic)
+                    # If it failed, reset the setting
+                    if not loaded:
+                        BrushToolSettings.copy_schematic.set("")
+                    imported = loaded
+
+            # If nothing was imported
+            if not imported:
+                # Found something to copy from, use it
+                stack = tool.editor.copyStack
+                if len(stack) > 0:
+                    self._load_level(tool, stack[0])
+                    imported = True
+
+            # If still nothing was imported, init with an empty level
+            if not imported:
+                self._load_level(tool, MCSchematic(shape=(1, 1, 1)))
+
+
+
+        def _round_brush(self, n):
+            return 0 if n < 2 else n // 2
+
+        def _round_level(self, level):
+            return [
+                -self._round_brush(level.Width),
+                -self._round_brush(level.Height),
+                -self._round_brush(level.Length),
+            ]
+            
+        # Keep track of the level when it changes
+        def _load_level(self, tool, level):
+            old_level = self._paste_level
+
+            self._paste_level = level
+            tool.loadLevel(level)
+
+            # Load a default offset to be near the middle of the level
+            loaded = self._round_level(level)
+            Width, Height, Length = loaded
+            self._level_offset = [Width, Height, Length]
+
+            if BrushToolSettings.copy_reset_on_select.v:
+                reset = True
+                if old_level == level:
+                    reset = False
+                elif hasattr(level, "filename") and hasattr(old_level, "filename"):
+                    if level.filename is not None and old_level.filename is not None:
+                        if level.filename != old_level.filename:
+                            reset = False
+
+                if reset:
+                    self._reset_paste_offset()
+
+            
+            if hasattr(self._paste_level, "filename"):
+                self._loaded_schematic_name = self._paste_level.filename
+        
+
         def performAtPoint(self, op, point, dirtyBox):
-            level = op.options['level']
-            point = [p + op.options['center' + c] for p, c in zip(point, 'xyz')]
+            level = self._paste_level;
+            point = self.find_centered_point(point)
 
-            return op.level.copyBlocksFromIter(level, level.bounds, point, create=True)
+            blocksToCopy = None
+            if not (BrushToolSettings.copy_paste_air.v and BrushToolSettings.copy_paste_water.v):
+                blocksToCopy = list(range(256))
+                if not BrushToolSettings.copy_paste_air.v:
+                    blocksToCopy.remove(0)
+                if not BrushToolSettings.copy_paste_water.v:
+                    blocksToCopy.remove(8)
+                    blocksToCopy.remove(9)
 
+            return op.level.copyBlocksFromIter(level, level.bounds, point, blocksToCopy=blocksToCopy, create=BrushToolSettings.copy_create_chunks.v)
+
+
+brush_mode_classes = [
+    Modes.Fill,
+    Modes.FloodFill,
+    Modes.Replace,
+    Modes.Erode,
+    Modes.Topsoil,
+    Modes.Paste
+]
+
+brush_mode_map = {v.name: v() for v in brush_mode_classes}
+brush_mode_name_list = [v.name for v in brush_mode_classes]
+
+def get_brush_mode():
+    return brush_mode_map[BrushToolSettings.mode.v]
+
+
+brush_shapes = ["Round", "Square", "Diamond", "Pyramid"]
 
 class BrushOperation(Operation):
 
-    def __init__(self, editor, points, options):
-        # if options is None: options = {}
-
-        self.options = options
+    def __init__(self, tool, editor, points):
+        self.tool = tool
         self.editor = editor
         self.level = editor.level
         if isinstance(points[0], (int, float)):
@@ -366,41 +547,34 @@ class BrushOperation(Operation):
 
         self.points = points
 
-        self.brushSize = options['brushSize']
-        self.blockInfo = options['blockInfo']
-        self.brushStyle = options['brushStyle']
-        self.brushMode = options['brushMode']
+        self.brushSize = _get_brush_size()
+        self.blockInfo = BrushToolSettings.fill_block.get()
 
         if max(self.brushSize) > BrushTool.maxBrushSize:
             self.brushSize = (BrushTool.maxBrushSize,) * 3
         if max(self.brushSize) < 1:
             self.brushSize = (1, 1, 1)
 
-        boxes = [self.brushMode.dirtyBoxForPointAndOptions(p, options) for p in points]
+        boxes = [get_brush_mode().dirtyBoxForPointAndOptions(p) for p in points]
         self._dirtyBox = reduce(lambda a, b: a.union(b), boxes)
 
     undoSchematic = None
-    brushStyles = ["Round", "Square", "Diamond"]
-    # brushModeNames = ["Fill", "Flood Fill", "Replace", "Erode", "Topsoil", "Paste"]  # "Smooth", "Flatten", "Raise", "Lower", "Build", "Erode", "Evert"]
-    brushModeClasses = [
-        Modes.Fill,
-        Modes.FloodFill,
-        Modes.Replace,
-        Modes.Erode,
-        Modes.Topsoil,
-        Modes.Paste
-    ]
+
 
     @property
     def noise(self):
-        return self.options.get('brushNoise', 100)
+        return BrushToolSettings.chance.v
+    
+    @property
+    def noise_type(self):
+        return BrushToolSettings.chance_type.v
 
     @property
     def hollow(self):
-        return self.options.get('brushHollow', False)
+        return BrushToolSettings.hollow.v
 
     @classmethod
-    def createBrushMask(cls, shape, style="Round", offset=(0, 0, 0), box=None, chance=100, hollow=False):
+    def createBrushMask(cls, shape, style="Round", offset=(0, 0, 0), box=None, chance=100, chance_type="edge", hollow=False):
         """
         Return a boolean array for a brush with the given shape and style.
         If 'offset' and 'box' are given, then the brush is offset into the world
@@ -420,19 +594,17 @@ class BrushOperation(Operation):
         offset = array(offset) - array(box.origin)
         offset = offset[[0, 2, 1]]
 
-        inds = np.indices(outputShape, dtype=float)
-        halfshape = array([(i >> 1) - ((i & 1 == 0) and 0.5 or 0) for i in shape])
+        indices = np.indices(outputShape, dtype=float)
+        half_shape = array([(i >> 1) - ((i & 1 == 0) and 0.5 or 0) for i in shape])
 
-        blockCenters = inds - halfshape[:, np.newaxis, np.newaxis, np.newaxis]
+        blockCenters = indices - half_shape[:, np.newaxis, np.newaxis, np.newaxis]
         blockCenters -= offset[:, np.newaxis, np.newaxis, np.newaxis]
 
-        # odd diameter means measure from the center of the block at 0,0,0 to each block center
-        # even diameter means measure from the 0,0,0 grid point to each block center
-
-        # if diameter & 1 == 0: blockCenters += 0.5
         shape = array(shape, dtype='float32')
 
-        # if not isSphere(shape):
+        # Shapes that are then stretched based on the brush size
+
+        # Sphere
         if style == "Round":
             blockCenters *= blockCenters
             shape /= 2
@@ -441,42 +613,75 @@ class BrushOperation(Operation):
             blockCenters /= shape[:, np.newaxis, np.newaxis, np.newaxis]
             distances = sum(blockCenters, 0)
             mask = distances < 1
+
+        # Rectangular prism
         elif style == "Square":
-            # mask = ones(outputShape, dtype=bool)
-            # mask = blockCenters[:, newaxis, newaxis, newaxis] < shape
             blockCenters /= shape[:, np.newaxis, np.newaxis, np.newaxis]
 
             distances = np.absolute(blockCenters).max(0)
             mask = distances < .5
 
+        # Diamond shape of square xz layers rotated 45 degrees
         elif style == "Diamond":
-            blockCenters = numpy.abs(blockCenters)
+            blockCenters = np.abs(blockCenters)
             shape /= 2
             blockCenters /= shape[:, np.newaxis, np.newaxis, np.newaxis]
             distances = sum(blockCenters, 0)
             mask = distances < 1
 
+        # Diamond shape of square xz layers aligned to the axes
+        elif style == "Pyramid":
+            blockCenters = np.abs(blockCenters)
+            shape /= 2
+            blockCenters /= shape[:, np.newaxis, np.newaxis, np.newaxis]
+
+            y = blockCenters[2]
+            xz = np.maximum(blockCenters[0], blockCenters[1])
+            mask = xz + np.abs(y) < 1
+
+
         if (chance < 100 or hollow) and max(shape) > 1:
             threshold = chance / 100.0
-            exposedBlockMask = np.ones(shape=outputShape, dtype='bool')
-            exposedBlockMask[:] = mask
-            submask = mask[1:-1, 1:-1, 1:-1]
-            exposedBlockSubMask = exposedBlockMask[1:-1, 1:-1, 1:-1]
-            exposedBlockSubMask[:] = False
 
-            for dim in (0, 1, 2):
-                slices = [slice(1, -1), slice(1, -1), slice(1, -1)]
-                slices[dim] = slice(None, -2)
-                exposedBlockSubMask |= (submask & (mask[slices] != submask))
-                slices[dim] = slice(2, None)
-                exposedBlockSubMask |= (submask & (mask[slices] != submask))
+            exposedBlockMask = None
+            def compute_exposed():
+                exposedBlockMask = np.ones(shape=outputShape, dtype='bool')
+                exposedBlockMask[:] = mask
+                sub_mask = mask[1:-1, 1:-1, 1:-1]
+                exposedBlockSubMask = exposedBlockMask[1:-1, 1:-1, 1:-1]
+                exposedBlockSubMask[:] = False
 
+                # Finds blocks on the outside of the brush
+                for dim in (0, 1, 2):
+                    slices = [slice(1, -1), slice(1, -1), slice(1, -1)]
+                    slices[dim] = slice(None, -2)
+                    exposedBlockSubMask |= (sub_mask & (mask[tuple(slices)] != sub_mask))
+                    slices[dim] = slice(2, None)
+                    exposedBlockSubMask |= (sub_mask & (mask[tuple(slices)] != sub_mask))
+
+                return exposedBlockMask
+
+            # For hollow, all except those blocks will be excluded
             if hollow:
+                exposedBlockMask = compute_exposed()
                 mask[~exposedBlockMask] = False
-            if chance < 100:
-                rmask = np.random.random(mask.shape) < threshold
 
-                mask[exposedBlockMask] = rmask[exposedBlockMask]
+            if chance < 100:
+                # All outside blocks will have a chance of being excluded
+                if chance_type == "edge":
+                    if exposedBlockMask is None:
+                        exposedBlockMask = compute_exposed()
+
+                    r_mask = np.random.random(mask.shape) < threshold
+                    mask[exposedBlockMask] = r_mask[exposedBlockMask]
+
+                # All blocks have the same chance of being filled in
+                elif chance_type == "full":
+                    r_mask = np.random.random(mask.shape) < threshold
+                    fullBlockMask = np.ones(shape=outputShape, dtype='bool')
+                    fullBlockMask[:] = mask
+                    mask[fullBlockMask] = r_mask[fullBlockMask]
+
 
         if chance < 100 or hollow:
             return mask[1:-1, 1:-1, 1:-1]
@@ -491,7 +696,7 @@ class BrushOperation(Operation):
             self.level.removeEntitiesInBox(self._dirtyBox)
             self.level.removeTileEntitiesInBox(self._dirtyBox)
 
-            if self.brushMode.name == "Flood Fill":
+            if get_brush_mode().name == "Flood Fill":
                 i = self.level.copyBlocksFromIter(self.undoSchematic,
                                           self.undoSchematic.bounds,
                                           self.undoSchematic.bounds.origin
@@ -512,7 +717,7 @@ class BrushOperation(Operation):
 
         def _perform():
             for i, point in enumerate(self.points):
-                yield i, len(self.points), "Applying {0} brush...".format(self.brushMode.name)
+                yield i, len(self.points), f"Applying {get_brush_mode().name} brush..."
                 f = self.performAtPoint(point)
                 if hasattr(f, "__iter__"):
                     for i in f:
@@ -526,11 +731,16 @@ class BrushOperation(Operation):
         for cPos in self._dirtyBox.chunkPositions:
             if self.level.containsChunk(*cPos):
                 ch = self.level.getChunk(*cPos)
-                ch.chunkChanged()  # xxxxxxx
+                ch.chunkChanged()
 
     def performAtPoint(self, point):
-        dirtyBox = self.brushMode.dirtyBoxForPointAndOptions(point, self.options)
-        return self.brushMode.performAtPoint(self, point, dirtyBox)
+        try:
+            dirtyBox = get_brush_mode().dirtyBoxForPointAndOptions(point)
+            return get_brush_mode().performAtPoint(self, point, dirtyBox)
+        except Exception as e:
+            # If an exception happens, get rid of the original dragged positions
+            self.tool.draggedPositions = []
+            raise e
 
 
 class BrushPanel(Panel):
@@ -538,20 +748,21 @@ class BrushPanel(Panel):
         Panel.__init__(self)
         self.tool = tool
 
-        self.brushModeButton = ChoiceButton([m.name for m in tool.brushModes],
+        self.brushModeButton = ChoiceButton([m for m in brush_mode_name_list],
                                             width=150,
-                                            choose=self.brushModeChanged)
+                                            default_choice=BrushToolSettings.mode.v,
+                                            choose=lambda: BrushToolSettings.mode.set(self.brushModeButton.selectedChoice))
 
-        self.brushModeButton.selectedChoice = tool.brushMode.name
         self.brushModeRow = Row((Label("Mode:"), self.brushModeButton))
 
-        self.brushStyleButton = ValueButton(width=self.brushModeButton.width,
-                                        ref=AttrRef(tool, "brushStyle"),
-                                        action=tool.swapBrushStyles)
+        self.brushShapeButton = ChoiceButton(brush_shapes,
+                                            width=self.brushModeButton.width,
+                                            default_choice=BrushToolSettings.shape.v,
+                                            choose=lambda: BrushToolSettings.shape.set(self.brushShapeButton.selectedChoice))
 
-        self.brushStyleButton.tooltipText = f"Shortcut: ALT-{Keys.tool_option_1}"
+        self.brushShapeButton.tooltipText = f"Shortcut: ALT-{Keys.tool_option_1}"
 
-        self.brushStyleRow = Row((Label("Brush:"), self.brushStyleButton))
+        self.brushStyleRow = Row((Label("Brush:"), self.brushShapeButton))
 
         self.modeStyleGrid = Column([
             self.brushModeRow,
@@ -572,9 +783,15 @@ class BrushPanel(Panel):
 
         self.brushSizeRows = Column(shapeRows)
 
-        self.noiseInput = IntInputRow("Chance: ", ref=AttrRef(tool, "brushNoise"), min=0, max=100)
+        self.noiseInputValue = IntInputRow("Chance: ", ref=BrushToolSettings.chance, min=0, max=100)
+        self.noiseTypeInput = ChoiceButton(
+            ["edge", "full"], choice_display={"edge": "Edge", "full": "Full"}, 
+            choose=lambda: BrushToolSettings.chance_type.set(self.noiseTypeInput.selectedChoice),
+            default_choice=BrushToolSettings.chance_type.v
+        )
+        self.noiseInput = Row([self.noiseInputValue, self.noiseTypeInput])
 
-        hollowCheckBox = CheckBox(ref=AttrRef(tool, "brushHollow"))
+        hollowCheckBox = CheckBox(ref=BrushToolSettings.hollow)
         hollowLabel = Label("Hollow")
         hollowLabel.mouse_down = hollowCheckBox.mouse_down
         hollowLabel.tooltipText = hollowCheckBox.tooltipText = f"Shortcut: ALT-{Keys.tool_option_3}"
@@ -582,48 +799,55 @@ class BrushPanel(Panel):
         self.hollowRow = Row((hollowCheckBox, hollowLabel))
 
         self.blockButton = BlockButton(
-            ref=AttrRef(tool, 'blockInfo'),
-            recentBlocks=tool.recentFillBlocks,
-            allowWildcards=(tool.brushMode.name == "Replace"))
+            blockInfo=BrushToolSettings.fill_block.v,
+            on_block_info_change=BrushToolSettings.fill_block.set,
+            recentBlocks=BrushToolSettings.fill_recent.v,
+            on_recent_blocks_change=BrushToolSettings.fill_recent.set)
 
         self.replaceBlockButton = BlockButton(
-            ref=AttrRef(tool, 'replaceBlockInfo'),
-            recentBlocks=tool.recentReplaceBlocks)
+            blockInfo=BrushToolSettings.replace_block.v,
+            on_block_info_change=BrushToolSettings.replace_block.set,
+            recentBlocks=BrushToolSettings.replace_recent.v,
+            on_recent_blocks_change=BrushToolSettings.replace_recent.set)
 
-        col = tool.brushMode.createOptions(self, tool)
+        # Always update the block buttons when the settings change
+        BrushToolSettings.fill_block.add_observer(lambda v: self.blockButton.update_block_info(v, False), "brush panel")
+        BrushToolSettings.replace_block.add_observer(lambda v: self.replaceBlockButton.update_block_info(v, False), "brush panel")
 
-        if self.tool.brushMode.name != "Flood Fill":
-            spaceRow = IntInputRow("Line Spacing", ref=AttrRef(tool, "minimumSpacing"), min=1, tooltipText="Hold SHIFT to draw lines")
+        brush_mode = get_brush_mode()
+        col = brush_mode.createOptions(self, tool)
+
+        if brush_mode.name != "Flood Fill":
+            spaceRow = IntInputRow("Line Spacing", ref=BrushToolSettings.minimum_spacing, min=1, tooltipText="Minimum number of blocks between brush strokes. Hold SHIFT to draw lines")
             col.append(spaceRow)
         col = Column(col)
 
         self.add(col)
+
+        self.post_panel_init(tool)
+
         self.shrink_wrap()
 
-    def brushModeChanged(self):
-        self.tool.brushMode = self.brushModeButton.selectedChoice
+
+    def post_panel_init(self, tool):
+        pass
 
     def pickFillBlock(self):
         self.blockButton.action()
-        self.tool.blockInfo = self.blockButton.blockInfo
         self.tool.setupPreview()
 
     def pickReplaceBlock(self):
         self.replaceBlockButton.action()
-        self.tool.replaceBlockInfo = self.replaceBlockButton.blockInfo
         self.tool.setupPreview()
 
     def swap(self):
-        t = self.blockButton.recentBlocks
-        self.blockButton.recentBlocks = self.replaceBlockButton.recentBlocks
-        self.replaceBlockButton.recentBlocks = t
-
-        self.blockButton.updateRecentBlockView()
-        self.replaceBlockButton.updateRecentBlockView()
         b = self.blockButton.blockInfo
-        self.blockButton.blockInfo = self.replaceBlockButton.blockInfo
-        self.replaceBlockButton.blockInfo = b
+        self.blockButton.update_block_info(self.replaceBlockButton.blockInfo, False)
+        self.replaceBlockButton.update_block_info(b, False)
 
+        t = [b for b in self.blockButton._recentBlocks]
+        self.blockButton.replace_recent_blocks([b for b in self.replaceBlockButton._recentBlocks])
+        self.replaceBlockButton.replace_recent_blocks(t)
 
 class BrushToolOptions(ToolOptions):
     def __init__(self):
@@ -636,8 +860,14 @@ class BrushToolOptions(ToolOptions):
 
         updateOffsetCheckBox = CheckBoxLabel("Reset Distance When Brush Size Changes", ref=BrushToolSettings.update_offset,
                                             tooltipText="Whenever the brush size changes, reset the distance to the brush blocks.")
+        
+        update_offset_check_box = CheckBoxLabel("Reset Offset As Zero", ref=BrushToolSettings.reset_offset_to_zero,
+                                            tooltipText="Whenever resetting the offset of the brush from the mouse, set it to 0, otherwise set it to the maximum dimension of the brush")
+        
+        auto_reset_on_select_check_box = CheckBoxLabel("Reset Schematic Position On Select", ref=BrushToolSettings.copy_reset_on_select,
+                                            tooltipText="When selecting a new schematic for the paste brush, reset the offset to the center")
 
-        col = Column((Label("Brush Options"), alphaRow, autoChooseCheckBox, updateOffsetCheckBox, Button("OK", action=self.dismiss)))
+        col = Column((Label("Brush Options"), alphaRow, autoChooseCheckBox, updateOffsetCheckBox, auto_reset_on_select_check_box, update_offset_check_box, Button("OK", action=self.dismiss)))
         self.add(col)
         self.shrink_wrap()
         return
@@ -648,24 +878,27 @@ from .clone import CloneTool
 class BrushTool(CloneTool):
     tooltipText = "Brush\nRight-click for options"
     toolIconName = "brush"
-    minimumSpacing = 1
 
     def __init__(self, *args):
         CloneTool.__init__(self, *args)
         self.optionsPanel = BrushToolOptions()
-        self.recentFillBlocks = []
-        self.recentReplaceBlocks = []
         self.draggedPositions = []
 
-        self.brushModes = [c() for c in BrushOperation.brushModeClasses]
-        for m in self.brushModes:
-            self.options.extend(m.options)
-
-        self._brushMode = self.brushModes[0]
         BrushToolSettings.length.add_observer(self._setBrushSize, "brush tool")
         BrushToolSettings.width.add_observer(self._setBrushSize, "brush tool")
         BrushToolSettings.height.add_observer(self._setBrushSize, "brush tool")
         BrushToolSettings.alpha.add_observer(lambda v: self.setupPreview(), "brush tool")
+        def mode_change(v):
+            self.brush_mode_changed()
+            self.setupPreview()
+        BrushToolSettings.mode.add_observer(mode_change, "brush tool")
+        BrushToolSettings.shape.add_observer(lambda v: self.setupPreview(), "brush tool preview")
+        BrushToolSettings.shape.add_observer(lambda v: self.brush_mode_changed(), "brush tool mode")
+        BrushToolSettings.fill_block.add_observer(lambda v: self.setupPreview(), "brush tool")
+        BrushToolSettings.replace_block.add_observer(lambda v: self.setupPreview(), "brush tool")
+
+    def all_tool_icons(self):
+        return ["brush"]
 
     panel = None
 
@@ -678,13 +911,10 @@ class BrushTool(CloneTool):
     previewDirty = False
 
     _reticleOffset = 1
-    naturalEarth = True
-    erosionStrength = 1
-    indiscriminate = False
 
     @property
     def reticleOffset(self):
-        if self.brushMode.name == "Flood Fill":
+        if get_brush_mode().name == "Flood Fill":
             return 0
         return self._reticleOffset
 
@@ -694,99 +924,42 @@ class BrushTool(CloneTool):
 
     @property
     def brushSize(self):
-        if self.brushMode.name == "Flood Fill":
+        if get_brush_mode().name == "Flood Fill":
             return 1, 1, 1
-        return [BrushToolSettings.width.v, BrushToolSettings.height.v, BrushToolSettings.length.v]
+        return _get_brush_size()
 
     @brushSize.setter
     def brushSize(self, val):
-        (w, h, l) = [max(1, min(i, self.maxBrushSize)) for i in val]
+        (l, h, w) = [max(1, min(i, self.maxBrushSize)) for i in val]
         BrushToolSettings.height.set(h)
         BrushToolSettings.length.set(l)
         BrushToolSettings.width.set(w)
 
     maxBrushSize = 4096
 
-    brushStyles = BrushOperation.brushStyles
-    brushStyle = brushStyles[0]
-    brushModes = None
 
-    @property
-    def brushMode(self):
-        return self._brushMode
-
-    @brushMode.setter
-    def brushMode(self, val):
-        if isinstance(val, str):
-            val = [b for b in self.brushModes if b.name == val][0]
-
-        self._brushMode = val
-
+    def brush_mode_changed(self):
         self.hidePanel()
         self.showPanel()
 
-    brushNoise = 100
-    brushHollow = False
-    topsoilDepth = 1
-
-    _blockInfo = materials.Stone
-
-    @property
-    def blockInfo(self):
-        return self._blockInfo
-
-    @blockInfo.setter
-    def blockInfo(self, bi):
-        self._blockInfo = bi
-        self.setupPreview()
-
-    _replaceBlockInfo = materials.Stone
-
-    @property
-    def replaceBlockInfo(self):
-        return self._replaceBlockInfo
-
-    @replaceBlockInfo.setter
-    def replaceBlockInfo(self, bi):
-        self._replaceBlockInfo = bi
-        self.setupPreview()
-
-    def importPaste(self):
-        clipFilename = mcplatform.askOpenFile(LastDir.schematic, title='Choose a schematic...')
-        # xxx mouthful
-        if clipFilename:
-            try:
-                self.loadLevel(fromFile(clipFilename))
-            except Exception as e:
-                alert("Failed to load file %s" % clipFilename)
-                self.brushMode = "Fill"
-                return
-
     def loadLevel(self, level):
         self.level = level
-        self.minimumSpacing = min([s / 4 for s in level.size])
-        self.centerx, self.centery, self.centerz = -level.Width / 2, 0, -level.Length / 2
+        self.centerx, self.centery, self.centerz = -level.Width // 2, 0, -level.Length // 2
         CloneTool.setupPreview(self)
-
-    @property
-    def importFilename(self):
-        if self.level:
-            return basename(self.level.filename or "No name")
-        return "Nothing selected"
 
     @property
     def statusText(self):
         return (
-            f"Click and drag to place blocks. ALT-Click to use the block under the cursor."
-            f"{Keys.roll.upper()} to increase and"
-            f"{Keys.flip.upper()} to decrease size."
-            f"{Keys.rotate.upper()} to rotate,"
-            f"{Keys.mirror.upper()} to roll. Mousewheel to adjust distance."
+            f"Click and drag to place blocks. ALT-Click to use the block under the cursor. "
+            f"{Keys.roll.v.upper()} to increase and "
+            f"{Keys.flip.v.upper()} to decrease size. "
+            f"{Keys.rotate.v.upper()} to rotate, "
+            f"{Keys.mirror.v.upper()} to roll. Mousewheel to adjust distance."
         )
 
     @property
     def worldTooltipText(self):
-        if key.get_mods() & KMOD_ALT:
+        if (key.get_mods() & KMOD_ALT) and get_brush_mode().name != "Paste" and get_brush_mode().name != "Erode":
             try:
                 if self.editor.blockFaceUnderCursor is None:
                     return
@@ -798,7 +971,7 @@ class BrushTool(CloneTool):
             except Exception as e:
                 return repr(e)
 
-        if self.brushMode.name == "Flood Fill":
+        if get_brush_mode().name == "Flood Fill":
             try:
                 if self.editor.blockFaceUnderCursor is None:
                     return
@@ -810,44 +983,34 @@ class BrushTool(CloneTool):
             except Exception as e:
                 return repr(e)
 
-    def swapBrushStyles(self):
-        brushStyleIndex = self.brushStyles.index(self.brushStyle) + 1
-        brushStyleIndex %= len(self.brushStyles)
-        self.brushStyle = self.brushStyles[brushStyleIndex]
-        self.setupPreview()
+    def swapBrushShape(self):
+        index = brush_shapes.index(BrushToolSettings.shape.v) + 1
+        index %= len(brush_shapes)
+        BrushToolSettings.shape.set(brush_shapes[index])
 
     def swapBrushModes(self):
-        brushModeIndex = self.brushModes.index(self.brushMode) + 1
-        brushModeIndex %= len(self.brushModes)
-        self.brushMode = self.brushModes[brushModeIndex]
+        # Go to the next brush in the list
+        brush_mode = get_brush_mode()
+        index = brush_mode_name_list.index(brush_mode.name) + 1
+        index %= len(brush_mode_name_list)
+        # Update the current mode
+        BrushToolSettings.mode.set(brush_mode_name_list[index])
 
-    options = [
-        'blockInfo',
-        'brushStyle',
-        'brushMode',
-        'brushSize',
-        'brushNoise',
-        'brushHollow',
-        'replaceBlockInfo',
-    ]
-
-    def getBrushOptions(self):
-        return dict(((key, getattr(self, key))
-                       for key
-                       in self.options))
 
     draggedDirection = (0, 0, 0)
     centerx = centery = centerz = 0
 
     @alertException
     def mouseDown(self, evt, pos, direction):
-        if key.get_mods() & KMOD_ALT:
+        if (key.get_mods() & KMOD_ALT) and get_brush_mode().name != "Paste":
             id = self.editor.level.blockAt(*pos)
             data = self.editor.level.blockDataAt(*pos)
-            if self.brushMode.name == "Replace":
-                self.panel.replaceBlockButton.blockInfo = materials.blockWithID(id, data)
+            b = materials.blockWithID(id, data)
+            if get_brush_mode().name == "Replace":
+                BrushToolSettings.replace_block.set_block(id, data)
+                self.panel.replaceBlockButton.blockInfo = b
             else:
-                self.panel.blockButton.blockInfo = materials.blockWithID(id, data)
+                self.panel.blockButton.blockInfo = b
 
             return
 
@@ -858,21 +1021,22 @@ class BrushTool(CloneTool):
     @alertException
     def mouseDrag(self, evt, pos, _dir):
         direction = self.draggedDirection
-        if self.brushMode.name != "Flood Fill":
-            if len(self.draggedPositions):  # if self.isDragging
+        if get_brush_mode().name != "Flood Fill":
+            if len(self.draggedPositions):
                 self.lastPosition = lastPoint = self.draggedPositions[-1]
-                if any([abs(a - b) >= self.minimumSpacing
-                        for a, b in zip(pos, lastPoint)]):
+
+                # If the distance from this position to the previous position is larger than the minimum spacing, add it
+                if any([abs(a - b) >= BrushToolSettings.minimum_spacing.v for a, b in zip(pos, lastPoint)]):
                     point = [p + d * self.reticleOffset for p, d in zip(pos, direction)]
                     self.dragLineToPoint(point)
 
     def dragLineToPoint(self, point):
-        if self.brushMode.name == "Flood Fill":
+        if get_brush_mode().name == "Flood Fill":
             self.draggedPositions = [point]
             return
 
         if key.get_mods() & KMOD_SHIFT and len(self.draggedPositions):
-            points = bresenham.bresenham(self.draggedPositions[-1], point)
+            points = bresenham(self.draggedPositions[-1], point)
             self.draggedPositions.extend(points[1:])
         else:
             self.draggedPositions.append(point)
@@ -882,14 +1046,10 @@ class BrushTool(CloneTool):
         if 0 == len(self.draggedPositions):
             return
 
-        size = self.brushSize
-        # point = self.getReticlePoint(pos, direction)
-        if self.brushMode.name == "Flood Fill":
+        if get_brush_mode().name == "Flood Fill":
             self.draggedPositions = self.draggedPositions[-1:]
 
-        op = BrushOperation(self.editor,
-            self.draggedPositions,
-            self.getBrushOptions())
+        op = BrushOperation(self, self.editor, self.draggedPositions)
         self.performWithRetry(op)
 
         box = op.dirtyBox()
@@ -905,7 +1065,9 @@ class BrushTool(CloneTool):
         return True
 
     def rotate(self):
-        if self.brushMode.name == "Paste": return
+        if get_brush_mode().name == "Paste":
+            CloneTool.rotate(self)
+            return
         
         offs = self.reticleOffset
         dist = self.editor.cameraToolDistance
@@ -915,7 +1077,9 @@ class BrushTool(CloneTool):
         self.editor.cameraToolDistance = dist
 
     def mirror(self):
-        if self.brushMode.name == "Paste": return
+        if get_brush_mode().name == "Paste":
+            CloneTool.mirror(self)
+            return
 
         offs = self.reticleOffset
         dist = self.editor.cameraToolDistance
@@ -925,34 +1089,39 @@ class BrushTool(CloneTool):
         self.editor.cameraToolDistance = dist
 
     def toolReselected(self):
-        if self.brushMode.name == "Replace":
+        if get_brush_mode().name == "Paste":
+            brush_mode_map["Paste"].importPaste(self)
+        elif get_brush_mode().name == "Replace":
             self.panel.pickReplaceBlock()
         else:
             self.panel.pickFillBlock()
 
     def flip(self):
-        if self.brushMode.name == "Paste": return
+        if get_brush_mode().name == "Paste":
+            CloneTool.flip(self)
+            return
 
         self.decreaseBrushSize()
 
     def roll(self):
-        if self.brushMode.name == "Paste": return
+        if get_brush_mode().name == "Paste":
+            CloneTool.roll(self)
+            return
 
         self.increaseBrushSize()
 
     def swap(self):
-        if self.brushMode.name == "Paste": return
+        if get_brush_mode().name == "Paste": return
 
         self.panel.swap()
 
     def decreaseBrushSize(self):
-        if self.brushMode.name == "Paste": return
+        if get_brush_mode().name == "Paste": return
 
         self.brushSize = [i - 1 for i in self.brushSize]
-        # self.setupPreview()
 
     def increaseBrushSize(self):
-        if self.brushMode.name == "Paste": return
+        if get_brush_mode().name == "Paste": return
 
         self.brushSize = [i + 1 for i in self.brushSize]
 
@@ -960,14 +1129,20 @@ class BrushTool(CloneTool):
     def setupPreview(self):
         self.previewDirty = False
         brushSize = self.brushSize
-        brushStyle = self.brushStyle
-        if self.brushMode.name == "Replace":
-            blockInfo = self.replaceBlockInfo
+
+        # No need to set anything else up for the paste brush
+        if get_brush_mode().name == "Paste":
+            return
+        
+        if get_brush_mode().name == "Replace":
+            blockInfo = BrushToolSettings.replace_block.get()
+        elif get_brush_mode().name == "Erode":
+            blockInfo = materials.blockWithID(0, 0)
         else:
-            blockInfo = self.blockInfo
+            blockInfo = BrushToolSettings.fill_block.get()
 
         class FakeLevel(MCLevel):
-            filename = "Fake Level"
+            filename = None
 
             def __init__(self):
                 self.chunkCache = {}
@@ -991,7 +1166,7 @@ class BrushTool(CloneTool):
                 f.world = self
                 f.chunkPosition = (cx, cz)
 
-                mask = BrushOperation.createBrushMask(brushSize, brushStyle, (0, 0, 0), BoundingBox((cx << 4, 0, cz << 4), (16, self.Height, 16)))
+                mask = BrushOperation.createBrushMask(brushSize, BrushToolSettings.shape.v, (0, 0, 0), BoundingBox((cx << 4, 0, cz << 4), (16, self.Height, 16)))
                 f.Blocks = np.zeros(mask.shape, dtype='uint8')
                 f.Data = np.zeros(mask.shape, dtype='uint8')
                 f.BlockLight = self.zero_light
@@ -1011,18 +1186,27 @@ class BrushTool(CloneTool):
         CloneTool.setupPreview(self, alpha=BrushToolSettings.alpha.v)
 
     def resetToolDistance(self):
-        distance = max(self.editor.cameraToolDistance, 6 + max(self.brushSize) * 1.25)
-        self.editor.cameraToolDistance = distance
+        mode = get_brush_mode()
+        if mode.name == "Paste":
+            if mode._paste_level is not None:
+                lev = mode._paste_level
+                sizes = (lev.Width, lev.Height, lev.Length)
+            else:
+                sizes = 1
+        else:
+            sizes = self.brushSize
+        self.editor.cameraToolDistance = 6 + max(sizes) * 1.25
 
     def toolSelected(self):
-
         if BrushToolSettings.choose_block_immediately.v:
-            blockPicker = BlockPicker(
-                self.blockInfo,
-                allowWildcards=self.brushMode.name == "Replace")
+            self.showPanel()
+            if BrushToolSettings.mode.v == "Paste":
+                brush_mode_map["Paste"].importPaste(self)
+            else:
+                blockPicker = BlockPicker(BrushToolSettings.fill_block.get())
 
-            if blockPicker.present():
-                self.blockInfo = blockPicker.blockInfo
+                if blockPicker.present():
+                    self.panel.blockButton.blockInfo = blockPicker.blockInfo
 
         if BrushToolSettings.update_offset.v:
             self.reticleOffset = self.offsetMax()
@@ -1058,7 +1242,11 @@ class BrushTool(CloneTool):
         if self.editor.mainViewport.mouseMovesCamera and not Settings.long_distance_mode.v:
             self.resetToolDistance()
         else:
-            self.reticleOffset = self.offsetMax()
+            if BrushToolSettings.reset_offset_to_zero.v:
+                self.reticleOffset = 0
+            else:
+                self.reticleOffset = self.offsetMax()
+
         return True
 
     cameraDistance = EditorTool.cameraDistance
@@ -1083,7 +1271,7 @@ class BrushTool(CloneTool):
     lastPosition = None
 
     def drawTerrainReticle(self):
-        if key.get_mods() & KMOD_ALT:
+        if (key.get_mods() & KMOD_ALT) and get_brush_mode().name != "Paste":
             # eyedropper mode
             self.editor.drawWireCubeReticle(color=(0.2, 0.6, 0.9, 1.0))
         else:
@@ -1100,9 +1288,10 @@ class BrushTool(CloneTool):
             if self.previewDirty:
                 self.setupPreview()
 
-            dirtyBox = self.brushMode.dirtyBoxForPointAndOptions(reticlePoint, self.getBrushOptions())
+            brush_mode = get_brush_mode()
+            dirtyBox = brush_mode.dirtyBoxForPointAndOptions(reticlePoint)
             self.drawTerrainPreview(dirtyBox.origin)
-            if key.get_mods() & KMOD_SHIFT and self.lastPosition and self.brushMode.name != "Flood Fill":
+            if key.get_mods() & KMOD_SHIFT and self.lastPosition and brush_mode.name != "Flood Fill":
                 glColor4f(1.0, 1.0, 1.0, 0.7)
                 with gl.glBegin(GL_LINES):
                     glVertex3f(*[a + 0.5 for a in self.lastPosition])
@@ -1115,10 +1304,10 @@ class BrushTool(CloneTool):
         pass
 
     def option1(self):
-        self.swapBrushStyles()
+        self.swapBrushShape()
 
     def option2(self):
         self.swapBrushModes()
 
     def option3(self):
-        self.brushHollow = not self.brushHollow
+        BrushToolSettings.hollow.invert()

@@ -402,6 +402,31 @@ materials.RedstoneRepeaterOn = materials[94, 0]
 materials.AprilFoolsChest = materials[95, 0]
 materials.Trapdoor = materials[96, 0]
 
+# Naturally occurring materials
+natural_blocks = [
+  materials.Grass,
+  materials.Dirt,
+  materials.Stone,
+  materials.Bedrock,
+  materials.Sand,
+  materials.Gravel,
+  materials.GoldOre,
+  materials.IronOre,
+  materials.CoalOre,
+  materials.LapisLazuliOre,
+  materials.DiamondOre,
+  materials.RedstoneOre,
+  materials.RedstoneOreGlowing,
+  materials.Netherrack,
+  materials.SoulSand,
+  materials.Clay,
+  materials.Glowstone
+]
+
+def natural_block_mask():
+    block_mask = np.zeros((256,), dtype='bool')
+    block_mask[[b.ID for b in natural_blocks]] = True
+    return block_mask
 
 _indices = np.rollaxis(np.indices( (256, 16) ), 0, 3)
 

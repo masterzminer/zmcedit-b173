@@ -7,6 +7,7 @@
 
 from OpenGL import GL, GLU
 from .widget import Widget
+import numpy as np
 
 
 class GLViewport(Widget):
@@ -15,14 +16,8 @@ class GLViewport(Widget):
 
     def gl_draw_self(self, root, offset):
         rect = self.rect.move(offset)
-        # GL_CLIENT_ALL_ATTRIB_BITS is borked: defined as -1 but
-        # glPushClientAttrib insists on an unsigned long.
-        #GL.glPushClientAttrib(0xffffffff)
-        #GL.glPushAttrib(GL.GL_ALL_ATTRIB_BITS)
-        GL.glViewport(rect.left, root.height - rect.bottom, rect.width, rect.height)
+        GL.glViewport(rect.left, root.height - rect.bottom, max(1, rect.width), max(1, rect.height))
         self.gl_draw_viewport()
-        #GL.glPopAttrib()
-        #GL.glPopClientAttrib()
 
     def gl_draw_viewport(self):
         self.setup_matrices()
@@ -48,7 +43,7 @@ class GLViewport(Widget):
     def augment_mouse_event(self, event):
         Widget.augment_mouse_event(self, event)
         w, h = self.size
-        viewport = numpy.array((0, 0, w, h), dtype='int32')
+        viewport = np.array((0, 0, w, h), dtype='int32')
         self.setup_matrices()
         gf = GL.glGetDoublev
         pr_mat = gf(GL.GL_PROJECTION_MATRIX)
@@ -62,8 +57,6 @@ class GLViewport(Widget):
             event.dict['ray'] = (p0, p1)
         except ValueError:  # projection failed!
             pass
-
-import numpy
 
 #-------------------------------------------------------------------------
 

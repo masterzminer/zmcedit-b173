@@ -1,11 +1,36 @@
 from __future__ import annotations
 from configparser import RawConfigParser
 from pathlib import Path
+import json
+import log
+from pymclevel.material import materials
 
 class Observer:
     def __init__(self, func, name=None):
         self.func = func
         self.name = name
+
+class Observers:
+    def __init__(self):
+        self.observers = []
+
+    def add(self, func, name=None):
+        """Adds the given function to the list of observers, or replaces it if the one with the given name already exists"""
+
+        # If the observer already exists, replace it
+        if name is not None:
+            for i, obs in enumerate(self.observers):
+                if obs.name == name:
+                    self.observers[i] = Observer(func, name)
+                    return
+        
+        # Add the observer
+        self.observers.append(Observer(func, name))
+
+    def observe(self, value):
+        """Run the function for each observer"""
+        for ob in self.observers:
+            ob.func(value)
 
 class Setting:
     """Individual object for a setting"""
@@ -14,7 +39,7 @@ class Setting:
         # Store the option type and default value
         self.option_type = type(default_value)
         self.default_value = default_value
-        self.observers = []
+        self.observers = Observers()
         """List of functions to run when the value changes"""
 
         self.min = min
@@ -66,8 +91,10 @@ class Setting:
 
         self.section.set(self.name, value)
 
-        for obs in self.observers:
-            obs.func(value)
+        self.observers.observe(self.as_observe_value(value))
+
+    def as_observe_value(self, v):
+        return v
 
     def add(self, num):
         """used for numeric settings, sets this setting to the current amount plus the given amount"""
@@ -78,14 +105,7 @@ class Setting:
         self.set(not self.get())
 
     def add_observer(self, func, name=None):
-        # Skip if the observer already exists
-        if name is not None:
-            for obs in self.observers:
-                if obs.name == name:
-                    return
-        
-        # Add the observer
-        self.observers.append(Observer(func, name))
+        self.observers.add(func, name)
 
 
 class Section:
@@ -277,7 +297,10 @@ class ListSection(Section):
         """Overwrite all elements in the list"""
         
         # Limit to the max size input
-        new_values = value[:self.max_size]
+        if self.max_size is not None:
+            new_values = value[:self.max_size]
+        else:
+            new_values = value
 
         # Remove all existing values
         old_keys = [entry[0] for entry in self._config.items(self.NAME)]
@@ -295,4 +318,98 @@ class ListSection(Section):
             return None
         return values[index]
 
+
+class JsonSetting(Setting):
+    """A setting with utilities for loading and saving raw strings as json"""
+
+    def get(self):
+        """returns a dict of the json of this setting"""
+        j = super().get()
+        if j == "" or j == '""':
+            j = r"{}"
+        try:
+            return json.loads(j)
+        except:
+            # If it failed, try loading the default
+            try:
+                return json.loads(self.default_value)
+            except:
+                # If it still failed to load, use an empty map
+                log.error(f"Failed to load json for section: {self.section.NAME}, field: {self.name}")
+                return {}
+
+    def set(self, d):
+        """Sets the value of this setting to the given dict as a string with no new lines"""
+        if d == "" or d is None:
+            d = {}
+
+        # If it isn't valid json, don't set anything
+        new_json = None
+        try:
+            new_json = json.dumps(d, indent=2)
+        except:
+            log.error(f"Failed to parse json for section: {self.section.NAME}, field: {self.name}")
+            return
+
+        super().set(new_json)
+
+    def as_observe_value(self, v):
+        return json.loads(v)
+
+
+class BlockSetting(JsonSetting):
+    """A setting that stores a block's id and data value"""
+
+    def get(self):
+        raw = super().get()
+        return _json_to_block(self, raw)
+
+    def set(self, value):
+        j = {
+            "ID": value.ID,
+            "blockData": value.blockData
+        }
+        return super().set(j) 
+
+    def set_block(self, id, data):
+        self.set(materials.blockWithID(id, data))
+
+    def as_observe_value(self, v):
+        j = super().as_observe_value(v)
+        return _json_to_block(self, j)
+
+
+def _json_to_block(setting: JsonSetting, raw):
+    # Default to air if data doesn't exist
+    if "ID" not in raw:
+        id = 0
+        log.error(f"No block id found for section: {setting.section.NAME}, field: {setting.name}, json: {raw}")
+    else:
+        id = raw["ID"]
     
+    if "blockData" not in raw:
+        blockData = 0
+        log.error(f"No block data found for section: {setting.section.NAME}, field: {setting.name}, json: {raw}")
+    else:
+        blockData = raw["blockData"]
+    return materials.blockWithID(id, blockData)
+
+
+class BlockListSetting(JsonSetting):
+    """A setting that stores a list of block id and data values"""
+
+    def get(self):
+        raw = super().get()
+        return [_json_to_block(self, b) for b in raw]
+
+
+    def set(self, blocks):
+        j = [{
+            "ID": value.ID,
+            "blockData": value.blockData
+        } for value in blocks]
+        return super().set(j) 
+
+    def as_observe_value(self, v):
+        j = super().as_observe_value(v)
+        return [_json_to_block(self, b) for b in j]

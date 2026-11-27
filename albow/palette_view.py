@@ -28,11 +28,7 @@ class PaletteView(GridView):
         self.scrolling = scrolling
         if scrolling:
             d = self.scroll_button_size
-            #l = self.width
-            #b = self.height
             self.width += d
-            #self.scroll_up_rect = Rect(l, 0, d, d).inflate(-4, -4)
-            #self.scroll_down_rect = Rect(l, b - d, d, d).inflate(-4, -4)
         self.scroll = 0
 
     def scroll_up_rect(self):

@@ -188,63 +188,41 @@ class Texture(object):
 
 class FramebufferTexture(Texture):
     def __init__(self, width, height, drawFunc):
-        tex = GL.glGenTextures(1)
-        GL.glBindTexture(GL.GL_TEXTURE_2D, tex)
+        super().__init__()
+
+        GL.glBindTexture(GL.GL_TEXTURE_2D, self._texID)
         GL.glTexParameter(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
         GL.glTexParameter(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
         GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA8, width, height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, None)
         self.enabled = False
-        self._texID = tex
-        if bool(FBO.glGenFramebuffersEXT):
-            buf = FBO.glGenFramebuffersEXT(1)
-            depth_buffer = FBO.glGenRenderbuffersEXT(1)
 
-            FBO.glBindFramebufferEXT(FBO.GL_FRAMEBUFFER_EXT, buf)
+        buf = FBO.glGenFramebuffersEXT(1)
+        depth_buffer = FBO.glGenRenderbuffersEXT(1)
 
-            FBO.glBindRenderbufferEXT(FBO.GL_RENDERBUFFER_EXT, depth_buffer)
-            FBO.glRenderbufferStorageEXT(FBO.GL_RENDERBUFFER_EXT, GL.GL_DEPTH_COMPONENT, width, height)
+        FBO.glBindFramebufferEXT(FBO.GL_FRAMEBUFFER_EXT, buf)
 
-            FBO.glFramebufferRenderbufferEXT(FBO.GL_FRAMEBUFFER_EXT, FBO.GL_DEPTH_ATTACHMENT_EXT, FBO.GL_RENDERBUFFER_EXT, depth_buffer)
-            FBO.glFramebufferTexture2DEXT(FBO.GL_FRAMEBUFFER_EXT, FBO.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, tex, 0)
+        FBO.glBindRenderbufferEXT(FBO.GL_RENDERBUFFER_EXT, depth_buffer)
+        FBO.glRenderbufferStorageEXT(FBO.GL_RENDERBUFFER_EXT, GL.GL_DEPTH_COMPONENT, width, height)
 
-            status = FBO.glCheckFramebufferStatusEXT(FBO.GL_FRAMEBUFFER_EXT)
-            if status != FBO.GL_FRAMEBUFFER_COMPLETE_EXT:
-                log.debug("glCheckFramebufferStatusEXT", status)
-                self.enabled = False
-                return
+        FBO.glFramebufferRenderbufferEXT(FBO.GL_FRAMEBUFFER_EXT, FBO.GL_DEPTH_ATTACHMENT_EXT, FBO.GL_RENDERBUFFER_EXT, depth_buffer)
+        FBO.glFramebufferTexture2DEXT(FBO.GL_FRAMEBUFFER_EXT, FBO.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, self._texID, 0)
 
-            FBO.glBindFramebufferEXT(FBO.GL_FRAMEBUFFER_EXT, buf)
+        status = FBO.glCheckFramebufferStatusEXT(FBO.GL_FRAMEBUFFER_EXT)
+        if status != FBO.GL_FRAMEBUFFER_COMPLETE_EXT:
+            log.debug("glCheckFramebufferStatusEXT", status)
+            self.enabled = False
+            return
 
+        FBO.glBindFramebufferEXT(FBO.GL_FRAMEBUFFER_EXT, buf)
+
+        with gl.glPushAttrib(GL.GL_VIEWPORT_BIT):
             GL.glViewport(0, 0, width, height)
-            with gl.glPushAttrib(GL.GL_VIEWPORT_BIT):
-                drawFunc()
+            drawFunc()
 
-            FBO.glBindFramebufferEXT(FBO.GL_FRAMEBUFFER_EXT, 0)
-            FBO.glDeleteFramebuffersEXT(1, [buf])
-            FBO.glDeleteRenderbuffersEXT(1, [depth_buffer])
-            self.enabled = True
-        else:
-            GL.glReadBuffer(GL.GL_BACK)
-            if bool(window_pos.glWindowPos2dARB):
-                pixels = GL.glReadPixels(0, 0, width, height, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE)
-
-            GL.glPushAttrib(GL.GL_VIEWPORT_BIT | GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT | GL.GL_STENCIL_TEST | GL.GL_STENCIL_BUFFER_BIT)
-            GL.glDisable(GL.GL_STENCIL_TEST)
-
-            GL.glViewport(0, 0, width, height)
-            GL.glScissor(0, 0, width, height)
-            with gl.glEnable(GL.GL_SCISSOR_TEST):
-                drawFunc()
-
-            GL.glBindTexture(GL.GL_TEXTURE_2D, tex)
-            GL.glReadBuffer(GL.GL_BACK)
-            GL.glCopyTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0, 0, 0, width, height)
-
-            if bool(window_pos.glWindowPos2dARB):
-                window_pos.glWindowPos2dARB(0,0)
-                GL.glDrawPixels(width, height, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pixels)
-
-            GL.glPopAttrib()
+        FBO.glBindFramebufferEXT(FBO.GL_FRAMEBUFFER_EXT, 0)
+        FBO.glDeleteFramebuffersEXT(1, [buf])
+        FBO.glDeleteRenderbuffersEXT(1, [depth_buffer])
+        self.enabled = True
 
 
 

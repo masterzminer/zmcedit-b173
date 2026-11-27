@@ -357,32 +357,51 @@ def normalize_size(x):
     return (x / size), size
 
 
-# Label = GLLabel
-
 class HotkeyColumn(Widget):
     is_gl_container = True
 
-    def __init__(self, items, keysColumn=None, buttonsColumn=None):
+    def __init__(self, items, keysColumn=None, buttonsColumn=None, close_column=None):
         if keysColumn is None:
             keysColumn = []
         if buttonsColumn is None:
             buttonsColumn = []
+        if close_column is None:
+            close_column = []
 
         Widget.__init__(self)
-        for (hotkey, title, action) in items:
+        found_close = False
+        for (hotkey, title, actions) in items:
+            if isinstance(actions, list):
+                action = actions[0]
+                close_action = actions[1]
+                found_close = True
+            else:
+                action = actions
+                close_action = None
+
             if isinstance(title, str):
                 button = Button(title, action=action)
             else:
                 button = ValueButton(ref=title, action=action, width=200)
             button.anchor = self.anchor
 
-            label = Label(hotkey, width=75, margin=button.margin)
+            label = Label(hotkey, margin=button.margin)
             label.anchor = "wh"
-
             label.height = button.height
 
-            keysColumn.append(label)
             buttonsColumn.append(button)
+            keysColumn.append(label)
+
+            if close_action is not None:
+                close_button = Button("X", action=close_action, tooltipText="Remove from this list")
+                close_button.anchor = "wh"
+                close_button.height = button.height
+                close_column.append(close_button)
+            else:
+                filler_label = Label("", margin=button.margin)
+                filler_label.anchor = "wh"
+                filler_label.height = button.height
+                close_column.append(filler_label)
 
         self.buttons = list(buttonsColumn)
 
@@ -390,7 +409,13 @@ class HotkeyColumn(Widget):
         buttonsColumn.anchor = self.anchor
         keysColumn = Column(keysColumn)
 
-        commandRow = Row((keysColumn, buttonsColumn))
+        row_list = [keysColumn, buttonsColumn]
+        if found_close and len(close_column) > 0:
+            close_column = Column(close_column)
+            close_column.anchor = self.anchor
+            row_list.append(close_column)
+
+        commandRow = Row(row_list)
         self.add(commandRow)
         self.shrink_wrap()
 
@@ -418,7 +443,7 @@ class ChoiceButton(ValueButton):
     align = "c"
     choose = None
 
-    def __init__(self, choices, choice_display={}, **kw):
+    def __init__(self, choices: list, choice_display={}, default_choice=None, **kw):
         self.choice_display = choice_display
         """Maps the choice to text for how to display it"""
 
@@ -435,7 +460,10 @@ class ChoiceButton(ValueButton):
         if len(widths):
             self.width = max(widths) + self.margin * 2
 
-        self.choiceIndex = 0
+        if default_choice is None:
+            self.choiceIndex = 0
+        else:
+            self.choiceIndex = choices.index(default_choice)
 
     def _display_value(self, c):
         if c in self.choice_display:

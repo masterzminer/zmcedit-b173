@@ -98,6 +98,12 @@ class PlayerSpawnMoveOperation(PlayerMoveOperation):
 
         self.tool.markerList.invalidate()
 
+    def undo(self):
+        if not (self.undoPos is None):
+            level = self.tool.editor.level
+            level.setPlayerSpawnPosition(self.undoPos)
+            self.tool.markerList.invalidate()
+
 
 class PlayerPositionPanel(Panel):
     def __init__(self, tool):
@@ -248,6 +254,9 @@ class PlayerPositionTool(EditorTool):
 
     panel = None
 
+    def all_tool_icons(self):
+        return ["player"]
+
     def showPanel(self):
         if not self.panel:
             self.panel = PlayerPositionPanel(self)
@@ -393,11 +402,14 @@ class PlayerSpawnPositionOptions(ToolOptions):
 class PlayerSpawnPositionTool(PlayerPositionTool):
     surfaceBuild = True
     toolIconName = "playerspawn"
-    tooltipText = "Move Spawn Point"
+    tooltipText = "Move Spawn Point\nRight-click for options"
 
     def __init__(self, *args):
         PlayerPositionTool.__init__(self, *args)
         self.optionsPanel = PlayerSpawnPositionOptions(self)
+
+    def all_tool_icons(self):
+        return ["playerspawn"]
 
     def toolEnabled(self):
         return self.editor.level.dimNo == 0

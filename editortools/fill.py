@@ -63,11 +63,13 @@ class FillToolPanel(Panel):
     def __init__(self, tool):
         Panel.__init__(self)
         self.tool = tool
-        replacing = tool.replacing
 
-        self.blockButton = BlockButton()
-        self.blockButton.blockInfo = tool.blockInfo
-        self.blockButton.action = self.pickFillBlock
+        self.blockButton = BlockButton(
+            blockInfo=FillToolSettings.fill_block.v,
+            on_block_info_change=FillToolSettings.fill_block.set,
+            recentBlocks=FillToolSettings.fill_recent.v,
+            on_recent_blocks_change=FillToolSettings.fill_recent.set)
+        FillToolSettings.fill_block.add_observer(lambda v: self.blockButton.update_block_info(v, False), "fill panel")
 
         self.fillWithLabel = Label("Fill with:", width=self.blockButton.width, align="c")
         self.fillButton = Button("Fill", action=tool.confirm, width=self.blockButton.width)
@@ -81,34 +83,41 @@ class FillToolPanel(Panel):
 
         col = (self.fillWithLabel,
                 self.blockButton,
-                # swapRow,
                 replaceLabel,
-                # self.replaceBlockButton,
                 self.fillButton)
 
-        if replacing:
+        self.replaceBlockButton = BlockButton(
+            blockInfo=FillToolSettings.replace_block.v,
+            on_block_info_change=FillToolSettings.replace_block.set,
+            recentBlocks=FillToolSettings.replace_recent.v,
+            on_recent_blocks_change=FillToolSettings.replace_recent.set)
+        FillToolSettings.replace_block.add_observer(lambda v: self.replaceBlockButton.update_block_info(v, False), "fill panel")
+        
+        if tool.is_replacing():
             self.fillWithLabel = Label("Find:", width=self.blockButton.width, align="c")
 
-            self.replaceBlockButton = BlockButton()
-            self.replaceBlockButton.blockInfo = tool.replaceBlockInfo
-            self.replaceBlockButton.action = self.pickReplaceBlock
             self.replaceLabel.text = "Replace with:"
 
             self.swapButton = Button("Swap", action=self.swapBlockTypes, width=self.blockButton.width)
             self.swapButton.fg_color = (255, 255, 255, 255)
             self.swapButton.highlight_color = (60, 255, 60, 255)
 
-            self.swapButton.tooltipText = f"Shortcut: {Keys.swap.upper()}"
+            self.swapButton.tooltipText = f"Shortcut: {Keys.swap.v.upper()}"
 
             self.fillButton = Button("Replace", action=tool.confirm, width=self.blockButton.width)
             self.fillButton.tooltipText = f"Shortcut: {Keys.confirm_construction.v.upper()}"
+
+            wildcard_check_box = CheckBoxLabel("Any Subtype", ref=FillToolSettings.replace_wildcard, tooltipText="Replace all blocks with the same data value")
 
             col = (self.fillWithLabel,
                     self.blockButton,
                     replaceLabel,
                     self.replaceBlockButton,
+                    wildcard_check_box,
                     self.swapButton,
-                    self.fillButton)
+                    self.fillButton,
+                )
+            
 
         col = Column(col)
 
@@ -116,23 +125,13 @@ class FillToolPanel(Panel):
         self.shrink_wrap()
 
     def swapBlockTypes(self):
-        t = self.tool.replaceBlockInfo
-        self.tool.replaceBlockInfo = self.tool.blockInfo
-        self.tool.blockInfo = t
+        b = self.blockButton.blockInfo
+        self.blockButton.update_block_info(self.replaceBlockButton.blockInfo, False)
+        self.replaceBlockButton.update_block_info(b, False)
 
-        self.replaceBlockButton.blockInfo = self.tool.replaceBlockInfo
-        self.blockButton.blockInfo = self.tool.blockInfo  # xxx put this in a property
-
-    def pickReplaceBlock(self):
-        blockPicker = BlockPicker(self.tool.replaceBlockInfo)
-        if blockPicker.present():
-            self.replaceBlockButton.blockInfo = self.tool.replaceBlockInfo = blockPicker.blockInfo
-
-    def pickFillBlock(self):
-        blockPicker = BlockPicker(self.tool.blockInfo, allowWildcards=True)
-        if blockPicker.present():
-            self.tool.blockInfo = blockPicker.blockInfo
-
+        t = [b for b in self.blockButton._recentBlocks]
+        self.blockButton.replace_recent_blocks([b for b in self.replaceBlockButton._recentBlocks])
+        self.replaceBlockButton.replace_recent_blocks(t)
 
 class FillToolOptions(ToolOptions):
     def __init__(self, tool):
@@ -140,9 +139,17 @@ class FillToolOptions(ToolOptions):
         self.tool = tool
         self.autoChooseCheckBox = CheckBoxLabel("Choose Block Immediately",
                                                 ref=FillToolSettings.chose_block_immediately,
-                                                tooltipText="When the fill tool is chosen, prompt for a block type.")
+                                                tooltipText="When the fill tool is chosen, prompt for a block type")
+        
+        self.choose_block_on_swap_check_box = CheckBoxLabel("Choose Block On Swap",
+                                                ref=FillToolSettings.chose_block_on_swap,
+                                                tooltipText="When the swapping from fill to replace mode, prompt for a block type")        
+        
+        self.select_tool_after_check_box = CheckBoxLabel("Deselect After Fill",
+                                                ref=FillToolSettings.select_tool_after,
+                                                tooltipText="After filling, remove the current selection and move to the select tool")
 
-        col = Column((Label("Fill Options"), self.autoChooseCheckBox, Button("OK", action=self.dismiss)))
+        col = Column((Label("Fill Options"), self.autoChooseCheckBox, self.choose_block_on_swap_check_box, self.select_tool_after_check_box, Button("OK", action=self.dismiss)))
 
         self.add(col)
         self.shrink_wrap()
@@ -153,21 +160,13 @@ class FillTool(EditorTool):
     _blockInfo = materials.Stone
     replaceBlockInfo = materials.Air
     tooltipText = "Fill and Replace\nRight-click for options"
-    replacing = False
 
     def __init__(self, *args, **kw):
         EditorTool.__init__(self, *args, **kw)
         self.optionsPanel = FillToolOptions(self)
 
-    @property
-    def blockInfo(self):
-        return self._blockInfo
-
-    @blockInfo.setter
-    def blockInfo(self, bt):
-        self._blockInfo = bt
-        if self.panel:
-            self.panel.blockButton.blockInfo = bt
+    def all_tool_icons(self):
+        return ["fill"]
 
     def levelChanged(self):
         self.initTextures()
@@ -192,25 +191,24 @@ class FillTool(EditorTool):
         if None is box:
             return
 
-        self.replacing = False
         self.showPanel()
 
         if FillToolSettings.chose_block_immediately.v:
-            blockPicker = BlockPicker(self.blockInfo, allowWildcards=True)
-
-            if blockPicker.present():
-                self.blockInfo = blockPicker.blockInfo
+            if self.panel.blockButton.action():
                 self.showPanel()
 
             else:
-                self.editor.toolbar.selectTool(-1)
+                self.editor.toolbar.selectTool(0)
 
     def toolReselected(self):
         self.showPanel()
-        self.panel.pickFillBlock()
+        self.panel.blockButton.action()
 
     def cancel(self):
         self.hidePanel()
+
+    def is_replacing(self):
+        return FillToolSettings.mode.v == "replace"
 
     @alertException
     def confirm(self):
@@ -221,20 +219,21 @@ class FillTool(EditorTool):
         with setWindowCaption("REPLACING - "):
             self.editor.freezeStatus("Replacing %0.1f million blocks" % (float(box.volume) / 1048576.,))
 
-            if self.replacing:
-                if self.blockInfo.wildcard:
+            fill_info = FillToolSettings.fill_block.v
+            if self.is_replacing():
+                blocksToReplace = []
+                if FillToolSettings.replace_wildcard.v:
                     log.trace("Wildcard replace")
-                    blocksToReplace = []
                     for i in range(16):
-                        blocksToReplace.append(materials.blockWithID(self.blockInfo.ID, i))
+                        blocksToReplace.append(materials.blockWithID(fill_info.ID, i))
                 else:
-                    blocksToReplace = [self.blockInfo]
+                    blocksToReplace.append(fill_info)
 
-                op = BlockFillOperation(self.editor, self.editor.level, self.selectionBox(), self.replaceBlockInfo, blocksToReplace)
+                op = BlockFillOperation(self.editor, self.editor.level, self.selectionBox(), FillToolSettings.replace_block.v, blocksToReplace)
 
             else:
                 blocksToReplace = []
-                op = BlockFillOperation(self.editor, self.editor.level, self.selectionBox(), self.blockInfo, blocksToReplace)
+                op = BlockFillOperation(self.editor, self.editor.level, self.selectionBox(), fill_info, blocksToReplace)
 
             self.performWithRetry(op)
 
@@ -242,22 +241,27 @@ class FillTool(EditorTool):
 
         self.editor.addUnsavedEdit()
         self.editor.invalidateBox(box)
-        self.editor.toolbar.selectTool(-1)
+
+        if FillToolSettings.select_tool_after.v:
+            self.editor.toolbar.selectTool(-1)
 
     def roll(self):
         self.toggleReplacing()
 
     def toggleReplacing(self):
-        self.replacing = not self.replacing
+        if self.is_replacing():
+            FillToolSettings.mode.set("fill")
+        else:
+            FillToolSettings.mode.set("replace")
 
         self.hidePanel()
         self.showPanel()
-        if self.replacing:
-            self.panel.pickReplaceBlock()
+        if self.is_replacing() and FillToolSettings.chose_block_on_swap.v:
+            self.panel.replaceBlockButton.action()
 
     @alertException
     def swap(self):
-        if self.panel and self.replacing:
+        if self.panel and self.is_replacing():
             self.panel.swapBlockTypes()
 
     def initTextures(self):
@@ -296,22 +300,20 @@ class FillTool(EditorTool):
         if self.editor.currentTool != self:
             return
 
-        if self.panel and self.replacing:
-            blockInfo = self.replaceBlockInfo
+        if self.panel and self.is_replacing():
+            blockInfo = FillToolSettings.replace_block.v
         else:
-            blockInfo = self.blockInfo
+            blockInfo = FillToolSettings.fill_block.v
 
         color = 1.0, 1.0, 1.0, 0.35
         if blockInfo:
             tex = self.blockTextures[blockInfo.ID]
-            # color = (1.5 - alpha, 1.0, 1.5 - alpha, alpha - 0.35)
             glMatrixMode(GL_TEXTURE)
             glPushMatrix()
             glScale(16., 16., 16.)
 
         else:
             tex = None
-            # color = (1.0, 0.3, 0.3, alpha - 0.35)
 
         glPolygonOffset(DepthOffset.FillMarkers, DepthOffset.FillMarkers)
         self.editor.drawConstructionCube(self.selectionBox(),
@@ -349,6 +351,6 @@ class FillTool(EditorTool):
             id = self.editor.level.blockAt(*pos)
             data = self.editor.level.blockDataAt(*pos)
 
-            self.blockInfo = materials.blockWithID(id, data)
+            FillToolSettings.fill_block.set(materials.blockWithID(id, data))
         else:
             return self.editor.selectionTool.mouseDown(evt, pos, dir)

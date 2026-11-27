@@ -141,19 +141,19 @@ class ToolOptions(Panel):
 
 class ThumbView(GLPerspective):
 
-    def __init__(self, sch, **kw):
+    def __init__(self, sch, drawBackground=True, **kw):
+        self.drawBackground = drawBackground
         GLPerspective.__init__(self, **kw)  # self, xmin= -32, xmax=32, ymin= -32, ymax=32, near= -1000, far=1000)
         self.far = 16000
         self.schematic = sch
         self.renderer = PreviewRenderer(sch)
         self.fboSize = (128, 128)
-        # self.renderer.position = (sch.Length / 2, 0, sch.Height / 2)
+        self.fbo = None
 
     def setup_modelview(self):
         GLU.gluLookAt(-self.schematic.Width * 2.8, self.schematic.Height * 2.5 + 1, -self.schematic.Length * 1.5,
                       self.schematic.Width, 0, self.schematic.Length,
                       0, 1, 0)
-    fbo = None
 
     def gl_draw_tex(self):
         self.clear()
@@ -192,8 +192,6 @@ class ThumbView(GLPerspective):
                 GL.glDrawArrays(GL_QUADS, 0, 4)
             GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
-    drawBackground = True
-
     def gl_draw_thumb(self):
         GL.glPushAttrib(GL.GL_SCISSOR_BIT)
         r = self.rect
@@ -222,23 +220,28 @@ class BlockThumbView(Widget):
     @blockInfo.setter
     def blockInfo(self, b):
         if self._blockInfo != b:
-            if self.thumb:
-                self.thumb.set_parent(None)
             self._blockInfo = b
-            if b is None:
-                return
+            self.update_view()
 
-            sch = MCSchematic(shape=(1, 1, 1))
-            if b:
-                sch.Blocks[:] = b.ID
-                sch.Data[:] = b.blockData
 
-            self.thumb = ThumbView(sch)
-            self.add(self.thumb)
-            self.thumb.size = self.size
-            self.thumb.drawBackground = False
-            for i in self.thumb.renderer.chunkWorker:
-                pass
+    def update_view(self):
+        if self.thumb:
+            self.thumb.set_parent(None)
+
+        b = self._blockInfo
+        if b is None:
+            return
+
+        sch = MCSchematic(shape=(1, 1, 1))
+        if b:
+            sch.Blocks[:] = b.ID
+            sch.Data[:] = b.blockData
+
+        self.thumb = ThumbView(sch, drawBackground = False)
+        self.add(self.thumb)
+        self.thumb.size = self.size
+        for i in self.thumb.renderer.chunkWorker:
+            pass
 
 
 class BlockView(GLOrtho):
@@ -297,55 +300,78 @@ class BlockView(GLOrtho):
 
 
 class BlockButton(ButtonBase, Panel):
-    _ref = None
-
-    def __init__(self, blockInfo=None, ref=None, recentBlocks=None, *a, **kw):
-        self.allowWildcards = False
-        Panel.__init__(self, *a, **kw)
-
-        self.bg_color = (1, 1, 1, 0.25)
-        self._ref = ref
-        if blockInfo is None and ref is not None:
-            blockInfo = ref.get()
-        blockInfo = blockInfo or materials.Air
+    def __init__(self, blockInfo=None, on_block_info_change=None, recentBlocks=None, on_recent_blocks_change=None, *a, **kw):
+        self.blockView = None
+        self.on_block_info_change = on_block_info_change
+        self.on_recent_blocks_change = on_recent_blocks_change
+        """Function run when recent blocks are changed"""
 
         if recentBlocks is not None:
-            self.recentBlocks = recentBlocks
+            self._recentBlocks = recentBlocks
         else:
-            self.recentBlocks = []
+            self._recentBlocks = []
+
+        blockInfo = materials.Air if blockInfo is None else blockInfo
+        self._blockInfo = blockInfo
+
+        self.bg_color = (1, 1, 1, 0.25)
+
+        Panel.__init__(self, *a, **kw)
 
         self.blockView = BlockThumbView(blockInfo, size=(48, 48))
         self.blockLabel = ValueDisplay(ref=AttrRef(self, 'labelText'), width=180, align="l")
         row = Row((self.blockView, self.blockLabel), align="b")
+        self.blockInfo = blockInfo
 
         self.add(row)
         self.shrink_wrap()
-
-        self.blockInfo = blockInfo
-        # self._ref = ref
         self.updateRecentBlockView()
+        self._recent_blocks_changed(None)
 
     recentBlockLimit = 7
 
     @property
     def blockInfo(self):
-        if self._ref:
-            return self._ref.get()
-        else:
-            return self._blockInfo
+        return self._blockInfo
 
     @blockInfo.setter
     def blockInfo(self, bi):
-        if self._ref:
-            self._ref.set(bi)
-        else:
-            self._blockInfo = bi
-        self.blockView.blockInfo = bi
-        if bi not in self.recentBlocks:
-            self.recentBlocks.append(bi)
-            if len(self.recentBlocks) > self.recentBlockLimit:
-                self.recentBlocks.pop(0)
-            self.updateRecentBlockView()
+        self.update_block_info(bi, True)
+
+
+    def update_block_info(self, bi, update_recent):
+        if bi is None:
+            bi = materials.blockWithID(0, 0)
+
+        old_info = self._blockInfo
+        self._blockInfo = bi
+        if self.blockView is not None:
+            self.blockView.blockInfo = bi
+
+            if update_recent:
+                old_recent = [b for b in self._recentBlocks]
+                if bi not in self._recentBlocks:
+                    self._recentBlocks.append(bi)
+                    if len(self._recentBlocks) > self.recentBlockLimit:
+                        self._recentBlocks.pop(0)
+                    self.updateRecentBlockView()
+                    self._recent_blocks_changed(old_recent)
+
+        if self.on_block_info_change is not None:
+            if old_info.ID != self._blockInfo.ID or old_info.blockData != self._blockInfo.blockData:
+                self.on_block_info_change(bi)
+
+    def replace_recent_blocks(self, blocks):
+        old_recent = [b for b in self._recentBlocks]
+        self._recentBlocks.clear()
+        self._recentBlocks.extend(blocks)
+        self.updateRecentBlockView()
+        self._recent_blocks_changed(old_recent)
+
+    def _recent_blocks_changed(self, old):
+        if old != self._recentBlocks:
+            if self.on_recent_blocks_change is not None:
+                self.on_recent_blocks_change(self._recentBlocks)
 
     @property
     def labelText(self):
@@ -353,8 +379,6 @@ class BlockButton(ButtonBase, Panel):
         if len(labelText) > 24:
             labelText = labelText[:23] + "..."
         return labelText
-
-        # self.blockNameLabel.text =
 
     def createRecentBlockView(self):
         def makeBlockView(bi):
@@ -366,7 +390,7 @@ class BlockButton(ButtonBase, Panel):
             bv.mouse_up = action
             return bv
 
-        row = [makeBlockView(bi) for bi in self.recentBlocks]
+        row = [makeBlockView(bi) for bi in self._recentBlocks]
         row = Row(row)
 
         widget = GLBackground()
@@ -392,31 +416,21 @@ class BlockButton(ButtonBase, Panel):
         return "{0}".format(self.blockInfo.name)
 
     def action(self):
-        blockPicker = BlockPicker(self.blockInfo, allowWildcards=self.allowWildcards)
+        blockPicker = BlockPicker(self.blockInfo)
         if blockPicker.present():
             self.blockInfo = blockPicker.blockInfo
-
-
-def anySubtype(self):
-    bl = material.Block(materials, self.ID, self.blockData)
-    bl.wildcard = True
-    return bl
+            return True
+        return False
 
 from pymclevel.material import Block
-
-Block.anySubtype = anySubtype
-Block.wildcard = False  # True if
 
 
 class BlockPicker(Dialog):
     is_gl_container = True
 
     def __init__(self, blockInfo, *a, **kw):
-        self.allowWildcards = False
         Dialog.__init__(self, *a, **kw)
         panelWidth = 350
-
-        self.anySubtype = blockInfo.wildcard
 
         self.matchingBlocks = materials.allBlocks
 
@@ -486,8 +500,6 @@ class BlockPicker(Dialog):
         blockView.centerx = self.centerx
         blockView.top = table_view.bottom
 
-        # self.add(blockview)
-
         but = Button("OK")
         but.action = self.ok
         but.top = blockView.bottom
@@ -495,12 +507,7 @@ class BlockPicker(Dialog):
         but.align = "c"
         but.height = 30
 
-        if self.allowWildcards:
-        # self.add(but)
-            anyRow = CheckBoxLabel("Any Subtype", ref=AttrRef(self, 'anySubtype'), tooltipText="Replace blocks with any data value. Only useful for Replace operations.")
-            col = Column((searchRow, tableWidget, anyRow, blockView, but))
-        else:
-            col = Column((searchRow, tableWidget, blockView, but))
+        col = Column((searchRow, tableWidget, blockView, but))
         col.anchor = "wh"
         self.anchor = "wh"
 
@@ -526,22 +533,20 @@ class BlockPicker(Dialog):
     @property
     def blockInfo(self):
         if len(self.matchingBlocks):
-            bl = self.matchingBlocks[self.selectedBlockIndex]
-            if self.anySubtype:
-                return bl.anySubtype()
-            else:
-                return bl
-
+            return self.matchingBlocks[self.selectedBlockIndex]
         else:
             return materials.Air
 
     def selectTableRow(self, i, e):
         oldIndex = self.selectedBlockIndex
 
-        self.selectedBlockIndex = i
-        self.blockButton.blockInfo = self.blockInfo
+        self.select_table_index(i)
         if e.num_clicks > 1 and oldIndex == i:
             self.ok()
+
+    def select_table_index(self, i):
+        self.selectedBlockIndex = i
+        self.blockButton.blockInfo = self.blockInfo
 
     def textEntered(self):
         text = self.awesomeField.text
@@ -592,6 +597,21 @@ class BlockPicker(Dialog):
         self.tableview.rows.scroll_to_item(self.selectedBlockIndex)
         self.blockButton.blockInfo = self.blockInfo
 
+    def key_down(self, event):
+        k = event.key
+        # Move the selected element if this is an arrow key
+        size = len(self.matchingBlocks)
+        if k == K_UP:
+            self.select_table_index((self.selectedBlockIndex - 1 + size) % size)
+            self.tableview.rows.scroll_to_item(self.selectedBlockIndex)
+        elif k == K_DOWN:
+            self.select_table_index((self.selectedBlockIndex + 1) % size)
+            self.tableview.rows.scroll_to_item(self.selectedBlockIndex)
+        
+
+        # Do normal behavior
+        return super().key_down(event)
+
 
 class EditorTool(object):
     surfaceBuild = False
@@ -620,6 +640,9 @@ class EditorTool(object):
 
     def __init__(self, editor):
         self.editor = editor
+
+    def all_tool_icons(self):
+        return []
 
     def toolReselected(self):
         pass
@@ -753,10 +776,6 @@ class EditorTool(object):
 
         points = {}
 
-#        glPointSize(5.0)
-#        glColor(1.0, 1.0, 0.0, 1.0)
-#        glBegin(GL_POINTS)
-
         for dim in range(3):
             dim1 = dim + 1
             dim2 = dim + 2
@@ -777,12 +796,10 @@ class EditorTool(object):
                         scale = d / normal[dim]
 
                         point = list(map(lambda a, p: (a * scale + p), normal, p0))
-    #                    glVertex3f(*point)
 
                         if pointInBounds(point, dim1) and pointInBounds(point, dim2):
                             points[dim * 2 + side] = point
 
-#        glEnd()
 
         if not len(points):
             return None, None
@@ -804,11 +821,6 @@ class EditorTool(object):
         closest_distance = min(distances)
         face, point = distances[closest_distance]
 
-        # When holding alt, pick the face opposite the camera
-        # if key.get_mods() & KMOD_ALT:
-        #    minmax = max
-        # else:
-
         # if the point is near the edge of the face, and the edge is facing away,
         # return the away-facing face
 
@@ -823,17 +835,17 @@ class EditorTool(object):
         # to the opposite side
         for d in dim1, dim2:
             edge_width = box.size[d] * self.edge_factor
-            facenormal = [0, 0, 0]
+            face_normal = [0, 0, 0]
             cameraBehind = False
 
             if point[d] - box.origin[d] < edge_width:
-                facenormal[d] = -1
+                face_normal[d] = -1
                 cameraBehind = cam[d] - box.origin[d] > 0
             if point[d] - box.maximum[d] > -edge_width:
-                facenormal[d] = 1
+                face_normal[d] = 1
                 cameraBehind = cam[d] - box.maximum[d] < 0
 
-            if np.dot(facenormal, cv) > 0 or cameraBehind:
+            if np.dot(face_normal, cv) > 0 or cameraBehind:
                 # the face adjacent to the clicked edge faces away from the cam
                 return distances[max(distances.keys())]
 
@@ -858,7 +870,6 @@ class EditorTool(object):
             return None
 
         p1, p2 = list(p1), list(p2)
-        # d = [(a-b) for a,b in zip(p1,p2)]
         for i in range(3):
             if p1[i] > p2[i]:
                 t = p2[i]

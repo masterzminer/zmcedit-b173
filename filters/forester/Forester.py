@@ -1152,6 +1152,7 @@ def plant_trees(mc_map, tree_list):
         z = Z + int(rad * cos(ang) + .5)
         # check to see if this location is suitable
         y_top = mc_map.surface_block(x, z)
+        y_top = None if y_top is None else {k: int(v) for k, v in y_top.items()}
         if y_top is None:
             # this location is off the map!
             continue
@@ -1193,6 +1194,7 @@ def plant_trees(mc_map, tree_list):
                     # same as for search_x
                     search_z = z - offset + (step_z * spacing)
                     search_block = mc_map.surface_block(search_x, search_z)
+                    search_block = None if search_block is None else {k: int(v) for k, v in search_block.items()}
                     if search_block is None:
                         continue
                     if search_block['B'] == 18:

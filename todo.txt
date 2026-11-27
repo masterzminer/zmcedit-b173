@@ -1,36 +1,3 @@
-filters
-    make the last filter used, along with its settings, for the next time mc edit starts
-    make the default filter something generally useful
-    forester
-        figure out if it works
-    topsoil
-        figure out overflow error during subtraction
-    Allow a new selection to be made or the existing selection modified with the mouse without changing out of the filters tool
-    Allow stock filters to be hidden
-    Retest all stock filters
-
-brush
-    make a max spacing feature so it can't skip long distances
-    make the last selected block or blocks for the brush save with the config, similar to the last brush size
-
-select
-    fix the select tool icon showing a blank white square sometimes, seemingly from quick loading a world while a world is already open
-
-import
-    Fix the import not consistently placing immediately or not
-
-spawn
-    Fix undoDim being undefined when undoing
-
-level rendering
-    fix buttons and other non full blocks rendering weirdly
-    fix the fire rendering with a dumb texture
-
-menu
-    Allow recent worlds to be deleted from the ui
-
-
-
 go through and remove all the unnecessary imports
 
 go through and remove all the unnecessary semicolons
@@ -40,3 +7,23 @@ go through and clean up all the typos and general ide warnings
 go through and remove all the commented out code
 
 go through and fix all the deprecated method calls
+
+make release 1.0
+
+
+
+consider adding a redo feature
+
+Brush
+    Add presets
+    Make a separate config for each brush type
+    experiment with adding other erode brush algorithms
+    Move brush types and shapes to separate classes with overridable methods
+
+level rendering
+    Make fire render with a proper texture
+    Make buttons and other non full blocks render with proper models
+
+Currently unproducible bugs
+    Fix potential bug with entity duplication during undo
+    Fix random error in BlockRenderer.setAlpha, somehow it caused a crash

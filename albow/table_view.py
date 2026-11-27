@@ -170,12 +170,6 @@ class TableHeaderView(TableRowBase):
     def __init__(self, width, height):
         TableRowBase.__init__(self, (width, height), 1, False)
 
-#    def row_data(self, row):
-#        return [c.title for c in self.parent.columns]
-
-#    def draw_table_cell(self, surf, i, text, cell_rect, column):
-#        self.parent.draw_header_cell(surf, i, text, cell_rect, column)
-
     def row_data(self, row):
         None
 

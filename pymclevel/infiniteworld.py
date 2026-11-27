@@ -1059,7 +1059,6 @@ class ChunkedLevelMixin(object):
             sourceBlocks = sourceLevel.Blocks[sx + point[0]:localSourceCorner2[0],
                                               sz + point[2]:localSourceCorner2[2],
                                               sy:localSourceCorner2[1]]
-            #sourceBlocks = filterTable[sourceBlocks]
             mask = sourceMask(sourceBlocks)
 
             #for small level slices, reduce the destination area
@@ -1952,10 +1951,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
                 for subdirname in subdirs:
                     if subdirname in self.dirhashes:
                         filenames = os.listdir(os.path.join(self.worldDir, dirname, subdirname))
-                        #def fullname(filename):
-                            #return os.path.join(self.worldDir, dirname, subdirname, filename);
 
-                        #fullpaths = map(fullname, filenames);
                         bits = [x.split('.') for x in filenames]
 
                         chunkfilenames = [x for x in bits if (len(x) == 4 and x[0].lower() == 'c' and x[3].lower() == 'dat')]
@@ -2267,7 +2263,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
         for chunk, slices, point in self.getChunkSlices(box):
             count += chunk.removeEntitiesInBox(box)
 
-        log.info("Removed {count} entities")
+        log.info(f"Removed {count} entities")
         return count
 
     def removeTileEntitiesInBox(self, box):

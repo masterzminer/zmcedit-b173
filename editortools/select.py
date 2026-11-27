@@ -203,10 +203,9 @@ class NudgeBlocksOperation (Operation):
 
 
 class SelectionTool(EditorTool):
-    # selectionColor = (1.0, .9, .9)
     color = (0.7, 0., 0.7)
     surfaceBuild = False
-    toolIconName = "selection"
+    toolIconName = "selection2"
     tooltipText = "Select\nRight-click for options"
 
     bottomLeftPoint = topRightPoint = None
@@ -227,6 +226,9 @@ class SelectionTool(EditorTool):
         self.optionsPanel = SelectionToolOptions(self)
 
         self.updateSelectionColor()
+
+    def all_tool_icons(self):
+        return ["selection2", "selection"]
 
     # --- Tooltips ---
 
@@ -471,8 +473,6 @@ class SelectionTool(EditorTool):
         self.selectOtherCorner()
 
     def toolSelected(self):
-        # if self.clearSelectionImmediately:
-        #    self.setSelectionPoints(None)
         self.showPanel()
 
     def clampPos(self, pos):
@@ -662,7 +662,7 @@ class SelectionTool(EditorTool):
     @currentCorner.setter
     def currentCorner(self, value):
         self._currentCorner = value & 1
-        self.toolIconName = ("selection", "selection2")[self._currentCorner]
+        self.toolIconName = self.all_tool_icons()[self._currentCorner]
         self.editor.toolbar.toolTextureChanged()
 
     def selectOtherCorner(self):
@@ -707,7 +707,6 @@ class SelectionTool(EditorTool):
                     # draw highlighted block faces when nudging
                     if (widget.parent == n or widget == n):
                         glEnable(GL_BLEND)
-                        # drawCube(BoundingBox((sx, sy, sz), (1,1,1)))
                         nudge_faces = array([
                                selectionBox.minx, selectionBox.miny, selectionBox.minz,
                                selectionBox.minx, selectionBox.maxy, selectionBox.minz,

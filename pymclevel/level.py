@@ -177,7 +177,7 @@ class MCLevel(object):
 
     @property
     def displayName(self):
-        return os.path.basename(self.filename)
+        return os.path.basename(self.filename) if self.filename is not None else None
 
     @property
     def size(self):
@@ -537,7 +537,6 @@ class MCLevel(object):
                 x = 0
             if x + sourceBox.size[0] > self.Width:
                 sourceBox.size[0] -= x + sourceBox.size[0] - self.Width
-                #x=self.Width-sourceBox.size[0]
 
         if self.Length != 0:
             if z < 0:
@@ -546,7 +545,6 @@ class MCLevel(object):
                 z = 0
             if z + sourceBox.size[2] > self.Length:
                 sourceBox.size[2] -= z + sourceBox.size[2] - self.Length
-                #z=self.Length-sourceBox.size[2]
 
         destinationPoint = (x, y, z)
 
@@ -704,6 +702,21 @@ class EntityLevel(MCLevel):
         new_entities = []
         for ent in self.Entities:
             if Entity.pos(ent) in box:
+                continue
+            new_entities.append(ent)
+
+        entities_removed = len(self.Entities) - len(new_entities)
+        log.debug(f"Removed {entities_removed} entities")
+
+        self.Entities.value[:] = new_entities
+
+        return entities_removed
+    
+    def remove_entities(self, entities_to_remove):
+
+        new_entities = []
+        for ent in self.Entities:
+            if ent in entities_to_remove:
                 continue
             new_entities.append(ent)
 

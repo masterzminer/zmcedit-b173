@@ -18,7 +18,14 @@ Configuration settings and storage.
 """
 
 from configparser import RawConfigParser
-from config_classes import Section, ListSection, Setting as S, DirectorySetting as DS, IndexSetting as IS, KeySetting as KS, KeyIndexSetting as KIS
+from config_classes import Section, ListSection
+from config_classes import Setting as S
+from config_classes import DirectorySetting as DS
+from config_classes import KeySetting as KS
+from config_classes import KeyIndexSetting as KIS
+from config_classes import JsonSetting as JS
+from config_classes import BlockSetting as BS
+from config_classes import BlockListSetting as BLS
 
 from directories import INI_FILE
 import log
@@ -226,13 +233,49 @@ class _BrushToolSection(Section):
     length = S(3)
     height = S(3)
     width = S(3)
+    shape = S("Round")
+    """One of 'Round', 'Square', 'Diamond', 'Pyramid'"""
+    mode = S("Fill")
+    """One of 'Fill', 'Flood Fill', 'Replace', 'Erode', 'Topsoil', 'Paste' """
+
     update_offset = S(False)
+    reset_offset_to_zero = S(True)
     choose_block_immediately = S(False)
     alpha = S(0.66, min=0, max=1)
 
+    minimum_spacing = S(1)
+    chance = S(100)
+    chance_type = S("full")
+    """One of 'edge', 'full'"""
+    hollow = S(False)
+
+    fill_block = BS(r'{"ID": 1, "blockData": 0}')
+    replace_block = BS(r'{"ID": 0, "blockData": 0}')
+
+    fill_recent = BLS("[]")
+    replace_recent = BLS("[]")
+
+    erode_strength = S(1)
+
+    flood_indiscriminate = S(False)
+
+    topsoil_natural_earth = S(True)
+    topsoil_depth = S(1)
+
+    copy_schematic = S("")
+    copy_create_chunks = S(False)
+    copy_offset_x = S(0)
+    copy_offset_y = S(0)
+    copy_offset_z = S(0)
+    copy_reset_on_select = S(False)
+    copy_paste_air = S(True)
+    copy_paste_water = S(True)
+    
+    replace_wildcard = S(False)
+
+
 
 BrushToolSettings = _BrushToolSection(config)
-
 
 class _CloneToolSection(Section):
     """Settings for the clone tool"""
@@ -242,6 +285,10 @@ class _CloneToolSection(Section):
     copy_air = S(True)
     copy_water = S(True)
     place_immediately = S(True)
+
+    create_chunks = S(False)
+
+    select_tool_after = S(True)
 
 
 CloneToolSettings = _CloneToolSection(config)
@@ -253,6 +300,19 @@ class _FillToolSection(Section):
     NAME = "fill tool"
 
     chose_block_immediately = S(False)
+    chose_block_on_swap = S(False)
+    select_tool_after = S(True)
+    
+    fill_block = BS(r'{"ID": 1, "blockData": 0}')
+    replace_block = BS(r'{"ID": 0, "blockData": 0}')
+
+    mode = S("fill")
+    """one of fill, replace"""
+
+    fill_recent = BLS("[]")
+    replace_recent = BLS("[]")
+
+    replace_wildcard = S(False)
 
 
 FillToolSettings = _FillToolSection(config)
@@ -310,6 +370,28 @@ class _RecentWorldsSection(ListSection):
 
 
 RecentWorlds = _RecentWorldsSection(5, config)
+
+
+class _LastFilterSection(Section):
+    """Stores the settings of each last used filter"""
+    
+    NAME = "last filter"
+
+    selected = S("")
+    """The filter that was last selected"""
+
+    all_settings = JS("")
+    """A json string holding the settings of all filters as used"""
+
+LastFilter = _LastFilterSection(config)
+
+
+class _HiddenFiltersSection(ListSection):
+    """Holds the filters that should be hidden in the ui"""
+
+    NAME = "hidden filters"
+
+HiddenFilters = _HiddenFiltersSection(None, config)
 
 
 # Save the config after final init

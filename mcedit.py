@@ -24,9 +24,9 @@ if arguments.LOG_LEVEL == LogLevel.TRACE or arguments.LOG_LEVEL == LogLevel.DEBU
     OpenGL.ERROR_CHECKING = False
 
 import albow
-from albow.dialogs import Dialog
+from albow.dialogs import Dialog, alert
 from albow.openglwidgets import GLViewport
-from albow.root import RootWidget, schedule as albow_schedule
+from albow.root import RootWidget, schedule as albow_schedule, SaveAndExitException
 from config import LastDir, Keys, WorldKeys, ToolKeys, Controls, Settings, RecentWorlds, save_config
 from config_classes import Setting
 import directories
@@ -37,7 +37,7 @@ import leveleditor
 import mceutils
 import mcplatform
 from mcplatform import platform_open
-import numpy
+import numpy as np
 
 
 from OpenGL import GL
@@ -53,6 +53,7 @@ from pymclevel.material import materials
 from mceutils import FilterControls
 from typing import Literal
 import log
+from pathlib import Path
 
 MCBetaLevel.loadedChunkLimit = 0
 
@@ -102,6 +103,7 @@ class FileOpener(albow.Widget):
 
         keysColumn = [albow.Label("")]
         buttonsColumn = [leveleditor.ControlPanel.getHeader()]
+        extra_column = [albow.Label("")]
 
         short_names = []
         for world in self.mcedit.recentWorlds():
@@ -130,7 +132,9 @@ class FileOpener(albow.Widget):
                 if world_key is None:
                     continue
                 # Each button is the display for the hot key, the world name, and the button itself to load the world
-                buttons.append((f'{world_key.upper()}', short_names[i], self.createLoadButtonHandler(world)))
+                buttons.append((f'{world_key.upper()}', short_names[i], 
+                                [self.createLoadButtonHandler(world), self.createCloseButtonHandler(world, i)]
+                                ))
                             
             return buttons
         
@@ -141,7 +145,7 @@ class FileOpener(albow.Widget):
             build_world_buttons()
         )
 
-        commandRow = mceutils.HotkeyColumn(hotkeys, keysColumn, buttonsColumn)
+        commandRow = mceutils.HotkeyColumn(hotkeys, keysColumn, buttonsColumn, extra_column)
         commandRow.anchor = 'lrh'
 
         sideColumn = self.mcedit.makeSideColumn(reset_parent=self.reset_content_row)
@@ -192,6 +196,22 @@ class FileOpener(albow.Widget):
 
     def createLoadButtonHandler(self, filename):
         return lambda: self.mcedit.loadFile(filename)
+
+    def createCloseButtonHandler(self, filename, i):
+        return lambda: self.remove_recent_world(filename, i)
+
+    def remove_recent_world(self, filename, i):
+        # Find the world, do nothing if it doesn't exist
+        all_worlds = RecentWorlds.get_all()
+        worlds = [w[1] for w in all_worlds if w[0] != str(i)]
+        if len(all_worlds) == len(worlds):
+            return
+
+        # Update the worlds with the removed world
+        RecentWorlds.set_list(worlds)
+
+        # Reload the ui
+        self.reset_content_row()
 
 
 class KeyConfigPanel(Dialog):
@@ -588,7 +608,7 @@ class OptionsPanel(Dialog):
         invertRow = mceutils.CheckBoxLabel("Invert Mouse", ref=Controls.invert_mouse_pitch,
             tooltipText="Reverse the up and down motion of the mouse.")
         
-        classicMouseRow = mceutils.CheckBoxLabel("Classic Mouse", ref=Settings.classic_mouse, invert=True,
+        classicMouseRow = mceutils.CheckBoxLabel("Classic Mouse", ref=Settings.classic_mouse,
             tooltipText="Use the mouse pointer from the original version of MC Edit")
            
         centerMouseFixRow = mceutils.CheckBoxLabel("Center Mouse", ref=Settings.center_mouse_fix,
@@ -882,6 +902,32 @@ class MCEdit(GLViewport):
         self.add(self.fileOpener)
         self.focus_switch = self.fileOpener
 
+    def file_dropped(self, file_path: Path):
+        file_name = None
+        
+        try:
+            # If it's a level.dat file, use it
+            if file_path.name == "level.dat":
+                file_name = str(file_path)
+            # If it's a directory, see if it has a level.dat file
+            elif file_path.is_dir():
+                for p in file_path.iterdir():
+                    if not p.is_file(): continue
+                    if p.name != "level.dat": continue
+
+                    # Found a .dat file, try to load it
+                    file_name = str(p)
+                    break
+        except:
+            pass
+
+        # Load the file if one was found
+        if file_name is not None:
+            self.loadFile(file_name)
+        # Otherwise, alert that it couldn't load
+        else:
+            alert(f"Cannot open file:\n{file_path}\nit is not a level.dat file or a folder with a level.dat file")
+
     def confirm_quit(self):
         if self.editor.unsavedEdits:
             result = albow.ask("There are {0} unsaved changes.".format(self.editor.unsavedEdits),
@@ -913,6 +959,7 @@ class MCEdit(GLViewport):
         root_widget.displayContext = displayContext
         root_widget.confirm_quit = mcedit.confirm_quit
         root_widget.mcedit = mcedit
+        root_widget.file_dropped = mcedit.file_dropped
 
         root_widget.add(mcedit)
         root_widget.focus_switch = mcedit
@@ -942,6 +989,12 @@ class MCEdit(GLViewport):
         while True:
             try:
                 root_widget.run()
+            except SaveAndExitException:
+                mcedit.editor.saveFile()
+                save_config()
+                mcedit.editor.renderer.discardAllChunks()
+                mcedit.editor.deleteAllCopiedSchematics()
+                raise
             except SystemExit:
                 save_config()
                 mcedit.editor.renderer.discardAllChunks()
@@ -1039,7 +1092,7 @@ class GLDisplayContext(object):
 
         def makeTerrainTexture(mats):
             w, h = 1, 1
-            tex_image = numpy.zeros((w, h, 4), dtype='uint8')
+            tex_image = np.zeros((w, h, 4), dtype='uint8')
             tex_image[:] = 127, 127, 127, 255
 
             GL.glTexImage2D(

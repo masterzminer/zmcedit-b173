@@ -70,7 +70,7 @@ from glbackground import GLBackground, Panel
 from glutils import gl, Texture
 from mcplatform import askSaveFile
 from pymclevel.infiniteworld import alphanum_key
-from renderer import MCRenderer
+from renderer import MCRenderer, Layer
 
 from pymclevel.box import BoundingBox
 from pymclevel.entity import Entity
@@ -79,6 +79,11 @@ from pymclevel.infiniteworld import MCBetaLevel
 from pymclevel.material import materials
 import pymclevel.mclevel as mclevel
 import log
+
+from pathlib import Path
+import directories
+
+from config_classes import Setting
 
 arch = platform.architecture()[0]
 
@@ -143,9 +148,6 @@ class ControlPanel(Panel):
                     (cmd + f"-{Keys.swap_view_distance.v.upper()}", AttrRef(editor, 'viewDistanceLabelText'), editor.swapViewDistance),
                     ("", "Quit", editor.quit),
                     ])
-
-        if cmd == "Cmd":
-            hotkeys[-1] = ("Cmd-Q", hotkeys[-1][1], hotkeys[-1][2])
 
         buttons = mceutils.HotkeyColumn(hotkeys, keysColumn, buttonsColumn)
 
@@ -1222,7 +1224,6 @@ class CameraViewport(GLViewport):
                 (blockPosition, faceDirection) = focusPair
                 if None != blockPosition:
                     self.editor.updateInspectionString(blockPosition)
-                    # for t in self.toolbar.tools:
 
                     if self.find_widget(mouse.get_pos()) == self:
                         ct = self.editor.currentTool
@@ -1285,9 +1286,6 @@ class ChunkViewport(CameraViewport):
 
     def mouse_down(self, evt):
         if evt.button == 4:  # wheel up - zoom in
-#            if self.defaultScale == 4.0:
-#                self.editor.swapViewports()
-#            else:
             self.zoomIn()
         elif evt.button == 5:  # wheel down - zoom out
             self.zoomOut()
@@ -1930,7 +1928,6 @@ class LevelEditor(GLViewport):
     def loadLevel(self, level: MCLevel):
         self.level = level
 
-        self.toolbar.selectTool(-1)
         self.toolbar.removeToolPanels()
         self.selectedChunks = set()
 
@@ -2045,7 +2042,6 @@ class LevelEditor(GLViewport):
 
         saveInfoLabel = Label(self.saveInfoLabelText)
         saveInfoLabel.anchor = "blwh"
-        # saveInfoLabel.width = 500
 
         saveInfoBackground.add(saveInfoLabel)
         saveInfoBackground.shrink_wrap()
@@ -2073,6 +2069,25 @@ class LevelEditor(GLViewport):
 
     def createRenderers(self):
         self.renderer = MCRenderer()
+
+        # Setup initial state of the renderer for use in the editor
+        def layer_observer(setting: Setting, layer: Layer):
+            # Add the actual observer
+            setting.add_observer(lambda v: self.renderer.toggleLayer(v, layer), "renderer")
+            # Ensure the correct initial value is set
+            self.renderer.toggleLayer(setting.v, layer)
+
+        layer_observer(Settings.draw_entities, Layer.Entities)
+        layer_observer(Settings.draw_tile_entities, Layer.TileEntities)
+        layer_observer(Settings.draw_tile_ticks, Layer.TileTicks)
+        layer_observer(Settings.draw_items, Layer.Items)
+        layer_observer(Settings.draw_unpopulated_chunks, Layer.TerrainPopulated)
+
+        Settings.show_hidden_ores.add_observer(lambda v: self.renderer.discardAllChunks(), "renderer")
+
+        Settings.view_distance.add_observer(lambda v: self.renderer.update_view_distance(), "renderer")
+        Settings.fast_leaves.add_observer(lambda v: self.renderer.discardAllChunks(), "renderer")
+        Settings.rough_graphics.add_observer(lambda v: self.renderer.discardAllChunks(), "renderer")
 
         self.workers = deque()
 
@@ -2189,8 +2204,6 @@ class LevelEditor(GLViewport):
         self.key_up(evt)
 
     def mouse_drag(self, evt):
-        # if 'button' not in evt.dict or evt.button != 1:
-        #    return
         if self.level:
             f = self.blockFaceUnderCursor
             if None != f:
@@ -2204,20 +2217,6 @@ class LevelEditor(GLViewport):
         self.mcedit.focus_switch = self
         self.focus_switch = None
         self.key_down(evt)
-
-    '''
-    def mouseDragOn(self):
-
-        x,y = mouse.get_pos(0)
-        if None != self.currentOperation:
-            self.dragInProgress = True
-            self.dragStartPoint = (x,y)
-            self.currentOperation.dragStart(x,y)
-
-    def mouseDragOff(self):
-        if self.dragInProgress:
-            self.dragInProgress = False
-            '''
 
     def mouseLookOff(self):
         self.mouseWasCaptured = False
@@ -2362,7 +2361,10 @@ class LevelEditor(GLViewport):
         im = [0., 0., 0.]
         mods = evt.dict.get('mod', 0)
 
-        if mods & KMOD_ALT:
+        alt = mods & KMOD_ALT
+        ctrl = mods & KMOD_CTRL
+
+        if alt:
             if keyname == Keys.long_distance_mode.v:
                 Settings.long_distance_mode.set(not Settings.long_distance_mode.v)
             if keyname == Keys.tool_option_1.v:
@@ -2376,7 +2378,7 @@ class LevelEditor(GLViewport):
             if keyname == Keys.tool_option_5.v:
                 self.currentTool.option5()
 
-        if mods & KMOD_CTRL:
+        if ctrl:
             if keyname == Keys.goto.v: self.showGotoPanel()
             if keyname == Keys.swap_view_distance.v:
                 self.swapViewDistance()
@@ -2414,7 +2416,7 @@ class LevelEditor(GLViewport):
                 pygame.event.clear()
 
             if keyname == Keys.debug_1.v:
-                if mods & KMOD_ALT:
+                if alt:
                     # Weird magic that allows you to run arbitrary python code from in the gui
                     if arguments.DEBUG:
                         try:
@@ -2434,7 +2436,7 @@ class LevelEditor(GLViewport):
                 def causeError():
                     raise ValueError(f"User pressed CONTROL-{Keys.debug_2}, requesting a program error.")
 
-                if mods & KMOD_ALT:
+                if alt:
                     if arguments.DEBUG:
                         causeError()
                 elif mods & KMOD_SHIFT:
@@ -3148,9 +3150,6 @@ class EditorToolbar(GLOrtho):
 
         return [x * f for x in self.toolbarSize]
 
-        # return ( self.toolbarWidthRatio * width,
-        #         self.toolbarWidthRatio * width * self.toolbarTextureSize[1] / self.toolbarTextureSize[0] )
-
     def __init__(self, rect, tools, *args, **kw):
         GLOrtho.__init__(self, xmin=0, ymin=0,
                                xmax=self.toolbarSize[0], ymax=self.toolbarSize[1],
@@ -3202,8 +3201,6 @@ class EditorToolbar(GLOrtho):
     def showToolOptions(self, toolNumber):
         if toolNumber < len(self.tools) and toolNumber >= 0:
             t = self.tools[toolNumber]
-            # if not t.toolEnabled():
-            #    return
             if t.optionsPanel:
                 t.optionsPanel.present()
 
@@ -3253,6 +3250,11 @@ class EditorToolbar(GLOrtho):
         self.toolTextures = {}
 
         for tool in self.tools:
+            for icon in tool.all_tool_icons():
+                filename = Path(directories.TOOL_ICONS_NAME) / f"{icon}.png"
+                self.toolTextures[icon] = mceutils.loadPNGTexture(filename)
+
+        for tool in self.tools:
             if hasattr(tool, 'reloadTextures'):
                 tool.reloadTextures()
             if hasattr(tool, 'markerList'):
@@ -3286,9 +3288,6 @@ class EditorToolbar(GLOrtho):
             if tool.toolIconName is None:
                 continue
             try:
-                if not tool.toolIconName in self.toolTextures:
-                    filename = "toolicons" + os.sep + "{0}.png".format(tool.toolIconName)
-                    self.toolTextures[tool.toolIconName] = mceutils.loadPNGTexture(filename)
                 x = 20 * i + 4
                 y = 4
                 w = 16
