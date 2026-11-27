@@ -99,6 +99,9 @@ def askCreateWorld():
 
     # Select the directory
     selected = askSaveFile(lastDir, title='Name this new world', defaultName=name)
+
+    if selected is None:
+        return None
     
     lastDir.set(Path(selected).parent)
 
