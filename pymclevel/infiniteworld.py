@@ -241,7 +241,7 @@ class MCChunk(LightedChunk):
 
             except Exception as e:
                 log.error(f"Malformed NBT data in file: {self.filename} ({e})")
-                if self.world: self.world.malformedChunk(*self.chunkPosition);
+                if self.world: self.world.malformedChunk(*self.chunkPosition)
                 raise(ChunkMalformed, (e,), sys.exc_info()[2])
 
             try:
@@ -249,7 +249,7 @@ class MCChunk(LightedChunk):
             except KeyError as e:
                 traceback.print_exc()
                 log.error(f"Incorrect chunk format in file: {self.filename} ({e})")
-                if self.world: self.world.malformedChunk(*self.chunkPosition);
+                if self.world: self.world.malformedChunk(*self.chunkPosition)
                 raise(ChunkMalformed, (e,), sys.exc_info()[2])
 
             self.dataIsPacked = True
@@ -296,8 +296,6 @@ class MCChunk(LightedChunk):
         levelTag[Entities] = TAG_List()
         levelTag[TileEntities] = TAG_List()
 
-        #levelTag["Creator"] = TAG_String("MCEdit-" + release.release);
-
         #empty lists are seen in the wild with a list.TAG_type for a list of single bytes, 
         #even though these contain TAG_Compounds 
 
@@ -334,7 +332,7 @@ class MCChunk(LightedChunk):
             except Exception as e:
                 traceback.print_exc()
                 log.error(f"Incorrect chunk format in file: {self.filename} ({e})")
-                if self.world: self.world.malformedChunk(*self.chunkPosition);
+                if self.world: self.world.malformedChunk(*self.chunkPosition)
                 raise(ChunkMalformed, (e,), sys.exc_info()[2])
 
             self.world.chunkDidLoad(self)
@@ -369,8 +367,7 @@ class MCChunk(LightedChunk):
         for key in (SkyLight, BlockLight, Data):
             dataArray = self.root_tag[Level][key].value
             s = dataArray.shape
-            assert s[2] == self.world.Height / 2;
-            #unpackedData = insert(dataArray[...,newaxis], 0, 0, 3)  
+            assert s[2] == self.world.Height / 2
 
             unpackedData = np.zeros((s[0], s[1], s[2] * 2), dtype='uint8')
 
@@ -393,7 +390,7 @@ class MCChunk(LightedChunk):
             return
         for key in (SkyLight, BlockLight, Data):
             dataArray = self.root_tag[Level][key].value
-            assert dataArray.shape[2] == self.world.Height;
+            assert dataArray.shape[2] == self.world.Height
 
             unpackedData = self.root_tag[Level][key].value.reshape(16, 16, self.world.Height // 2, 2)
             unpackedData[..., 1] <<= 4
@@ -1193,12 +1190,12 @@ class ChunkedLevelMixin(object):
             oldAbsorptions = [materials.lightAbsorption[b.ID] for b in blocksToReplace]
             changesLighting = False
             for a in oldAbsorptions:
-                if a != newAbsorption: changesLighting = True;
+                if a != newAbsorption: changesLighting = True
 
             newEmission = materials.lightEmission[blockInfo.ID]
             oldEmissions = [materials.lightEmission[b.ID] for b in blocksToReplace]
             for a in oldEmissions:
-                if a != newEmission: changesLighting = True;
+                if a != newEmission: changesLighting = True
 
 
         i = 0
@@ -1683,7 +1680,8 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
 
     SizeOnDisk = TagProperty('SizeOnDisk', TAG_Long)
     RandomSeed = TagProperty('RandomSeed', TAG_Long)
-    Time = TagProperty('Time', TAG_Long); """ Age of the world in ticks. 20 ticks per second; 24000 ticks per day."""
+    Time = TagProperty('Time', TAG_Long)
+    """ Age of the world in ticks. 20 ticks per second; 24000 ticks per day."""
     LastPlayed = TagProperty('LastPlayed', TAG_Long, lambda self:int(time.time() * 1000))
 
     LevelName = TagProperty('LevelName', TAG_String, lambda self:self.displayName)
@@ -1693,7 +1691,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
     _bounds = None
     @property
     def bounds(self):
-        if self._bounds is None: self._bounds = self.getWorldBounds();
+        if self._bounds is None: self._bounds = self.getWorldBounds()
         return self._bounds
 
     @property
@@ -1823,7 +1821,6 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
             self.players.append("Player")
 
         self.preloadDimensions()
-        #self.preloadChunkPositions();
     
     def loadLevelDat(self, create=False, random_seed=None, last_played=None):
 
@@ -1977,7 +1974,7 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
             ch.compress()
 
     def compressChunk(self, cx, cz):
-        if not (cx, cz) in self._loadedChunks: return; #not an error
+        if not (cx, cz) in self._loadedChunks: return
         self._loadedChunks[cx, cz].compress()
 
     decompressedChunkLimit = 2048 # about 320 megabytes
@@ -2275,12 +2272,12 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
         return count
 
     def containsPoint(self, x, y, z):
-        if y < 0 or y > 127: return False;
+        if y < 0 or y > 127: return False
         return self.containsChunk(x >> 4, z >> 4)
 
     def containsChunk(self, cx, cz):
-        if self._allChunks is not None: return (cx, cz) in self._allChunks;
-        if (cx, cz) in self._loadedChunks: return True;
+        if self._allChunks is not None: return (cx, cz) in self._allChunks
+        if (cx, cz) in self._loadedChunks: return True
         if self.version:
             rx, rz = cx>>5, cz>>5
             if not os.path.exists(self.regionFilename(rx, rz)): return False
@@ -2414,12 +2411,12 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
 
     def getPlayerDimension(self, player="Player"):
         playerTag = self.getPlayerTag(player)
-        if "Dimension" not in playerTag: return 0;
+        if "Dimension" not in playerTag: return 0
         return playerTag["Dimension"].value
 
     def setPlayerDimension(self, d, player="Player"):
         playerTag = self.getPlayerTag(player)
-        if "Dimension" not in playerTag: playerTag["Dimension"] = nbt.TAG_Int(0);
+        if "Dimension" not in playerTag: playerTag["Dimension"] = nbt.TAG_Int(0)
         playerTag["Dimension"].value = d
 
 
@@ -2443,8 +2440,8 @@ class MCBetaLevel(ChunkedLevelMixin, EntityLevel):
         """ returns (yaw, pitch) """
         yp = [x.value for x in self.getPlayerTag(player)["Rotation"]]
         y, p = yp
-        if p == 0: p = 0.000000001;
-        if p == 180.0:  p -= 0.000000001;
+        if p == 0: p = 0.000000001
+        if p == 180.0:  p -= 0.000000001
         yp = y, p
         return np.array(yp)
 
@@ -2460,14 +2457,14 @@ class McDimension (MCBetaLevel):
         self.playerTagCache = parentWorld.playerTagCache
         
     @property
-    def root_tag(self): return self.parentWorld.root_tag;
+    def root_tag(self): return self.parentWorld.root_tag
 
 
     def __str__(self):
         return "McDimension({0}, {1})".format(self.parentWorld, self.dimNo)
 
     def loadLevelDat(self, create=False, random_seed=None, last_played=None):
-        pass;
+        pass
     def preloadDimensions(self):
         pass
     def create(self, *args, **kw):

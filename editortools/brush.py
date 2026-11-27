@@ -503,7 +503,7 @@ class Modes:
         
 
         def performAtPoint(self, op, point, dirtyBox):
-            level = self._paste_level;
+            level = self._paste_level
             point = self.find_centered_point(point)
 
             blocksToCopy = None

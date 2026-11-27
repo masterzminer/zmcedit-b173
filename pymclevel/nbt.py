@@ -8,7 +8,8 @@ try:
     except ImportError:
         log.info("Could not load precompiled _nbt extension. Trying pyximport...")
         import numpy
-        from pyximport import install; install(setup_args={'include_dirs':[numpy.get_include()]})
+        from pyximport import install
+        install(setup_args={'include_dirs':[numpy.get_include()]})
         from . import _nbt
         from ._nbt import *
         log.info("Accelerated NBT module loaded via pyximport")

@@ -32,7 +32,7 @@ class Items (object):
             try:
                 line = line.strip()
                 if len(line) == 0: continue
-                if line[0] == "#": continue;
+                if line[0] == "#": continue
                 tilde = line[0] == "~"
                 if tilde: 
                     fields = line.split()

@@ -95,7 +95,7 @@ class MCSchematic (EntityLevel):
         with closing(gzip.GzipFile(fileobj=BytesIO(self.compressedTag))) as g_zipper:
             try:
                 data = g_zipper.read()
-                if data == None: return;
+                if data == None: return
             except Exception as e:
                 data = self.compressedTag
 
@@ -329,12 +329,12 @@ class MCSchematic (EntityLevel):
 
     def setBlockDataAt(self, x, y, z, new_data):
         if x < 0 or y < 0 or z < 0: return 0
-        if x >= self.Width or y >= self.Height or z >= self.Length: return 0;
+        if x >= self.Width or y >= self.Height or z >= self.Length: return 0
         self.Data[x, z, y] = (new_data & 0xf)
 
     def blockDataAt(self, x, y, z):
         if x < 0 or y < 0 or z < 0: return 0
-        if x >= self.Width or y >= self.Height or z >= self.Length: return 0;
+        if x >= self.Width or y >= self.Height or z >= self.Length: return 0
         return self.Data[x, z, y]
 
 
@@ -418,7 +418,7 @@ def adjustExtractionParameters(self, box):
         h += y
         y = 0
 
-    if y >= self.Height: return;
+    if y >= self.Height: return
 
     if y + h >= self.Height:
         h -= y + h - self.Height
@@ -431,7 +431,7 @@ def adjustExtractionParameters(self, box):
             w += x
             destX -= x
             x = 0
-        if x >= self.Width: return;
+        if x >= self.Width: return
 
         if x + w >= self.Width:
             w = self.Width - x
@@ -443,7 +443,7 @@ def adjustExtractionParameters(self, box):
             destZ -= z
             z = 0
 
-        if z >= self.Length: return;
+        if z >= self.Length: return
 
         if z + l >= self.Length:
             l = self.Length - z

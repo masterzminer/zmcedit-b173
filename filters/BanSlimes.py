@@ -14,7 +14,7 @@ class Random:
 		self.setSeed(randseed)
 
 	def setSeed(self, randseed):
-		self.randseed = (randseed ^ 0x5DEECE66D) & ((1 << 48) - 1);
+		self.randseed = (randseed ^ 0x5DEECE66D) & ((1 << 48) - 1)
 		
 	def next(self, bits):
 		self.randseed = int(self.randseed * 0x5DEECE66D + 0xB) & ((1 << 48) - 1)

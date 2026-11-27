@@ -24,7 +24,7 @@ blocks[blocks == materials.Sand.ID] = materials.Glass.ID
 chunkPositions = list(world1.allChunks)
 
 # allChunks returns an iterator that yields a (xPos, zPos) tuple for each chunk
-xPos, zPos = chunkPositions[0];
+xPos, zPos = chunkPositions[0]
 
 # retrieve an MCChunk object. this object will load and decompress 
 # the chunk as needed, and remember whether it needs to be saved or relighted
@@ -104,10 +104,10 @@ chunk.Data[treeBlocks] = 2 # birch
 # chunk's HeightMap and fill the SkyLight only with light falling straight down. 
 # These are relatively fast and were added here to aid MCEdit.
 
-chunk.chunkChanged();
+chunk.chunkChanged()
 
 # To recalculate all of the dirty lights in the world, call generateLights
-world.generateLights();
+world.generateLights()
 
 
 # Move the player and his spawn
@@ -117,7 +117,7 @@ world.setPlayerSpawnPosition( (0, 64, 0) )
 
 # Save the level.dat and any chunks that have been marked for writing to disk
 # This also compresses any chunks marked for recompression.
-world.saveInPlace();
+world.saveInPlace()
 
 
 # Advanced use:

@@ -535,7 +535,7 @@ class FilterToolPanel(Panel):
         FilterConfigModal().present()
 
     def open_filter_guide(self):
-        mcplatform.platform_open(directories.FILTER_GUIDE_FILE);
+        mcplatform.platform_open(directories.FILTER_GUIDE_FILE)
 
     def filterChanged(self):
         self.saveOptions()

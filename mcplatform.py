@@ -128,7 +128,7 @@ def askSaveFolder(lastDir: DirectorySetting, title):
 
 
 def askSaveFile(lastDir: DirectorySetting, title: str, defaultName, filetype: str=None):
-    initialDir = lastDir.v;
+    initialDir = lastDir.v
 
     if Settings.use_old_file_browser.v:
         selected_path = request_new_filename(

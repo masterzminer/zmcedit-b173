@@ -78,10 +78,8 @@ class ChunkToolPanel(Panel):
         dontRepopButton.highlight_color = (255, 255, 255)
 
         col = Column((chunkToolLabel, self.chunksLabel, deselectButton, createButton, destroyButton, pruneButton, relightButton, extractButton, repopButton, dontRepopButton))
-#        col.right = self.width - 10;
         self.width = col.width
         self.height = col.height
-        #self.width = 120
         self.add(col)
 
     @property
@@ -90,7 +88,6 @@ class ChunkToolPanel(Panel):
 
     def updateText(self):
         pass
-        #self.chunksLabel.text = self.chunksLabelText()
 
 
 class ChunkTool(EditorTool):

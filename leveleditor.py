@@ -400,8 +400,6 @@ class CameraViewport(GLViewport):
         position to the mouse position on the near plane
         """
         x, y = mouse.get_pos()
-        # if (x, y) not in self.rect:
-        #    return (0, 0, 0);  # xxx
 
         y = self.get_root().height - y
         point1 = unproject(x, y, 0.0)

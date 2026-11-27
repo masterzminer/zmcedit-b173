@@ -346,7 +346,7 @@ class Widget(object):
 
     def setup_cursor(self, event):
         global current_cursor
-        enabled = Settings.classic_mouse.v;
+        enabled = Settings.classic_mouse.v
 
         if Settings.center_mouse_fix.v and pygame.event.get_grab():
             global invisible_cursor

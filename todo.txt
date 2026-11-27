@@ -1,7 +1,5 @@
 go through and remove all the unnecessary imports
 
-go through and remove all the unnecessary semicolons
-
 go through and clean up all the typos and general ide warnings
 
 go through and remove all the commented out code

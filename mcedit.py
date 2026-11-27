@@ -792,7 +792,7 @@ class MCEdit(GLViewport):
         self.setRecentWorlds(new_recent_worlds)
 
     def setRecentWorlds(self, worlds):
-        RecentWorlds.set_list([str(s) for s in worlds]);
+        RecentWorlds.set_list([str(s) for s in worlds])
     
     def makeSideColumn(self, reset_parent):
         items = (

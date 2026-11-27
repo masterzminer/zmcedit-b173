@@ -95,8 +95,7 @@ class TAG_Value(object):
 
     def saveGzipped(self, filename, compresslevel=1):
         sio = BytesIO()
-        #atomic write
-        try: os.rename(filename, filename + ".old");
+        try: os.rename(filename, filename + ".old")
         except Exception as e:
             pass
 
@@ -114,9 +113,9 @@ class TAG_Value(object):
                 log.error(e)
                 return
 
-        try: os.remove(filename + ".old");
+        try: os.remove(filename + ".old")
         except Exception as e:
-            pass;
+            pass
 
 class TAG_Byte(TAG_Value):
     tag = 1
@@ -339,8 +338,8 @@ class TAG_Compound(TAG_Value, collections.abc.MutableMapping):
                 return key
         raise KeyError("Key {0} not found in tag {1}".format(k, self))
 
-    def __iter__(self):             return map(lambda x:x.name, self.value);
-    def __contains__(self, k):return k in [x.name for x in self.value];
+    def __iter__(self):             return map(lambda x:x.name, self.value)
+    def __contains__(self, k):return k in [x.name for x in self.value]
     def __len__(self):                return self.value.__len__()
 
 
@@ -359,7 +358,7 @@ class TAG_Compound(TAG_Value, collections.abc.MutableMapping):
         self.value.append(v)
         v.name = k
 
-    def __delitem__(self, k): self.value.__delitem__(self.value.index(self[k]));
+    def __delitem__(self, k): self.value.__delitem__(self.value.index(self[k]))
 
     def add(self, v):
         self[v.name] = v
@@ -433,8 +432,8 @@ class TAG_List(TAG_Value, collections.abc.MutableSequence):
 
     """ collection methods """
     def __iter__(self):             return iter(self.value)
-    def __contains__(self, k):return k in self.value;
-    def __getitem__(self, i): return self.value[i];
+    def __contains__(self, k):return k in self.value
+    def __getitem__(self, i): return self.value[i]
     def __len__(self):                return len(self.value)
 
     def __setitem__(self, i, v):
