@@ -1,7 +1,3 @@
-make release 0.2
-
-
-
 go through and remove all the unnecessary imports
 
 go through and remove all the unnecessary semicolons
