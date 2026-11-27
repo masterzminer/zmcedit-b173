@@ -60,7 +60,6 @@ import pymclevel.faces as Faces
 from pymclevel.box import BoundingBox
 
 from config import Settings
-from config_classes import Setting
 import log
 
 def chunkMarkers(chunkSet):
@@ -110,6 +109,7 @@ class ChunkRenderer(object):
 
     def __init__(self, renderer: MCRenderer, chunkPosition):
         self.renderer: MCRenderer = renderer
+        
         self.blockRenderers = []
         self.detailLevel = 0
         self.invalidLayers = set(Layer.AllLayers)
@@ -117,10 +117,6 @@ class ChunkRenderer(object):
         self.chunkPosition = chunkPosition
         self.bufferSize = 0
         self.renderstateLists = None
-
-    @property
-    def visibleLayers(self):
-        return self.renderer.visibleLayers
 
     def forgetDisplayLists(self, states=None):
         if self.renderstateLists is not None:
@@ -158,7 +154,7 @@ class ChunkRenderer(object):
         for blockRenderer in renderers:
             if self.detailLevel not in blockRenderer.detailLevels:
                 continue
-            if blockRenderer.layer not in self.visibleLayers:
+            if blockRenderer.layer not in self.renderer.visible_layers:
                 continue
 
             l = blockRenderer.makeArrayList(self.chunkPosition, self.needsBlockRedraw and Settings.show_chunk_redraw.v)
@@ -485,9 +481,6 @@ class ChunkCalculator (object):
 
     def calcFacesForChunkRenderer(self, cr: ChunkRenderer):
         if 0 == len(cr.invalidLayers):
-#            layers = set(br.layer for br in cr.blockRenderers)
-#            assert set() == cr.visibleLayers.difference(layers)
-
             return
 
         lod = cr.detailLevel
@@ -495,8 +488,8 @@ class ChunkCalculator (object):
         level = cr.renderer.level
         try:
             chunk = level.getChunk(cx, cz)
-        except Exception as e:
-            log.warn(f"Error reading chunk: {e}")
+        except Exception:
+            log.error(f"Error reading chunk")
             yield
             return
 
@@ -516,7 +509,7 @@ class ChunkCalculator (object):
         for blockRendererClass in classes:
             if cr.detailLevel not in blockRendererClass.detailLevels:
                 continue
-            if blockRendererClass.layer not in cr.visibleLayers:
+            if blockRendererClass.layer not in cr.renderer.visible_layers:
                 continue
             if blockRendererClass.layer not in cr.invalidLayers:
                 if blockRendererClass in existingBlockRenderers:
@@ -1037,15 +1030,6 @@ class MonsterRenderer(BaseEntityRenderer):
 class EntityRenderer(BaseEntityRenderer):
     def makeChunkVertices(self, chunk: pymclevel.EntityLevel):
         yield
-#        entityPositions = []
-#        for i, ent in enumerate(chunk.Entities):
-#            if i % 10 == 0:
-#                yield
-#            entityPositions.append(pymclevel.Entity.pos(ent))
-#
-#        entities = self._computeVertices(entityPositions, (0x88, 0x00, 0x00, 0x66), offset=True, chunkPosition=chunk.chunkPosition)
-#        yield
-#        self.vertexArrays = [entities]
 
 
 class ItemRenderer(BaseEntityRenderer):
@@ -1127,10 +1111,6 @@ class TerrainPopulatedRenderer(EntityRendererGeneric):
 
         GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
         GL.glDepthMask(True)
-
-#        GL.glPolygonOffset(DepthOffset.TerrainWire, DepthOffset.TerrainWire)
-#        with gl.glEnable(GL.GL_POLYGON_OFFSET_FILL, GL.GL_DEPTH_TEST):
-#            GL.glDrawArrays(GL.GL_QUADS, 0, len(buf) * 4)
 #
 
     def makeChunkVertices(self, chunk):
@@ -1776,8 +1756,6 @@ class SnowBlockRenderer(BlockRenderer):
         arrays = []
         yield
         for direction, exposedFaceIndices in enumerate(facingBlockIndices):
-    # def makeFaceVertices(self, direction, blockIndices, exposedFaceIndices, blocks, blockData, blockLight, facingBlockLight, texMap):
-        # return []
 
             if direction != pymclevel.faces.FaceYIncreasing:
                 blockIndices = snowIndices & exposedFaceIndices
@@ -1893,24 +1871,6 @@ class FeatureBlockRenderer(BlockRenderer):
         vertexArray[_ST] = [[0, 0], [0, 16], [16, 16], [16, 0]]
         vertexArray[_ST] += texMap(materials.Stone.ID, 0)[np.newaxis, :, np.newaxis]
 
-        # if direction == 0:
-#        for i, j in enumerate(self.dirIndexes[direction]):
-#                if j < 0:
-#                    j = -j
-#                    j -= 1
-#                    offs = self.buttonOffsets[direction, ..., j] * 16
-#                    offs = 16 - offs
-#
-#                else:
-#                    j -= 1
-#                    offs =self.buttonOffsets[direction, ..., j] * 16
-#
-#                # if i == 1:
-#                #
-#                #    vertexArray[_ST][...,i] -= offs
-#                # else:
-#                vertexArray[_ST][...,i] -= offs
-#
         vertexArray.view('uint8')[_RGB] = 255
         vertexArray.shape = (len(axes[0]) * 6, 4, 6)
 
@@ -2077,7 +2037,7 @@ class MCRenderer(object):
         self._chunkWorker = None
         self.chunkRenderers = {}
         self.loadableChunkMarkers = DisplayList()
-        self.visibleLayers = set(Layer.AllLayers)
+        self.visible_layers = set(Layer.AllLayers)
 
         self.masterLists = None
 
@@ -2092,21 +2052,6 @@ class MCRenderer(object):
         self.chunkSamples = [timedelta(0, 0, 0)] * 15
 
         self.chunkIterator = None
-        
-        def layer_observer(setting: Setting, layer: Layer):
-            setting.add_observer(lambda v: self.toggleLayer(v, layer), "renderer")
-
-        layer_observer(Settings.draw_entities, Layer.Entities)
-        layer_observer(Settings.draw_tile_entities, Layer.TileEntities)
-        layer_observer(Settings.draw_tile_ticks, Layer.TileTicks)
-        layer_observer(Settings.draw_items, Layer.Items)
-        layer_observer(Settings.draw_unpopulated_chunks, Layer.TerrainPopulated)
-
-        Settings.show_hidden_ores.add_observer(lambda v: self.discardAllChunks(), "renderer")
-
-        Settings.view_distance.add_observer(lambda v: self.update_view_distance(), "renderer")
-        Settings.fast_leaves.add_observer(lambda v: self.discardAllChunks(), "renderer")
-        Settings.rough_graphics.add_observer(lambda v: self.discardAllChunks(), "renderer")
 
         self.level: pymclevel.MCLevel = level
 
@@ -2123,9 +2068,9 @@ class MCRenderer(object):
 
     def toggleLayer(self, val, layer):
         if val:
-            self.visibleLayers.add(layer)
+            self.visible_layers.add(layer)
         else:
-            self.visibleLayers.discard(layer)
+            self.visible_layers.discard(layer)
         for cr in self.chunkRenderers.values():
             cr.invalidLayers.add(layer)
 
@@ -2283,7 +2228,7 @@ class MCRenderer(object):
                 cz += dir
                 yield (cx, cz)
 
-            # Expand the range one chunkout
+            # Expand the range one chunk out
             step += 1
 
             # If the max range has been iterated, and in normal chunk loading, nothing left to iterate
@@ -2308,7 +2253,8 @@ class MCRenderer(object):
         self.bufferUsage = 0
         self.forgetAllDisplayLists()
         self.chunkRenderers = {}
-        self.oldPosition = None  # xxx force reload
+        # Force reload the chunks
+        self.oldPosition = None
 
     def discardChunksInBox(self, box):
         self.discardChunks(box.chunkPositions)
@@ -2359,11 +2305,7 @@ class MCRenderer(object):
     def invalidateChunk(self, cx, cz, layers=None):
         " marks the chunk for regenerating vertex data and display lists "
         if (cx, cz) in self.chunkRenderers:
-            # self.chunkRenderers[(cx,cz)].invalidate()
-            # self.bufferUsage -= self.chunkRenderers[(cx, cz)].bufferSize
-
             self.chunkRenderers[(cx, cz)].invalidate(layers)
-            # self.bufferUsage += self.chunkRenderers[(cx, cz)].bufferSize
 
             self.invalidChunkQueue.append((cx, cz))  # xxx encapsulate
 
@@ -2615,7 +2557,6 @@ class MCRenderer(object):
                     if len(chunkLists[rs]):
                         lists[rs] = np.array(chunkLists[rs], dtype='uint32').ravel()
 
-                # lists = lists[lists.nonzero()]
                 self.masterLists = lists
                 self.shouldRecreateMasterList = shouldRecreateAgain
                 self.needsImmediateRedraw = shouldRecreateAgain

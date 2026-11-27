@@ -70,7 +70,7 @@ from glbackground import GLBackground, Panel
 from glutils import gl, Texture
 from mcplatform import askSaveFile
 from pymclevel.infiniteworld import alphanum_key
-from renderer import MCRenderer
+from renderer import MCRenderer, Layer
 
 from pymclevel.box import BoundingBox
 from pymclevel.entity import Entity
@@ -82,6 +82,8 @@ import log
 
 from pathlib import Path
 import directories
+
+from config_classes import Setting
 
 arch = platform.architecture()[0]
 
@@ -2070,6 +2072,25 @@ class LevelEditor(GLViewport):
 
     def createRenderers(self):
         self.renderer = MCRenderer()
+
+        # Setup initial state of the renderer for use in the editor
+        def layer_observer(setting: Setting, layer: Layer):
+            # Add the actual observer
+            setting.add_observer(lambda v: self.renderer.toggleLayer(v, layer), "renderer")
+            # Ensure the correct initial value is set
+            self.renderer.toggleLayer(setting.v, layer)
+
+        layer_observer(Settings.draw_entities, Layer.Entities)
+        layer_observer(Settings.draw_tile_entities, Layer.TileEntities)
+        layer_observer(Settings.draw_tile_ticks, Layer.TileTicks)
+        layer_observer(Settings.draw_items, Layer.Items)
+        layer_observer(Settings.draw_unpopulated_chunks, Layer.TerrainPopulated)
+
+        Settings.show_hidden_ores.add_observer(lambda v: self.renderer.discardAllChunks(), "renderer")
+
+        Settings.view_distance.add_observer(lambda v: self.renderer.update_view_distance(), "renderer")
+        Settings.fast_leaves.add_observer(lambda v: self.renderer.discardAllChunks(), "renderer")
+        Settings.rough_graphics.add_observer(lambda v: self.renderer.discardAllChunks(), "renderer")
 
         self.workers = deque()
 

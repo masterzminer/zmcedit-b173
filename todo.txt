@@ -1,3 +1,7 @@
+Fix control keys not showing up on the ctrl menu in the level editor
+
+Fix potential bug with entity duplication during undo
+
 make release 0.2
 
 
