@@ -10,13 +10,10 @@ Based on code from:
     http://www.markmorley.com/opengl/frustumculling.html
 """
 
-
 import numpy as np
 from OpenGL import GL
-import log
 
-# TODO remove unnecessary params, avoid the hard coded values
-def viewingMatrix(projection=None, model=None):
+def viewingMatrix():
     """Calculate the total viewing matrix from given data
 
     projection -- the projection matrix, if not provided
@@ -30,29 +27,13 @@ def viewingMatrix(projection=None, model=None):
         Unless there is a valid projection and model-view
         matrix, the function will raise a RuntimeError
     """
-    if projection is None:
-        projection = GL.glGetDoublev(GL.GL_PROJECTION_MATRIX)
-    if model is None:
-        model = GL.glGetDoublev(GL.GL_MODELVIEW_MATRIX)
-    # hmm, this will likely fail on 64-bit platforms :(
-    if projection is None or model is None:
-        log.warn(f"A NULL matrix was returned from glGetDoublev: proj={projection} modelView={model}")
-        if projection:
-            return projection
-        if model:
-            return model
-        else:
-            return np.identity(4, 'd')
-    if np.allclose(projection, -1.79769313e+308):
-        log.warn(f"Attempt to retrieve projection matrix when uninitialized {projection}, model={model}")
-        return model
-    if np.allclose(model, -1.79769313e+308):
-        log.warn(f"Attempt to retrieve model-view matrix when uninitialized {model}, projection={projection}")
-        return projection
+    projection = GL.glGetDoublev(GL.GL_PROJECTION_MATRIX)
+    model = GL.glGetDoublev(GL.GL_MODELVIEW_MATRIX)
+
     return np.dot(model, projection)
 
 
-class Frustum (object):
+class Frustum(object):
     """Holder for frustum specification for intersection tests
 
     Note:
