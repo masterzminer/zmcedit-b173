@@ -186,8 +186,8 @@ class FileOpener(albow.Widget):
                 self.mcedit.loadFile(filename)
                 return True
         except Exception as e:
-            traceback.print_exc()
             log.error('Error during promptOpenAndLoad: {0!r}'.format(e))
+            raise e
 
     def createNewWorld(self):
         self.parent.createNewWorld()

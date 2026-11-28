@@ -915,6 +915,7 @@ class EditorTool(object):
     def performWithRetry(self, op, recordUndo=True):
         try:
             op.perform(recordUndo)
-        except MemoryError:
+        except MemoryError as e:
             self.editor.invalidateAllChunks()
             op.perform(recordUndo)
+            raise e

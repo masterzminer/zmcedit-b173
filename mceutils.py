@@ -45,8 +45,8 @@ def alertException(func):
         except root.Cancel:
             alert("Canceled.")
         except Exception as e:
-            ask("Error during {0}: {1!r}".format(func, e)[:1000], ["Okay"], default=0, cancel=0)
-            traceback.print_exc()
+            log.error(f"Error during {func}")
+            raise e
 
     return _alertException
 
