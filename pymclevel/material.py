@@ -1,6 +1,5 @@
 
 import numpy as np
-import traceback
 from collections import defaultdict
 from pprint import pformat
 

@@ -105,7 +105,7 @@ def drawFace(box, face, type=GL.GL_QUADS):
             x, y, z2,
             ), dtype='f4')
 
-    faceVertices.shape = (4, 3)
+    faceVertices = faceVertices.reshape(4, 3)
     dim = face >> 1
     dims = [0, 1, 2]
     dims.remove(dim)
@@ -114,7 +114,7 @@ def drawFace(box, face, type=GL.GL_QUADS):
         faceVertices[:, dims],
         dtype='f4'
     ).flatten()
-    faceVertices.shape = (12,)
+    faceVertices = faceVertices.reshape(12)
 
     texVertices *= 16
     GL.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY)

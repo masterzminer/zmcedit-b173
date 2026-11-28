@@ -150,7 +150,6 @@ class ChunkTool(EditorTool):
                 chunkPosition *= 16
                 chunkPosition[..., 1] = self.editor.level.Height
                 glVertexPointer(3, GL_FLOAT, 0, chunkPosition.ravel())
-                #chunkPosition *= 8
                 glDrawArrays(GL_QUADS, 0, len(chunkPosition) * 4)
 
         for d, points, positions in lines:
@@ -158,7 +157,7 @@ class ChunkTool(EditorTool):
                 continue
             vertexArray = np.zeros((len(positions), 4, 3), dtype='float32')
             vertexArray[..., [0, 2]] = positions
-            vertexArray.shape = len(positions), 2, 2, 3
+            vertexArray = vertexArray.reshape(len(positions), 2, 2, 3)
 
             vertexArray[..., 0, 0, 0] += points[0]
             vertexArray[..., 0, 0, 2] += points[1]

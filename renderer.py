@@ -977,7 +977,7 @@ class EntityRendererGeneric(BlockRenderer):
             vertexArray.view('uint8')[_RGBA] = colors
             vertexArray[_XYZ] = positions[:, np.newaxis, np.newaxis, :]
             vertexArray[_XYZ] += faceVertexTemplates[_XYZ]
-            vertexArray.shape = (len(positions) * 6, 4, 6)
+            vertexArray = vertexArray.reshape(len(positions) * 6, 4, 6)
         return vertexArray
 
 
@@ -1868,7 +1868,7 @@ class FeatureBlockRenderer(BlockRenderer):
         vertexArray[_ST] += texMap(materials.Stone.ID, 0)[np.newaxis, :, np.newaxis]
 
         vertexArray.view('uint8')[_RGB] = 255
-        vertexArray.shape = (len(axes[0]) * 6, 4, 6)
+        vertexArray = vertexArray.reshape(len(axes[0]) * 6, 4, 6)
 
         self.vertexArrays = [vertexArray]
 
@@ -1891,7 +1891,7 @@ class FeatureBlockRenderer(BlockRenderer):
         vertexArray.view('uint8')[_RGBA] = self.fenceTemplates[..., 5][..., np.newaxis]
 
         vertexArray.view('uint8')[_RGB] *= areaBlockLights[1:-1, 1:-1, 1:-1][fenceIndices][..., np.newaxis, np.newaxis, np.newaxis]
-        vertexArray.shape = (vertexArray.shape[0] * 6, 4, 6)
+        vertexArray = vertexArray.reshape(vertexArray.shape[0] * 6, 4, 6)
         yield
         self.vertexArrays = [vertexArray]
 
@@ -1949,7 +1949,7 @@ class StairBlockRenderer(BlockRenderer):
             vertexArray.view('uint8')[_RGB] *= 0xf
             vertexArray.view('uint8')[_A] = 0xff
 
-            vertexArray.shape = (len(x) * 6, 4, 6)
+            vertexArray = vertexArray.reshape(len(x) * 6, 4, 6)
             yield
             arrays.append(vertexArray)
         self.vertexArrays = arrays
@@ -2269,10 +2269,9 @@ class MCRenderer(object):
         if not len(self.chunkRenderers):
             return
         (ox, oz) = origin
-        bytes = 0
         chunks = np.fromiter(self.chunkRenderers.keys(), dtype='i,i', count=len(self.chunkRenderers))
         chunks.dtype = 'int32'
-        chunks.shape = len(self.chunkRenderers), 2
+        chunks = chunks.reshape(len(self.chunkRenderers), 2)
 
         if size:
             outsideChunks = chunks[:, 0] < ox - 1
@@ -2286,7 +2285,7 @@ class MCRenderer(object):
     def discardChunks(self, chunks):
         for cx, cz in chunks:
             self.discardChunk(cx, cz)
-        self.oldPosition = None  # xxx force reload
+        self.oldPosition = None # force reload
 
     def discardChunk(self, cx, cz):
         " discards the chunk renderer for this chunk and compresses the chunk "

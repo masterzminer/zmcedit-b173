@@ -554,7 +554,7 @@ class MCLevel(object):
             log.debug("Empty source box, aborting")
             return
 
-        log.info(f"Copying {sourceBox.volume} blocks from {sourceBox} to {destinationPoint}")
+        log.debug(f"Copying {sourceBox.volume} blocks from {sourceBox} to {destinationPoint}")
 
         if not sourceLevel.isInfinite:
             self.copyBlocksFromFiniteToFinite(sourceLevel, sourceBox, destinationPoint, blocksToCopy)
@@ -631,7 +631,7 @@ class EntityLevel(MCLevel):
 
                 self.addTileEntity(eTag)
 
-        log.info(f"Copied {e} entities, {t} tile entities")
+        log.debug(f"Copied {e} entities, {t} tile entities")
 
     def copyEntitiesFromIter(self, sourceLevel, sourceBox, destinationPoint, entities=True):
         # assume coords have already been adjusted by copyBlocks
