@@ -193,7 +193,7 @@ class MCChunk(LightedChunk):
 
 
     def sanitizeBlocks(self):
-        #change grass to dirt where needed so Minecraft doesn't flip out and die
+        # Change grass to dirt where needed
         grass = self.Blocks == materials.Grass.ID
         grass |= self.Blocks == materials.Dirt.ID
         bad_grass = grass[:, :, 1:] & grass[:, :, :-1]

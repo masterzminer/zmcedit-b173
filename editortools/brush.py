@@ -289,7 +289,7 @@ class Modes:
                 heightmap = extractHeights(blocktypeMask)
 
                 for x, z in np.ndindex(heightmap.shape):
-                    h = heightmap[x, z]
+                    h = int(heightmap[x, z])
                     if h >= box.height:
                         return
                     if depth > 0:

@@ -3,10 +3,6 @@ go through and remove all the unnecessary imports
 go through and fix all the deprecated method calls
 
 
-fix overflow error when using the topsoil brush in all air
-    RuntimeWarning: overflow encountered in scalar subtract
-    idx = x, z, slice(max(0, h - depth), h)
-
 make release 1.0
 
 
