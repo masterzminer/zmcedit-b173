@@ -24,6 +24,7 @@ from config import LastDir, Settings, LastFilter, HiddenFilters, save_config
 from pymclevel.box import BoundingBox
 import arguments
 import log
+import mcplatform
 
 DEFAULT_FILTER_SEARCH_TEXT = "RandomBlocks_py"
 

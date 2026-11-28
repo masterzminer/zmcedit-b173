@@ -1,10 +1,11 @@
 go through and remove all the unnecessary imports
 
-go through and clean up all the typos and general ide warnings
-
-go through and remove all the commented out code
-
 go through and fix all the deprecated method calls
+
+
+fix overflow error when using the topsoil brush in all air
+    RuntimeWarning: overflow encountered in scalar subtract
+    idx = x, z, slice(max(0, h - depth), h)
 
 make release 1.0
 
@@ -13,6 +14,7 @@ make release 1.0
 consider adding a redo feature
 
 Brush
+    Add an option to not repeat brush regions in the same stroke, i.e. two replace operations with noise will not try to replace the same block multiple times in the same brush stroke
     Add presets
     Make a separate config for each brush type
     experiment with adding other erode brush algorithms

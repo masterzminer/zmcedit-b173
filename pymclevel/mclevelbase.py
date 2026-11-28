@@ -26,7 +26,7 @@ Inventory = 'Inventory'
 
 
 @contextmanager
-def notclosing(f):
+def not_closing(f):
     yield f
 
 

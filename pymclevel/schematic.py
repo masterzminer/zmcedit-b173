@@ -116,7 +116,7 @@ class MCSchematic (EntityLevel):
         self.dataIsPacked = True
 
 
-    #these refer to the blocks array instead of the file's height because rotation swaps the axes
+    # these refer to the blocks array instead of the file's height because rotation swaps the axes
     # this will have an impact later on when editing schematics instead of just importing/exporting
     @property
     @decompress_first
@@ -180,10 +180,10 @@ class MCSchematic (EntityLevel):
 
 
     def packUnpack(self):
-        self.root_tag[Blocks].value = np.swapaxes(self.root_tag[Blocks].value, 0, 2)#yzx to xzy
-        self.root_tag[Data].value = np.swapaxes(self.root_tag[Data].value, 0, 2)#yzx to xzy
+        self.root_tag[Blocks].value = np.swapaxes(self.root_tag[Blocks].value, 0, 2) # yzx to xzy
+        self.root_tag[Data].value = np.swapaxes(self.root_tag[Data].value, 0, 2) # yzx to xzy
         if self.dataIsPacked:
-            self.root_tag[Data].value &= 0xF #discard high bits
+            self.root_tag[Data].value &= 0xF # discard high bits
 
     def packChunkData(self):
         if not self.dataIsPacked:

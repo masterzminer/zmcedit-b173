@@ -108,7 +108,7 @@ class BoundingBox (object):
 
     @property
     def chunkPositions(self):
-        #iterate through all of the chunk positions within this selection box
+        # iterate through all of the chunk positions within this selection box
         return itertools.product(range(self.mincx, self.maxcx), range(self.mincz, self.maxcz))
 
     @property
@@ -138,15 +138,15 @@ class BoundingBox (object):
         return new_box
 
     def union(self, box):
-        newbox = BoundingBox()
-        newbox.minx = min(self.minx, box.minx)
-        newbox.maxx = max(self.maxx, box.maxx)
+        new_box = BoundingBox()
+        new_box.minx = min(self.minx, box.minx)
+        new_box.maxx = max(self.maxx, box.maxx)
 
-        newbox.miny = min(self.miny, box.miny)
-        newbox.maxy = max(self.maxy, box.maxy)
-        newbox.minz = min(self.minz, box.minz)
-        newbox.maxz = max(self.maxz, box.maxz)
-        return newbox
+        new_box.miny = min(self.miny, box.miny)
+        new_box.maxy = max(self.maxy, box.maxy)
+        new_box.minz = min(self.minz, box.minz)
+        new_box.maxz = max(self.maxz, box.maxz)
+        return new_box
 
     def expand(self, dx, dy=None, dz=None):
         if dz is None: dz = dx

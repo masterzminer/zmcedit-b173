@@ -15,9 +15,11 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
 
 from collections import defaultdict
-from .fill import FillTool, BlockFillOperation
-import tempfile
+from .fill import BlockFillOperation
 from .toolbasics import *
+import mcplatform
+import operator
+from pygame import mouse
 
 from pymclevel.box import BoundingBox, FloatBox
 from pymclevel.material import materials
@@ -121,7 +123,6 @@ class SelectionToolPanel(Panel):
         deleteBlocksButton.tooltipText = "Fill the selection with Air. Shortcut: DELETE"
         deleteEntitiesButton = Button("Delete Entities", action=self.tool.deleteEntities)
         deleteEntitiesButton.tooltipText = "Remove all entities within the selection"
-        # deleteTileEntitiesButton = Button("Delete TileEntities", action=self.tool.deleteTileEntities)
         analyzeButton = Button("Analyze", action=self.tool.analyzeSelection)
         analyzeButton.tooltipText = "Count the different blocks and entities in the selection and display the totals."
         cutButton = Button("Cut", action=self.tool.cutSelection)
@@ -260,7 +261,6 @@ class SelectionTool(EditorTool):
             box = self.selectionBoxInProgress()
             if box:
                 size = "{s[0]} W x {s[2]} L x {s[1]} H".format(s=box.size)
-                text = size
             if key.get_mods() & KMOD_ALT:
                 if size:
                     return size
@@ -378,7 +378,6 @@ class SelectionTool(EditorTool):
 
         op = NudgeSelectionOperation(self, dir)
         self.performWithRetry(op)
-        # self.editor.addOperation(op)
 
     def nudgePoint(self, p, n):
         if self.selectionBox() is None:
@@ -434,7 +433,6 @@ class SelectionTool(EditorTool):
         self.sizeLabel.anchor = "twh"
         self.sizeLabel.tooltipText = "{0:n} blocks".format(self.selectionBox().volume)
 
-        # self.nudgePanelColumn = Column( (self.sizeLabel, self.nudgeRow) )
         self.nudgePanel.top = self.nudgePanel.left = 0
 
         self.nudgePanel.add(self.sizeLabel)
@@ -504,7 +502,6 @@ class SelectionTool(EditorTool):
 
     @property
     def statusText(self):
-        # return "selectionInProgress {0} clickSelectionInProgress {1}".format(self.selectionInProgress, self.clickSelectionInProgress)
         if self.selectionInProgress:
             pd = self.editor.blockFaceUnderCursor
             if pd:
@@ -540,8 +537,6 @@ class SelectionTool(EditorTool):
     dragResizePosition = None
 
     def mouseDown(self, evt, pos, direction):
-        # self.selectNone()
-
         pos = self.clampPos(pos)
         if self.selectionBox() and not self.selectionInProgress:
             face, point = self.boxFaceUnderCursor(self.selectionBox())
@@ -550,7 +545,6 @@ class SelectionTool(EditorTool):
                 self.dragResizeFace = face
                 self.dragResizeDimension = self.findBestTrackingPlane(face)
 
-                # point = map(int, point)
                 self.dragResizePosition = point[self.dragResizeDimension]
 
                 return
@@ -620,7 +614,7 @@ class SelectionTool(EditorTool):
         if self.selectionInProgress or self.clickSelectionInProgress:
             return self.selectionBoxForCorners(pos, self.dragStartPoint)
 
-# requires a selection
+    # requires a selection
     def dragResizePoint(self):
         # returns a point representing the intersection between the mouse ray
         # and an imaginary plane perpendicular to the dragged face
@@ -810,7 +804,6 @@ class SelectionTool(EditorTool):
                     glDisable(GL_DEPTH_TEST)
 
         pos, direction = self.editor.blockFaceUnderCursor
-        x, y, z = pos
         selectionColor = [a * a * a * a for a in self.selectionColor]
 
         # draw a colored box representing the possible selection
@@ -913,7 +906,7 @@ class SelectionTool(EditorTool):
             self.hideNudgePanel()
 
     def getSelectionPoint(self, pointNumber):
-        return (self.bottomLeftPoint, self.topRightPoint)[pointNumber]  # lisp programmers think this doesn't evaluate 'self.topRightPoint' - lol!
+        return (self.bottomLeftPoint, self.topRightPoint)[pointNumber]
 
     def getSelectionPoints(self):
         return [self.bottomLeftPoint, self.topRightPoint]

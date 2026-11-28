@@ -162,20 +162,6 @@ class MCMaterials(object):
     def addYamlBlock(self, kw):
         blockID = kw['id']
         
-        unused_yaml_properties = \
-        ['explored',
-         #'id',
-         #'idStr',
-         #'mapcolor',
-         #'name',
-         #'tex',
-         ###'tex_data',
-         #'tex_direction',
-         ###'tex_direction_data',
-         'tex_extra',
-         #'type'
-         ]
-        
         for val, data in kw.get('data', {0:{}}).items():
             data_kw = dict(kw)
             data_kw.update(data)
@@ -335,8 +321,8 @@ materials.Flower = materials[37, 0]
 materials.Rose = materials[38, 0]
 materials.BrownMushroom = materials[39, 0]
 materials.RedMushroom = materials[40, 0]
-materials.BlockofGold = materials[41, 0]
-materials.BlockofIron = materials[42, 0]
+materials.BlockOfGold = materials[41, 0]
+materials.BlockOfIron = materials[42, 0]
 materials.DoubleStoneSlab = materials[43, 0]
 materials.DoubleSandstoneSlab = materials[43, 1]
 materials.DoubleWoodenSlab = materials[43, 2]
@@ -360,7 +346,7 @@ materials.WoodenStairs = materials[53, 0]
 materials.Chest = materials[54, 0]
 materials.RedstoneWire = materials[55, 0]
 materials.DiamondOre = materials[56, 0]
-materials.BlockofDiamond = materials[57, 0]
+materials.BlockOfDiamond = materials[57, 0]
 materials.CraftingTable = materials[58, 0]
 materials.Crops = materials[59, 0]
 materials.Farmland = materials[60, 0]

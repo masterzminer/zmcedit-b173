@@ -34,7 +34,7 @@ def perform(level, box, options):
         coords = np.vstack(tuple(coords))
 
         def processCoords(coords):
-            newcoords = deque()
+            new_coords = deque()
 
             for (x, y, z) in coords:
                 for _dir, offsets in faceDirections:
@@ -49,9 +49,9 @@ def perform(level, box, options):
                     nx, ny, nz = p
                     if level.blockAt(nx, ny, nz) == 0:
                         level.setBlockAt(nx, ny, nz, waterID)
-                        newcoords.append(p)
+                        new_coords.append(p)
 
-            return newcoords
+            return new_coords
 
         def spread(coords):
             while len(coords):

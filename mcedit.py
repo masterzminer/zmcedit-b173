@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-#!/usr/bin/env python
-# -*- coding: utf8 -*_
 """
 mcedit.py
 

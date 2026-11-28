@@ -25,7 +25,7 @@ from io import BytesIO
 from datetime import datetime
 import numpy as np
 from OpenGL import GL
-from pygame import display, image, Surface
+from pygame import display
 import pymclevel
 import traceback
 from PIL import Image
@@ -35,6 +35,7 @@ from mcplatform import os_ops, askSaveFolder
 from config import LastDir, Settings
 from albow.controls import ControlRef
 import log
+import functools
 
 
 def alertException(func):
@@ -680,10 +681,3 @@ class FilterControls(Column):
 
     def open_filters_folder(self):
         os_ops.open_file(LastDir.filter.v)
-
-
-
-from glutils import DisplayList
-
-import functools
-

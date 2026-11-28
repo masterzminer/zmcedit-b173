@@ -20,11 +20,9 @@ Platform-specific functions, file io
 
 import os
 import sys
-import traceback
 import platform
 import subprocess
 from pathlib import Path
-import config
 from config import LastDir, Settings
 from config_classes import DirectorySetting
 

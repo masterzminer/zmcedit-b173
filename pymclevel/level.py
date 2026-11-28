@@ -43,7 +43,7 @@ def extractHeights(array):
     non-zero value in each y-column into heightMap
     """
 
-    #The fastest way I've found to do this is to make a boolean array with >0,
+    # The fastest way I've found to do this is to make a boolean array with >0,
     # then turn it upside down with ::-1 and use argmax to get the _first_ nonzero
     # from each column.
 
@@ -54,8 +54,8 @@ def extractHeights(array):
     heights = np.argmax((array>0)[..., ::-1], 2)
     heights = array.shape[2] - heights
 
-    #if the entire column is air, argmax finds the first air block and the result is a top height column
-    #top height columns won't ever have air in the top block so we can find air columns by checking for both
+    # if the entire column is air, argmax finds the first air block and the result is a top height column
+    # top height columns won't ever have air in the top block so we can find air columns by checking for both
     heights[(array[..., -1]==0) & (heights == array.shape[2])] = 0
 
     heightMap[:] = heights
@@ -77,8 +77,8 @@ def getSlices(box, height):
     In all other places, including an entity's 'Pos', the order is x,y,z. 
     """
     
-    #when yielding slices of chunks on the edge of the box, adjust the 
-    #slices by an offset
+    # when yielding slices of chunks on the edge of the box, adjust the 
+    # slices by an offset
     min_x_off, min_z_off = box.minx - (box.mincx << 4), box.minz - (box.mincz << 4)
     max_x_off, max_z_off = box.maxx - (box.maxcx << 4) + 16, box.maxz - (box.maxcz << 4) + 16
 
@@ -97,8 +97,6 @@ def getSlices(box, height):
         if cx == box.maxcx - 1:
             localMaxX = max_x_off
         newMinX = localMinX + (cx << 4) - box.minx
-        newMaxX = localMaxX + (cx << 4) - box.minx
-
 
         for cz in range(box.mincz, box.maxcz):
             localMinZ = 0
@@ -108,7 +106,6 @@ def getSlices(box, height):
             if cz == box.maxcz - 1:
                 localMaxZ = max_z_off
             newMinZ = localMinZ + (cz << 4) - box.minz
-            newMaxZ = localMaxZ + (cz << 4) - box.minz
             slices, point = (
                 (slice(localMinX, localMaxX), slice(localMinZ, localMaxZ), slice(miny, maxy)),
                 (newMinX, newMinY, newMinZ)
@@ -246,7 +243,6 @@ class MCLevel(object):
         cx: The chunk x coordinate, not block coordinate
         cy: The chunk y coordinate, not block coordinate
         """
-
         
         f = FakeChunk()
         f.world = self
@@ -265,8 +261,6 @@ class MCLevel(object):
 
         f.Entities, f.TileEntities = self._getFakeChunkEntities(cx, cz)
 
-
-
         f.root_tag = TAG_Compound()
 
         return f
@@ -276,8 +270,8 @@ class MCLevel(object):
         box = self.bounds
         x, y, z = box.origin
 
-        for cpos in self.allChunks:
-            xPos, zPos = cpos
+        for c_pos in self.allChunks:
+            xPos, zPos = c_pos
             try:
                 chunk = self.getChunk(xPos, zPos)
             except (ChunkMalformed, ChunkNotPresent):
@@ -316,7 +310,7 @@ class MCLevel(object):
                 z >= 0 and z < self.Length)
 
     def containsChunk(self, cx, cz):
-        #w+15 to allow non 16 aligned schematics
+        # w+15 to allow non 16 aligned schematics
         return (cx >= 0 and cx < (self.Width + 15 >> 4) and
                 cz >= 0 and cz < (self.Length + 15 >> 4))
 
@@ -331,20 +325,17 @@ class MCLevel(object):
 
 
     def fakeBlocksForChunk(self, cx, cz):
-        #return a 16x16xH block array for rendering. Levels can
-        #just return the chunk data.  other levels need to reorder the
-        #indices and return a slice of the blocks.
+        # return a 16x16xH block array for rendering. Levels can
+        # just return the chunk data.  other levels need to reorder the
+        # indices and return a slice of the blocks.
 
         cxOff = cx << 4
         czOff = cz << 4
         b = self.Blocks[cxOff:cxOff + 16, czOff:czOff + 16, 0:self.Height, ]
-        #(w, l, h) = b.shape
-        #if w<16 or l<16:
-        #    b = resize(b, (16,16,h) )
         return b
 
     def fakeDataForChunk(self, cx, cz):
-        #Data is emulated for flexibility
+        # Data is emulated for flexibility
         cxOff = cx << 4
         czOff = cz << 4
 
@@ -360,7 +351,7 @@ class MCLevel(object):
 
     def setSkylightAt(self, *args): pass
 
-    def setBlockDataAt(self, x, y, z, newdata): pass
+    def setBlockDataAt(self, x, y, z, new_data): pass
 
     def blockDataAt(self, x, y, z): return 0
 
@@ -378,14 +369,14 @@ class MCLevel(object):
 
     # --- Fill and Replace ---
     def blockReplaceTable(self, blocksToReplace):
-        blocktable = np.zeros((256, 16), dtype='bool')
+        block_table = np.zeros((256, 16), dtype='bool')
         for b in blocksToReplace:
             if b.hasVariants:
-                blocktable[b.ID, b.blockData] = True
+                block_table[b.ID, b.blockData] = True
             else:
-                blocktable[b.ID] = True
+                block_table[b.ID] = True
 
-        return blocktable
+        return block_table
 
     def fillBlocksIter(self, box, blockInfo, blocksToReplace=[]):
         self.fillBlocks(box, blockInfo, blocksToReplace)
@@ -448,17 +439,17 @@ class MCLevel(object):
 
     def copyBlocksFromFiniteToFinite(self, sourceLevel, sourceBox, destinationPoint, blocksToCopy):
         # assume destinationPoint is entirely within this level, and the size of sourceBox fits entirely within it.
-        sourcex, sourcey, sourcez = list(map(slice, sourceBox.origin, sourceBox.maximum))
+        source_x, source_y, source_z = list(map(slice, sourceBox.origin, sourceBox.maximum))
         destCorner2 = list(map(lambda a, b:a + b, sourceBox.size, destinationPoint))
-        destx, desty, destz = list(map(slice, destinationPoint, destCorner2))
+        dest_x, dest_y, dest_z = list(map(slice, destinationPoint, destCorner2))
 
         sourceData = None
         if hasattr(sourceLevel, 'Data'):
-            sourceData = sourceLevel.Data[sourcex, sourcez, sourcey]
-        convertedSourceBlocks, convertedSourceData = self.convertBlocksFromLevel(sourceLevel, sourceLevel.Blocks[sourcex, sourcez, sourcey], sourceData)
+            sourceData = sourceLevel.Data[source_x, source_z, source_y]
+        convertedSourceBlocks, convertedSourceData = self.convertBlocksFromLevel(sourceLevel, sourceLevel.Blocks[source_x, source_z, source_y], sourceData)
 
 
-        blocks = self.Blocks[destx, destz, desty]
+        blocks = self.Blocks[dest_x, dest_z, dest_y]
 
         mask = slice(None, None)
 
@@ -469,7 +460,7 @@ class MCLevel(object):
 
         blocks[mask] = convertedSourceBlocks[mask]
         if hasattr(self, 'Data') and hasattr(sourceLevel, 'Data'):
-            data = self.Data[destx, destz, desty]
+            data = self.Data[dest_x, dest_z, dest_y]
             data[mask] = convertedSourceData[mask]
 
 
@@ -503,9 +494,6 @@ class MCLevel(object):
                 data[mask] = convertedSourceData[mask]
             
             yield i
-            
-            
-
 
     def adjustCopyParameters(self, sourceLevel, sourceBox, destinationPoint):
 
@@ -518,8 +506,7 @@ class MCLevel(object):
         (lx, ly, lz) = sourceBox.size
         log.debug(f"Asked to copy {ly * lz * lx} blocks \n\tfrom {sourceBox} in {sourceLevel}\n\tto {destinationPoint} in {self}")
 
-        #clip the source ranges to this level's edges.  move the destination point as needed.
-        #xxx abstract this
+        # clip the source ranges to this level's edges.  move the destination point as needed.
         if y < 0:
             sourceBox.origin[1] -= y
             sourceBox.size[1] += y
@@ -528,8 +515,8 @@ class MCLevel(object):
             sourceBox.size[1] -= y + sourceBox.size[1] - self.Height
             y = self.Height - sourceBox.size[1]
 
-        #for infinite levels, don't clip along those dimensions because the 
-        #infinite copy func will just skip missing chunks
+        # for infinite levels, don't clip along those dimensions because the 
+        # infinite copy func will just skip missing chunks
         if self.Width != 0:
             if x < 0:
                 sourceBox.origin[0] -= x
@@ -559,7 +546,6 @@ class MCLevel(object):
                sourceLevel.containsPoint(*sourceBox.origin) and
                sourceLevel.containsPoint(*[x - 1 for x in sourceBox.maximum])):
             raise ValueError("{0} cannot provide blocks between {1}".format(sourceLevel, sourceBox))
-
 
         sourceBox, destinationPoint = self.adjustCopyParameters(sourceLevel, sourceBox, destinationPoint)
         yield
@@ -607,7 +593,6 @@ class MCLevel(object):
     def getPlayerOrientation(self, player="Player"):
         return -45., 0.
 
-
     # --- Dummy Lighting Methods ---
     def generateLights(self, dirtyChunks=None):
         pass
@@ -649,9 +634,8 @@ class EntityLevel(MCLevel):
         log.info(f"Copied {e} entities, {t} tile entities")
 
     def copyEntitiesFromIter(self, sourceLevel, sourceBox, destinationPoint, entities=True):
-        #assume coords have already been adjusted by copyBlocks
+        # assume coords have already been adjusted by copyBlocks
         sourcePoint0 = sourceBox.origin
-        sourcePoint1 = sourceBox.maximum
 
         if sourceLevel.isInfinite:
             for i in self.copyEntitiesFromInfiniteIter(sourceLevel, sourceBox, destinationPoint, entities):
@@ -774,7 +758,7 @@ class EntityLevel(MCLevel):
 
     _fakeEntities = None
     def _getFakeChunkEntities(self, cx, cz):
-        """distribute entities into sublists based on fake chunk position
+        """distribute entities into sub lists based on fake chunk position
         _fakeEntities keys are (cx,cz) and values are (Entities, TileEntities)"""
         if self._fakeEntities is None:
             self._fakeEntities = defaultdict(lambda: ([], []))
@@ -837,7 +821,7 @@ class LightedChunk(ChunkBase):
     def genFastLights(self):
         self.SkyLight[:] = 0
         if self.world.dimNo in (-1, 1):
-            return #no light in nether or the end
+            return # no light in nether or the end
 
         blocks = self.Blocks
         la = materials.lightAbsorption

@@ -56,11 +56,11 @@ from collections import defaultdict, deque
 from OpenGL import GL
 from OpenGL import GLU
 
-from albow import alert, ask, AttrRef, Button, Column, get_font, Grid, input_text, IntField, Menu, root, Row, TableColumn, TableView, TextField, TimeField, Widget
+from albow import alert, ask, AttrRef, Button, Column, get_font, Grid, input_text, IntField, root, Row, TableColumn, TableView, TextField, TimeField, Widget
 from albow.controls import Label, SmallValueDisplay, ValueDisplay
 from albow.dialogs import Dialog, QuickDialog, wrapped_label
 from albow.openglwidgets import GLOrtho, GLViewport
-from pygame import display, event, key, KMOD_ALT, KMOD_CTRL, KMOD_LALT, KMOD_META, KMOD_RALT, KMOD_SHIFT, mouse, MOUSEMOTION
+from pygame import display, event, key, KMOD_ALT, KMOD_CTRL, KMOD_META, KMOD_SHIFT, mouse, MOUSEMOTION
 import pygame
 
 from depths import DepthOffset
@@ -125,13 +125,6 @@ class ControlPanel(Panel):
         keysColumn = [Label("")]
         buttonsColumn = [header]
 
-        '''def addRow(key, text, action):
-            b = Button(text, action=action, width = 300)
-            l = Label(key,width=100,margin=b.margin)
-            l.height=b.height
-            keysColumn.append(l)
-            buttonsColumn.append(b)'''
-
         cmd = mcplatform.cmd_name
         hotkeys = ([(cmd + f"-{Keys.new_level.v.upper()}", "Create New World", editor.mcedit.createNewWorld),
                     (cmd + f"-{Keys.open_level.v.upper()}", "Open World...", editor.askOpenFile),
@@ -175,7 +168,7 @@ def unproject(x, y, z):
     try:
         return GLU.gluUnProject(x, y, z)
     except ValueError:
-        traceback.print_exc()  # projection failed
+        traceback.print_exc()
         return 0, 0, 0
 
 
@@ -630,10 +623,9 @@ class CameraViewport(GLViewport):
     @mceutils.alertException
     def editSign(self, point):
 
-        block = self.editor.level.blockAt(*point)
         tileEntity = self.editor.level.tileEntityAt(*point)
 
-        linekeys = ["Text" + str(i) for i in range(1, 5)]
+        line_keys = ["Text" + str(i) for i in range(1, 5)]
 
         if not tileEntity:
             tileEntity = pymclevel.TAG_Compound()
@@ -641,15 +633,15 @@ class CameraViewport(GLViewport):
             tileEntity["x"] = pymclevel.TAG_Int(point[0])
             tileEntity["y"] = pymclevel.TAG_Int(point[1])
             tileEntity["z"] = pymclevel.TAG_Int(point[2])
-            for l in linekeys:
+            for l in line_keys:
                 tileEntity[l] = pymclevel.TAG_String("")
 
         self.editor.level.addTileEntity(tileEntity)
 
         panel = Dialog()
 
-        lineFields = [TextField(width=150) for l in linekeys]
-        for l, f in zip(linekeys, lineFields):
+        lineFields = [TextField(width=150) for l in line_keys]
+        for l, f in zip(line_keys, lineFields):
             f.value = tileEntity[l].value
 
         colors = [
@@ -674,7 +666,7 @@ class CameraViewport(GLViewport):
         def menu_picked(index):
             c = u'\xa7' + hex(index)[-1]
             currentField = panel.focus_switch.focus_switch
-            currentField.text += c  # xxx view hierarchy
+            currentField.text += c  # view hierarchy
             currentField.insertion_point = len(currentField.text)
 
         colorMenu = mceutils.MenuButton("Color Code...", colors, menu_picked=menu_picked)
@@ -686,7 +678,7 @@ class CameraViewport(GLViewport):
         if panel.present():
 
             self.editor.addUnsavedEdit()
-            for l, f in zip(linekeys, lineFields):
+            for l, f in zip(line_keys, lineFields):
                 tileEntity[l].value = f.value[:15]
 
     @mceutils.alertException
@@ -703,7 +695,7 @@ class CameraViewport(GLViewport):
         backupEntityTag = copy.deepcopy(tileEntityTag)
 
         def itemProp(key):
-            # xxx do validation here
+            # do validation here
             def getter(self):
                 if 0 == len(tileEntityTag['Items']):
                     return "N/A"
@@ -796,7 +788,7 @@ class CameraViewport(GLViewport):
                         def matches(t):
                             return t["id"].value == id
 
-                    def matches_itementity(e):
+                    def matches_item_entity(e):
                         if e["id"].value != "Item":
                             return False
                         if "Item" not in e:
@@ -826,7 +818,7 @@ class CameraViewport(GLViewport):
                                 te['Items'].value = [t for t in te['Items'].value if not matches(t)]
                                 if l != len(te['Items']):
                                     chunk.dirty = True
-                        entities = [e for e in chunk.Entities if matches_itementity(e)]
+                        entities = [e for e in chunk.Entities if matches_item_entity(e)]
                         if len(entities) != len(chunk.Entities):
                             chunk.Entities.value = entities
                             chunk.dirty = True
@@ -927,9 +919,9 @@ class CameraViewport(GLViewport):
                     block = self.editor.level.blockAt(*point)
                     if distance2(point, self.cameraPosition) > 4:
                         blockEditors = {
-                            pymclevel.materials.MonsterSpawner.ID:   self.editMonsterSpawner,
-                            pymclevel.materials.Sign.ID:             self.editSign,
-                            pymclevel.materials.WallSign.ID:         self.editSign,
+                            pymclevel.materials.MonsterSpawner.ID: self.editMonsterSpawner,
+                            pymclevel.materials.Sign.ID: self.editSign,
+                            pymclevel.materials.WallSign.ID: self.editSign,
                         }
                         edit = blockEditors.get(block)
                         if edit:
@@ -1054,7 +1046,6 @@ class CameraViewport(GLViewport):
 
     def drawCeiling(self):
         GL.glMatrixMode(GL.GL_MODELVIEW)
-        # GL.glPushMatrix()
         x, y, z = self.cameraPosition
         x -= x % 16
         z -= z % 16
@@ -1652,7 +1643,6 @@ class LevelEditor(GLViewport):
         counts.append((b, c))
 
         blockRows = [("({0}:{1})".format(block.ID, block.blockData), block.name, count)  for block, count in counts]
-        # blockRows.sort(key=lambda x: alphanum_key(x[2]), reverse=True)
 
         rows = list(blockRows)
 
@@ -1716,7 +1706,7 @@ class LevelEditor(GLViewport):
                         writer = csv.writer(f)
                         writer.writerows(rows)
                 except Exception as e:
-                    traceback.print_exc()
+                    log.error("Error saving file")
                     alert(str(e))
 
 
@@ -1785,17 +1775,14 @@ class LevelEditor(GLViewport):
             lightColor = (0x80, 0x80, 0x80, 0xff)
             w, h, = 256, 256
 
-            teximage = np.zeros((w, h, 4), dtype='uint8')
-            teximage[:] = 0xff
-            teximage[:, ::16] = lightColor
-            teximage[::16, :] = lightColor
-            teximage[:2] = darkColor
-            teximage[-1:] = darkColor
-            teximage[:, -1:] = darkColor
-            teximage[:, :2] = darkColor
-            # GL.glTexParameter(GL.GL_TEXTURE_2D,
-            #                  GL.GL_TEXTURE_MIN_FILTER,
-            #                  GL.GL_NEAREST_MIPMAP_NEAREST),
+            tex_image = np.zeros((w, h, 4), dtype='uint8')
+            tex_image[:] = 0xff
+            tex_image[:, ::16] = lightColor
+            tex_image[::16, :] = lightColor
+            tex_image[:2] = darkColor
+            tex_image[-1:] = darkColor
+            tex_image[:, -1:] = darkColor
+            tex_image[:, :2] = darkColor
             GL.glTexParameter(GL.GL_TEXTURE_2D,
                               GL.GL_TEXTURE_MAX_LEVEL,
                               maxLevel - 1)
@@ -1803,17 +1790,17 @@ class LevelEditor(GLViewport):
             for lev in range(maxLevel):
                 step = 1 << lev
                 if lev:
-                    teximage[::16] = 0xff
-                    teximage[:, ::16] = 0xff
-                    teximage[:2] = darkColor
-                    teximage[-1:] = darkColor
-                    teximage[:, -1:] = darkColor
-                    teximage[:, :2] = darkColor
+                    tex_image[::16] = 0xff
+                    tex_image[:, ::16] = 0xff
+                    tex_image[:2] = darkColor
+                    tex_image[-1:] = darkColor
+                    tex_image[:, -1:] = darkColor
+                    tex_image[:, :2] = darkColor
 
                 GL.glTexImage2D(GL.GL_TEXTURE_2D, lev, GL.GL_RGBA8,
                          w / step, h / step, 0,
                          GL.GL_RGBA, GL.GL_UNSIGNED_BYTE,
-                         teximage[::step, ::step].ravel())
+                         tex_image[::step, ::step].ravel())
 
         return Texture(makeSixteenBlockTex, mode)
 
@@ -1992,13 +1979,11 @@ class LevelEditor(GLViewport):
         filename = self.level.filename
         s = os.path.split(filename)
         title = os.path.split(s[0])[1] + os.sep + s[1] + " - " + release.NAME + " " + release.VERSION
-        # title = title.encode('ascii', 'replace')
         display.set_caption(title)
 
     @mceutils.alertException
     def reload(self):
         filename = self.level.filename
-        # self.discardAllChunks()
         self.level.close()
 
         self.loadFile(filename)
@@ -2184,13 +2169,13 @@ class LevelEditor(GLViewport):
         except Exception as e:
             return repr(e)
 
-    def toolMouseDown(self, evt, f):  # xxx f is a tuple
+    def toolMouseDown(self, evt, f):  # f is a tuple
         if self.level:
             if None != f:
                 (focusPoint, direction) = f
                 self.currentTool.mouseDown(evt, focusPoint, direction)
 
-    def toolMouseUp(self, evt, f):  # xxx f is a tuple
+    def toolMouseUp(self, evt, f):  # f is a tuple
         if self.level:
             if None != f:
                 (focusPoint, direction) = f
@@ -2526,7 +2511,6 @@ class LevelEditor(GLViewport):
           Label("Goto Position:"),
           Label("(click anywhere to teleport)"),
           inputRow,
-          # Row( (Button("Cancel"), Button("Goto")), align="r" )
         )
         column = Column(column)
         gotoPanel.add(column)
@@ -2644,10 +2628,9 @@ class LevelEditor(GLViewport):
             revealButton = Button("Open Folder", action=openFolder)
             items.append(revealButton)
 
-            # if all(hasattr(self.level, i) for i in ("Length", "Width", "Height")):
             size = self.level.size
-            sizelabel = Label("{L}L x {W}W x {H}H".format(L=size[2], H=size[1], W=size[0]))
-            items.append(sizelabel)
+            size_label = Label("{L}L x {W}W x {H}H".format(L=size[2], H=size[1], W=size[0]))
+            items.append(size_label)
 
             if hasattr(self.level, "Entities"):
                 label = Label("{0} Entities".format(len(self.level.Entities)))
@@ -2670,7 +2653,7 @@ class LevelEditor(GLViewport):
                 time -= timezoneAdjust
                 if self.level.Time != time:
                     self.level.Time = time
-                    # xxx TimeChangeOperation
+                    # TimeChangeOperation
                     self.addUnsavedEdit()
 
             if hasattr(self.level, 'RandomSeed'):
@@ -2888,7 +2871,8 @@ class LevelEditor(GLViewport):
 
         self.frames += 1
         frameDuration = self.getFrameDuration()
-        while frameDuration > (datetime.now() - self.frameStartTime):  # if it's less than 0ms until the next frame, go draw.  otherwise, go work.
+        # if it's less than 0ms until the next frame, go draw.  otherwise, go work.
+        while frameDuration > (datetime.now() - self.frameStartTime):
             self.doWorkUnit()
         if self.showWorkInfo:
             self.updateWorkInfoPanel()
@@ -2921,18 +2905,15 @@ class LevelEditor(GLViewport):
                                                                            len(self.workers),
                                                                            self.renderer.workFactor)
 
-            if True:  # xxx
-                self.debugString += "DL: {dl} ({dlcount}), Tx: {t}, gc: {g}, ".format(
-                    dl=len(glutils.DisplayList.allLists), dlcount=glutils.gl.listCount,
-                    t=len(glutils.Texture.allTextures), g=len(gc.garbage))
+            self.debugString += "DL: {dl} ({dl_count}), Tx: {t}, gc: {g}, ".format(
+                dl=len(glutils.DisplayList.allLists), dl_count=glutils.gl.listCount,
+                t=len(glutils.Texture.allTextures), g=len(gc.garbage))
 
             if isinstance(self.level, pymclevel.MCBetaLevel):
                 self.debugString += "Loa: {0}, Dec: {1}, ".format(len(self.level.loadedChunkQueue), len(self.level.decompressedChunkQueue))
 
             if self.renderer:
                 self.renderer.addDebugInfo(self.addDebugString)
-
-                # if self.onscreen:
 
     def createWorkInfoPanel(self):
         infos = []
@@ -3017,7 +2998,7 @@ class LevelEditor(GLViewport):
 
                     self.inspectionString += ", Ch(%d, %d): %s" % (cx, cz, path)
 
-                else:  # classic
+                else:
                     blockID = self.level.blockAt(*blockPosition)
                     self.inspectionString += "ID: %d (%s), " % (
                         blockID, materials.names[blockID][0])
@@ -3170,7 +3151,6 @@ class EditorToolbar(GLOrtho):
         self.size = self.toolbarSizeForScreenWidth(self.parent.width)
         self.centerx = self.parent.centerx
         self.bottom = self.parent.viewportContainer.bottom
-        # xxx resize children when get
 
     def getTooltipText(self):
         toolNumber = self.toolNumberUnderMouse(mouse.get_pos())
@@ -3310,8 +3290,6 @@ class EditorToolbar(GLOrtho):
                 log.error('Error while drawing toolbar')
         GL.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY)
 
-    gfont = None
-
     def gl_draw(self):
 
         GL.glEnable(GL.GL_TEXTURE_2D)
@@ -3325,16 +3303,7 @@ class EditorToolbar(GLOrtho):
             pass
         else:
             # draw a bright rectangle around the current tool
-            (texx, texy, texw, texh) = self.currentToolTextureRect
-            # ===================================================================
-            # tx = tx + tw * float(currentToolNumber) / 9.
-            # tx = tx - (2./20.)*float(tw) / 9
-            # ty = ty - (2./20.)*th
-            # # tw = th
-            # tw = (24./20.)* th
-            # th = tw
-            #
-            # ===================================================================
+            (tex_x, tex_y, tex_w, tex_h) = self.currentToolTextureRect
             tx = 20. * float(currentToolNumber)
             ty = 0.
             tw = 24.
@@ -3350,10 +3319,10 @@ class EditorToolbar(GLOrtho):
                             ), dtype="f4"))
 
             GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, np.array((
-                              texx, texy + texh,
-                              texx + texw, texy + texh,
-                              texx + texw, texy,
-                              texx, texy,
+                              tex_x, tex_y + tex_h,
+                              tex_x + tex_w, tex_y + tex_h,
+                              tex_x + tex_w, tex_y,
+                              tex_x, tex_y,
                                ), dtype="f4"))
 
             GL.glDrawArrays(GL.GL_QUADS, 0, 4)

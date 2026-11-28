@@ -2,7 +2,7 @@
 
 The Frustum object itself is only responsible for
 extracting the clipping planes from an OpenGL model-view
-matrix.  The bulk of the frustum-culling algorithm is
+matrix. The bulk of the frustum-culling algorithm is
 implemented in the bounding volume objects found in the
 OpenGLContext.scenegraph.boundingvolume module.
 
@@ -15,6 +15,7 @@ import numpy as np
 from OpenGL import GL
 import log
 
+# TODO remove unnecessary params, avoid the hard coded values
 def viewingMatrix(projection=None, model=None):
     """Calculate the total viewing matrix from given data
 
@@ -43,10 +44,10 @@ def viewingMatrix(projection=None, model=None):
         else:
             return np.identity(4, 'd')
     if np.allclose(projection, -1.79769313e+308):
-        log.warn(f"Attempt to retrieve projection matrix when uninitialised {projection}, model={model}")
+        log.warn(f"Attempt to retrieve projection matrix when uninitialized {projection}, model={model}")
         return model
     if np.allclose(model, -1.79769313e+308):
-        log.warn(f"Attempt to retrieve model-view matrix when uninitialised {model}, projection={projection}")
+        log.warn(f"Attempt to retrieve model-view matrix when uninitialized {model}, projection={projection}")
         return projection
     return np.dot(model, projection)
 
@@ -79,11 +80,9 @@ class Frustum (object):
         return ~any(distances < -radius, -1)
 
     def visible1(self, point, radius):
-        #return self.visible(array(point[np.newaxis, :]), radius)
 
         distance = sum(self.planes * point, -1)
         vis = ~any(distance < -radius)
-        #assert vis == self.visible(array(point)[np.newaxis, :], radius)
 
         return vis
 

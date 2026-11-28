@@ -15,9 +15,8 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
 
-
+import mcplatform
 from mceutils import ChoiceButton
-from os.path import basename
 import tempfile
 from .toolbasics import *
 from functools import reduce

@@ -362,11 +362,9 @@ class BusCreator:
 					break
 			
 			if not placed:
-				#raise Exception("Algorithm failed to create bus for " + Colors[color] + " wire.")
 				return
 					
 			
-	
 	def canPlaceRedstone(self, pos, fromPos, destinationPos, restrictions):
 		if restrictions == 1 and above(pos, fromPos): #repeater
 			return False

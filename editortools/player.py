@@ -13,7 +13,6 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
 
-
 from .toolbasics import *
 from pymclevel.box import FloatBox
 import numpy as np
@@ -280,7 +279,6 @@ class PlayerPositionTool(EditorTool):
 
         x, y, z = pos
 
-        #x,y,z=map(lambda p,d: p+d, pos, direction)
         glEnable(GL_BLEND)
         glColor(1.0, 1.0, 1.0, 0.5)
         self.drawCharacterHead(x + 0.5, y + 0.75, z + 0.5)
@@ -290,7 +288,6 @@ class PlayerPositionTool(EditorTool):
         self.drawCharacterHead(x + 0.5, y + 0.75, z + 0.5)
         drawTerrainCuttingWire(BoundingBox((x, y, z), (1, 1, 1)))
         drawTerrainCuttingWire(BoundingBox((x, y - 1, z), (1, 1, 1)))
-        #drawTerrainCuttingWire( BoundingBox((x,y-2,z), (1,1,1)) )
         glDisable(GL_DEPTH_TEST)
 
     markerLevel = None
@@ -322,7 +319,6 @@ class PlayerPositionTool(EditorTool):
                 glColor(1, 1, 1, 1)
                 self.drawCharacterHead(0, 0, 0)
                 glPopMatrix()
-                #glEnable(GL_BLEND)
                 drawTerrainCuttingWire(FloatBox((x - .5, y - .5, z - .5), (1, 1, 1)),
                                        c0=(0.3, 0.9, 0.7, 1.0),
                                        c1=(0, 0, 0, 0),
@@ -500,9 +496,9 @@ class PlayerSpawnPositionTool(PlayerPositionTool):
 
                 if not okayAboveSpawn(level, pos):
                     if pos[1] > 63 or pos[1] < 59:
-                        lpos = (pos[0], pos[1] - 1, pos[2])
-                        if level.blockAt(*pos) == 0 and level.blockAt(*lpos) != 0 and okayAboveSpawn(level, lpos):
-                            pos = lpos
+                        l_pos = (pos[0], pos[1] - 1, pos[2])
+                        if level.blockAt(*pos) == 0 and level.blockAt(*l_pos) != 0 and okayAboveSpawn(level, l_pos):
+                            pos = l_pos
                             status += "Spawn point shifted down by one block.\n"
                     if not okayAboveSpawn(level, pos):
                         for i in range(1, 4):

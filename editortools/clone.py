@@ -20,7 +20,8 @@ from .select import SelectionOperation
 from pymclevel.box import BoundingBox
 from config import LastDir, Keys, CloneToolSettings
 import log
-
+import operator
+import mcplatform
 
 class CoordsInput(Widget):
     is_gl_container = True
@@ -524,7 +525,6 @@ class CloneTool(EditorTool):
             self.panel.set_parent(None)
 
         self.panel = self.panelClass(self)
-        # self.panel.performButton.enabled = False
 
         self.panel.centery = self.editor.centery
         self.panel.left = self.editor.left
@@ -550,11 +550,6 @@ class CloneTool(EditorTool):
         else:
             return self.level.size
 
-    # ===========================================================================
-    # def getSelectionRanges(self):
-    #    return self.editor.selectionTool.selectionBox()
-    #
-    # ===========================================================================
     def getBlockAt(self):
         return None  # use level's blockAt
 
@@ -623,7 +618,6 @@ class CloneTool(EditorTool):
         if self.destPoint != None:
             destPoint = self.destPoint
             if self.draggingFace is not None:
-                # debugDrawPoint()
                 destPoint = self.draggingOrigin()
 
             self.drawTerrainPreview(destPoint)

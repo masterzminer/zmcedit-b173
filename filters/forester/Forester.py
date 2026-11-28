@@ -421,7 +421,7 @@ def calc_column_lighting(x, z, mclevel):
         cur_light += -light_reduction
         if cur_light < 0:
             cur_light = 0
-        #increment and check y
+        # increment and check y
         y += -1
         if y < 0:
             break
@@ -1201,7 +1201,7 @@ def plant_trees(mc_map, tree_list):
                         # this sample contains foliage!
                         # add it to the total
                         foliage_count += 1
-            #now that we have the total count, find the ratio
+            # now that we have the total count, find the ratio
             total_searched = search_size ** 2
             foliage_ratio = foliage_count / total_searched
             # the acceptable amount is about a third

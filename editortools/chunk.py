@@ -17,7 +17,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 from .toolbasics import *
 from albow.dialogs import Dialog
 import numpy as np
-import config
+import mcplatform
 from config import LastDir
 import log
 
@@ -244,7 +244,6 @@ class ChunkTool(EditorTool):
 
         self.editor.renderer.invalidateChunkMarkers()
         self.editor.renderer.discardChunks(chunks)
-        #self.editor.addUnsavedEdit()
 
     @alertException
     def pruneChunks(self):

@@ -23,7 +23,7 @@ def lru_cache(maxsize=100):
     http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used
 
     '''
-    maxqueue = maxsize * 10
+    max_queue = maxsize * 10
     def decorating_function(user_function,
             len=len, iter=iter, tuple=tuple, sorted=sorted, KeyError=KeyError):
         cache = {}                  # mapping of args to results
@@ -67,7 +67,7 @@ def lru_cache(maxsize=100):
 
             # periodically compact the queue by eliminating duplicate keys
             # while preserving order of most recent access
-            if len(queue) > maxqueue:
+            if len(queue) > max_queue:
                 refcount.clear()
                 queue_appendleft(sentinel)
                 for key in itertools.filterfalse(refcount.__contains__,
@@ -91,7 +91,7 @@ def lru_cache(maxsize=100):
 
 
 def lfu_cache(maxsize=100):
-    '''Least-frequenty-used cache decorator.
+    '''Least-frequently-used cache decorator.
 
     Arguments to the cached function must be hashable.
     Cache performance statistics stored in f.hits and f.misses.

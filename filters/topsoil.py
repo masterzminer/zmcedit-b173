@@ -1,7 +1,6 @@
 
 
 import numpy as np
-import itertools
 from pymclevel.material import materials
 from pymclevel.level import extractHeights
 from pymclevel.material import natural_block_mask

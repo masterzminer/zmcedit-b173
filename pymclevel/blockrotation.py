@@ -1,6 +1,6 @@
 
 from .material import materials
-from numpy import array, arange, zeros
+from numpy import arange, zeros
 
 def genericVerticalFlip(cls):
     rotation = arange(16, dtype='uint8')
@@ -222,7 +222,7 @@ rotationClasses.append(Button)
 
 class SignPost:
     blocktypes = [materials.Sign.ID]
-    #west is 0, increasing clockwise
+    # west is 0, increasing clockwise
 
     rotateLeft = arange(16, dtype='uint8')
     rotateLeft -= 4
@@ -304,7 +304,7 @@ class RedstoneRepeater:
 
 genericFlipRotation(RedstoneRepeater)
 
-#high bits of the repeater indicate repeater delay, and should be preserved
+# high bits of the repeater indicate repeater delay, and should be preserved
 applyBits48(RedstoneRepeater)
 
 
@@ -340,16 +340,16 @@ class PistonHead(PistonBody):
 rotationClasses.append(PistonHead)
 
 
-def masterRotationTable(attrname):
+def masterRotationTable(attr_name):
     # compute a 256x16 table mapping each possible blocktype/data combination to 
     # the resulting data when the block is rotated
     table = zeros((256, 16), dtype='uint8')
     table[:] = arange(16, dtype='uint8')
     for cls in rotationClasses:
-        if hasattr(cls, attrname):
-            blocktable = getattr(cls, attrname)
+        if hasattr(cls, attr_name):
+            block_table = getattr(cls, attr_name)
             for blocktype in cls.blocktypes:
-                table[blocktype] = blocktable
+                table[blocktype] = block_table
 
     return table
 
@@ -369,7 +369,7 @@ class BlockRotation:
     typeTable = rotationTypeTable()
     
 def SameRotationType(blocktype1, blocktype2):
-    #use different default values for typeTable.get() to make it return false when neither blocktype is present
+    # use different default values for typeTable.get() to make it return false when neither blocktype is present
     return BlockRotation.typeTable.get(blocktype1.ID) == BlockRotation.typeTable.get(blocktype2.ID, BlockRotation)
     
 def FlipVertical(blocks, data):

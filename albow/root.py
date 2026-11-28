@@ -2,6 +2,7 @@ import sys
 import pygame
 from pygame.locals import *
 from pygame.event import Event
+from pygame import mouse
 
 from glbackground import *
 from . import widget

@@ -3,7 +3,6 @@ Created on Jul 23, 2011
 
 @author: Rio
 '''
-#from mclevelbase import *
 
 from .nbt import *
 from . import nbt

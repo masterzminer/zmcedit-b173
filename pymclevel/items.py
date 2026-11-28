@@ -16,7 +16,7 @@ class ItemType (object):
     def __str__(self):
         return f"ItemType {self.id}: {self.name}"
 
-class Items (object):
+class Items(object):
     def __init__(self, filename):
         try:
             with open(filename) as f:

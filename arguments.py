@@ -70,7 +70,7 @@ def _init():
     )
 
     parser.add_argument(
-        "--debugrender",
+        "--debug-render",
         action="store_true",
         help="True to enable additional debug rendering"
     )
@@ -154,7 +154,7 @@ LOG_LEVEL: LogLevel = _parsed_args.log or LogLevel.INFO
 """The severity that logging should occur at, defaults to info"""
 DEBUG = LOG_LEVEL.value <= LogLevel.DEBUG.value
 """True to do additional debug actions"""
-DEBUG_RENDER = _parsed_args.debugrender or False
+DEBUG_RENDER = _parsed_args.debug_render or False
 """True if debug rendering is enabled"""
 CONFIG_OVERRIDE = _parsed_args.config
 """Path override for config directory"""

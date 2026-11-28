@@ -16,7 +16,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE."""
 
 from OpenGL.GL import *
 from pymclevel import *
-import pymclevel
 
 from albow import *
 from albow.openglwidgets import GLPerspective
@@ -25,18 +24,12 @@ from pygame import key
 from pygame.locals import *
 
 from mceutils import *
-import mcplatform
 from depths import DepthOffset
 from renderer import *
-import bresenham
-import config
-import operator
 import pymclevel
 from glutils import *
-from OpenGL.GL.images import glTexImage2D
 from glbackground import *
 from albow.dialogs import Dialog
-from pymclevel.mclevelbase import exhaust
 from albow.root import Cancel
 import numpy as np
 from OpenGL import GLU
@@ -143,7 +136,7 @@ class ThumbView(GLPerspective):
 
     def __init__(self, sch, drawBackground=True, **kw):
         self.drawBackground = drawBackground
-        GLPerspective.__init__(self, **kw)  # self, xmin= -32, xmax=32, ymin= -32, ymax=32, near= -1000, far=1000)
+        GLPerspective.__init__(self, **kw)
         self.far = 16000
         self.schematic = sch
         self.renderer = PreviewRenderer(sch)
@@ -485,16 +478,16 @@ class BlockPicker(Dialog):
         table_view.draw_table_cell = draw_block_table_cell
         table_view.width = panelWidth
         table_view.anchor = "lrbt"
-        self.tableview = table_view
+        self.table_view = table_view
         tableWidget = Widget()
         tableWidget.add(table_view)
         tableWidget.shrink_wrap()
 
-        def wdraw(*args):
+        def w_draw(*args):
             for t in table_icons:
                 t.blockInfo = materials.Air
 
-        tableWidget.draw = wdraw
+        tableWidget.draw = w_draw
         self.blockButton = blockView = BlockThumbView(self.blockInfo)
 
         blockView.centerx = self.centerx
@@ -526,7 +519,7 @@ class BlockPicker(Dialog):
         panel.size = self.size
 
         try:
-            self.tableview.rows.scroll_to_item(self.selectedBlockIndex)
+            self.table_view.rows.scroll_to_item(self.selectedBlockIndex)
         except:
             pass
 
@@ -563,7 +556,7 @@ class BlockPicker(Dialog):
 
             self.matchingBlocks = [block]
             self.selectedBlockIndex = 0
-            self.tableview.rows.scroll_to_item(self.selectedBlockIndex)
+            self.table_view.rows.scroll_to_item(self.selectedBlockIndex)
             self.blockButton.blockInfo = self.blockInfo
 
             return
@@ -594,7 +587,7 @@ class BlockPicker(Dialog):
         else:
             self.selectedBlockIndex = 0
 
-        self.tableview.rows.scroll_to_item(self.selectedBlockIndex)
+        self.table_view.rows.scroll_to_item(self.selectedBlockIndex)
         self.blockButton.blockInfo = self.blockInfo
 
     def key_down(self, event):
@@ -603,10 +596,10 @@ class BlockPicker(Dialog):
         size = len(self.matchingBlocks)
         if k == K_UP:
             self.select_table_index((self.selectedBlockIndex - 1 + size) % size)
-            self.tableview.rows.scroll_to_item(self.selectedBlockIndex)
+            self.table_view.rows.scroll_to_item(self.selectedBlockIndex)
         elif k == K_DOWN:
             self.select_table_index((self.selectedBlockIndex + 1) % size)
-            self.tableview.rows.scroll_to_item(self.selectedBlockIndex)
+            self.table_view.rows.scroll_to_item(self.selectedBlockIndex)
         
 
         # Do normal behavior

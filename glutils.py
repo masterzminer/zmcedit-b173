@@ -21,7 +21,6 @@ Pythonesque wrappers around certain OpenGL functions.
 import arguments
 
 from OpenGL import GL
-from OpenGL.GL.ARB import window_pos
 import numpy as np
 from contextlib import contextmanager
 
@@ -223,7 +222,6 @@ class FramebufferTexture(Texture):
         FBO.glDeleteFramebuffersEXT(1, [buf])
         FBO.glDeleteRenderbuffersEXT(1, [depth_buffer])
         self.enabled = True
-
 
 
 def debugDrawPoint(point):

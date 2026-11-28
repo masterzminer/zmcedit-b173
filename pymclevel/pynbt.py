@@ -213,8 +213,8 @@ class TAG_Int_Array(TAG_Byte_Array):
 
 
     def write_value(self, buf):
-        valuestr = self.value.tostring()
-        buf.write(struct.pack(self.fmt % (len(valuestr),), len(valuestr) / 4, valuestr))
+        value_string = self.value.tostring()
+        buf.write(struct.pack(self.fmt % (len(value_string),), len(value_string) / 4, value_string))
 
 class TAG_Short_Array(TAG_Int_Array):
     """An array of ints"""
@@ -345,7 +345,7 @@ class TAG_Compound(TAG_Value, collections.abc.MutableMapping):
 
     def __setitem__(self, k, v):
         """Automatically wraps lists and tuples in a TAG_List, and wraps strings
-        and unicodes in a TAG_String."""
+        and unicode in a TAG_String."""
         if isinstance(v, (list, tuple)):
             v = TAG_List(v)
         elif isinstance(v, str):
@@ -353,8 +353,8 @@ class TAG_Compound(TAG_Value, collections.abc.MutableMapping):
 
         if not (v.__class__ in list(tag_classes.values())): raise TypeError("Invalid type %s for TAG_Compound" % v.__class__)
         """remove any items already named "k".    """
-        olditems = [x for x in self.value if x.name == k]
-        for i in olditems: self.value.remove(i)
+        old_items = [x for x in self.value if x.name == k]
+        for i in old_items: self.value.remove(i)
         self.value.append(v)
         v.name = k
 
@@ -479,15 +479,15 @@ tag_classes = {
 
 import zlib
 def gunzip(data):
-    #strip off the header and use negative WBITS to tell zlib there's no header
+    # strip off the header and use negative WBITS to tell zlib there's no header
     return zlib.decompress(data[10:], -zlib.MAX_WBITS)
 
 def loadFile(filename):
     with open(filename, "rb") as f:
-        inputdata = f.read()
-    data = inputdata
+        input_data = f.read()
+    data = input_data
     try:
-        data = gunzip(inputdata)
+        data = gunzip(input_data)
     except IOError:
         log.error(f"File {filename} not zipped")
 

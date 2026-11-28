@@ -1,5 +1,4 @@
-#dummy mcInterface to adapt dudecon's interface to MCEdit's
-
+# dummy mcInterface to adapt dudecon's interface to MCEdit's
 
 class MCLevelAdapter(object):
     def __init__(self, level, box):
@@ -52,6 +51,3 @@ class MCLevelAdapter(object):
         return d
 
 SaveFile = MCLevelAdapter
-
-        #dict['L'] = self.level.blockLightAt(x,y,z)
-        #dict['S'] = self.level.skyLightAt(x,y,z)

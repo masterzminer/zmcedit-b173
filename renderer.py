@@ -75,10 +75,9 @@ def chunkMarkers(chunkSet):
         cz &= ~size
         return [(cx, cz), (cx + size, cz), (cx + size, cz + size), (cx, cz + size)]
 
-    # lastsize = 6
     size = 1
     while True:
-        nextsize = size << 1
+        next_size = size << 1
         chunkSet = set(chunkSet)
         while len(chunkSet):
             cx, cz = chunkSet.pop()
@@ -86,7 +85,7 @@ def chunkMarkers(chunkSet):
             o = all4(cx, cz)
             others = set(o).intersection(chunkSet)
             if len(others) == 4:
-                sizedChunks[nextsize].append(o[0])
+                sizedChunks[next_size].append(o[0])
                 for c in others:
                     chunkSet.discard(c)
             else:
@@ -94,9 +93,9 @@ def chunkMarkers(chunkSet):
                     sizedChunks[size].append(c)
                     chunkSet.discard(c)
 
-        if len(sizedChunks[nextsize]):
-            chunkSet = set(sizedChunks[nextsize])
-            sizedChunks[nextsize] = []
+        if len(sizedChunks[next_size]):
+            chunkSet = set(sizedChunks[next_size])
+            sizedChunks[next_size] = []
             size <<= 1
         else:
             break
@@ -104,8 +103,8 @@ def chunkMarkers(chunkSet):
 
 
 class ChunkRenderer(object):
-    maxlod = 2
-    minlod = 0
+    max_lod = 2
+    min_lod = 0
 
     def __init__(self, renderer: MCRenderer, chunkPosition):
         self.renderer: MCRenderer = renderer
@@ -116,19 +115,19 @@ class ChunkRenderer(object):
 
         self.chunkPosition = chunkPosition
         self.bufferSize = 0
-        self.renderstateLists = None
+        self.render_state_lists = None
 
     def forgetDisplayLists(self, states=None):
-        if self.renderstateLists is not None:
-            for k in states or self.renderstateLists.keys():
-                a = self.renderstateLists.get(k, [])
+        if self.render_state_lists is not None:
+            for k in states or self.render_state_lists.keys():
+                a = self.render_state_lists.get(k, [])
                 for i in a:
                     gl.glDeleteLists(i, 1)
 
             if states:
-                del self.renderstateLists[states]
+                del self.render_state_lists[states]
             else:
-                self.renderstateLists = None
+                self.render_state_lists = None
 
             self.needsRedisplay = True
             self.renderer.discardMasterList()
@@ -158,13 +157,13 @@ class ChunkRenderer(object):
                 continue
 
             l = blockRenderer.makeArrayList(self.chunkPosition, self.needsBlockRedraw and Settings.show_chunk_redraw.v)
-            lists[blockRenderer.renderstate].append(l)
+            lists[blockRenderer.render_state].append(l)
 
         if not (Settings.show_chunk_redraw.v and self.needsBlockRedraw):
             GL.glDisableClientState(GL.GL_COLOR_ARRAY)
 
         self.needsRedisplay = False
-        self.renderstateLists = lists
+        self.render_state_lists = lists
 
     @property
     def needsBlockRedraw(self):
@@ -188,16 +187,16 @@ class ChunkRenderer(object):
                 self.needsRedisplay = True
 
     def calcFaces(self):
-        minlod = self.renderer.detailLevelForChunk(self.chunkPosition)
+        min_lod = self.renderer.detailLevelForChunk(self.chunkPosition)
 
-        minlod = min(minlod, self.maxlod)
-        if self.detailLevel != minlod:
+        min_lod = min(min_lod, self.max_lod)
+        if self.detailLevel != min_lod:
             self.forgetDisplayLists()
-            self.detailLevel = minlod
+            self.detailLevel = min_lod
             self.invalidLayers.add(Layer.Blocks)
 
             # discard the standard detail renderers
-            if minlod > 0:
+            if min_lod > 0:
                 blockRenderers = []
                 for br in self.blockRenderers:
                     if br.detailLevels != (0,):
@@ -356,7 +355,7 @@ class ChunkCalculator (object):
         def release(self):
             GL.glDisable(GL.GL_ALPHA_TEST)
 
-    class _renderstateAlphaBlend(object):
+    class _RenderStateAlphaBlend(object):
         @classmethod
         def bind(self):
             GL.glEnable(GL.GL_BLEND)
@@ -365,24 +364,22 @@ class ChunkCalculator (object):
         def release(self):
             GL.glDisable(GL.GL_BLEND)
 
-    class renderStateWater(_renderstateAlphaBlend):
+    class renderStateWater(_RenderStateAlphaBlend):
         pass
 
-    class renderStateIce(_renderstateAlphaBlend):
+    class renderStateIce(_RenderStateAlphaBlend):
         pass
 
     class renderStateEntity(object):
         @classmethod
         def bind(self):
             GL.glDisable(GL.GL_DEPTH_TEST)
-            # GL.glDisable(GL.GL_CULL_FACE)
             GL.glDisable(GL.GL_TEXTURE_2D)
             GL.glEnable(GL.GL_BLEND)
 
         @classmethod
         def release(self):
             GL.glEnable(GL.GL_DEPTH_TEST)
-            # GL.glEnable(GL.GL_CULL_FACE)
             GL.glEnable(GL.GL_TEXTURE_2D)
             GL.glDisable(GL.GL_BLEND)
 
@@ -852,7 +849,7 @@ class BlockRenderer(object):
     """
     Maps each direction to the relevant blocks of a block selection expanded by 1 block on all axes?
     """
-    renderstate = ChunkCalculator.renderStateAlphaTest
+    render_state = ChunkCalculator.renderStateAlphaTest
 
     def __init__(self, cc):
         self.makeTemplate = cc.makeTemplate
@@ -939,7 +936,7 @@ class BlockRenderer(object):
 
 
 class EntityRendererGeneric(BlockRenderer):
-    renderstate = ChunkCalculator.renderStateEntity
+    render_state = ChunkCalculator.renderStateEntity
     detailLevels = (0, 1, 2)
 
     def drawFaceVertices(self, buf):
@@ -1092,7 +1089,6 @@ class TerrainPopulatedRenderer(EntityRendererGeneric):
 
         GL.glDepthMask(False)
 
-        # GL.glDrawArrays(GL.GL_QUADS, 0, len(buf) * 4)
         GL.glDisable(GL.GL_CULL_FACE)
 
         with gl.glEnable(GL.GL_DEPTH_TEST):
@@ -1111,27 +1107,27 @@ class TerrainPopulatedRenderer(EntityRendererGeneric):
 
         GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL)
         GL.glDepthMask(True)
-#
+
 
     def makeChunkVertices(self, chunk):
         chunk.decompress()
         neighbors = self.chunkCalculator.getNeighboringChunks(chunk)
 
-        def getpop(ch):
+        def get_pop(ch):
             return getattr(ch, "TerrainPopulated", True)
 
-        pop = getpop(chunk)
+        pop = get_pop(chunk)
         yield
         if pop:
             return
 
         visibleFaces = [
-            getpop(neighbors[pymclevel.faces.FaceXIncreasing]),
-            getpop(neighbors[pymclevel.faces.FaceXDecreasing]),
+            get_pop(neighbors[pymclevel.faces.FaceXIncreasing]),
+            get_pop(neighbors[pymclevel.faces.FaceXDecreasing]),
             True,
             True,
-            getpop(neighbors[pymclevel.faces.FaceZIncreasing]),
-            getpop(neighbors[pymclevel.faces.FaceZDecreasing]),
+            get_pop(neighbors[pymclevel.faces.FaceZIncreasing]),
+            get_pop(neighbors[pymclevel.faces.FaceZDecreasing]),
         ]
         visibleFaces = np.array(visibleFaces, dtype='bool')
         verts = self.vertexTemplate[visibleFaces]
@@ -1141,7 +1137,7 @@ class TerrainPopulatedRenderer(EntityRendererGeneric):
 
 
 class LowDetailBlockRenderer(BlockRenderer):
-    renderstate = ChunkCalculator.renderStateLowDetail
+    render_state = ChunkCalculator.renderStateLowDetail
     detailLevels = (1,)
 
     def drawFaceVertices(self, buf):
@@ -1259,9 +1255,9 @@ class LowDetailBlockRenderer(BlockRenderer):
             flat_colors = (flat_colors * 0.8).astype(np.uint8)
 
             va1.view('uint8')[_RGBA] = flat_colors
-            grassmask = topBlocks[nonAirBlocks] == 2
+            grass_mask = topBlocks[nonAirBlocks] == 2
             # color grass sides with dirt's color
-            va1.view('uint8')[_RGBA][grassmask] = materials.flatColors[:, 0][[3]][:, np.newaxis]
+            va1.view('uint8')[_RGBA][grass_mask] = materials.flatColors[:, 0][[3]][:, np.newaxis]
 
             va2 = np.array(va1)
             va2[_XYZ][:, (1, 2), 0] += step
@@ -1277,7 +1273,7 @@ class OverheadBlockRenderer(LowDetailBlockRenderer):
 
 
 class GenericBlockRenderer(BlockRenderer):
-    renderstate = ChunkCalculator.renderStateAlphaTest
+    render_state = ChunkCalculator.renderStateAlphaTest
 
     materialIndex = 1
 
@@ -1350,7 +1346,7 @@ class LeafBlockRenderer(BlockRenderer):
     blocktypes = [18]
 
     @property
-    def renderstate(self):
+    def render_state(self):
         if Settings.fast_leaves.v:
             return ChunkCalculator.renderStatePlain
         else:
@@ -1418,7 +1414,7 @@ class PlantBlockRenderer(BlockRenderer):
 
         return blocktypes
 
-    renderstate = ChunkCalculator.renderStateAlphaTest
+    render_state = ChunkCalculator.renderStateAlphaTest
 
     def makePlantVertices(self, facingBlockIndices, blocks, blockMaterials, blockData, areaBlockLights, texMap):
         arrays = []
@@ -1467,7 +1463,7 @@ class PlantBlockRenderer(BlockRenderer):
 
 class TorchBlockRenderer(BlockRenderer):
     blocktypes = [50, 75, 76]
-    renderstate = ChunkCalculator.renderStateAlphaTest
+    render_state = ChunkCalculator.renderStateAlphaTest
     torchOffsetsStraight = [
         [  # FaceXIncreasing
             (-7 / 16., 0, 0),
@@ -1622,7 +1618,7 @@ class TorchBlockRenderer(BlockRenderer):
 
 class RailBlockRenderer(BlockRenderer):
     blocktypes = [materials.Rail.ID, materials.PoweredRail.ID, materials.DetectorRail.ID]
-    renderstate = ChunkCalculator.renderStateAlphaTest
+    render_state = ChunkCalculator.renderStateAlphaTest
 
     railTextures = np.array([
         [(0, 128), (0, 144), (16, 144), (16, 128)],  # east-west
@@ -1921,7 +1917,7 @@ class StairBlockRenderer(BlockRenderer):
         {"zmin":0.5},
         # East - FaceZDecreasing
         {"zmax":0.5},
-        # Slabtype
+        # Slab type
         {"ymax":0.5},
         ]
     ])
@@ -1994,7 +1990,7 @@ class SlabBlockRenderer(BlockRenderer):
 class WaterBlockRenderer(BlockRenderer):
     waterID = 9
     blocktypes = [8, waterID]
-    renderstate = ChunkCalculator.renderStateWater
+    render_state = ChunkCalculator.renderStateWater
 
     def waterFaceVertices(self, direction, blockIndices, exposedFaceIndices, blocks, blockData, blockLight, facingBlockLight, texMap):
         blockIndices = blockIndices & exposedFaceIndices
@@ -2009,7 +2005,7 @@ class WaterBlockRenderer(BlockRenderer):
 class IceBlockRenderer(BlockRenderer):
     iceID = 79
     blocktypes = [iceID]
-    renderstate = ChunkCalculator.renderStateIce
+    render_state = ChunkCalculator.renderStateIce
 
     def iceFaceVertices(self, direction, blockIndices, exposedFaceIndices, blocks, blockData, blockLight, facingBlockLight, texMap):
         blockIndices = blockIndices & exposedFaceIndices
@@ -2083,20 +2079,20 @@ class MCRenderer(object):
         return ((h > self.level.Height + Settings.space_height.v) or
                 (h <= -Settings.space_height.v))
 
-    def chunkDistance(self, cpos):
-        camx, camy, camz = self.position
+    def chunkDistance(self, c_pos):
+        cam_x, cam_y, cam_z = self.position
 
         # if the renderer is offset into the world somewhere, adjust for that
         ox, oy, oz = self.origin
-        camx -= ox
-        camz -= oz
+        cam_x -= ox
+        cam_z -= oz
 
-        camcx = int(np.floor(camx)) >> 4
-        camcz = int(np.floor(camz)) >> 4
+        cam_cx = int(np.floor(cam_x)) >> 4
+        cam_cz = int(np.floor(cam_z)) >> 4
 
-        cx, cz = cpos
+        cx, cz = c_pos
 
-        return max(abs(cx - camcx), abs(cz - camcz))
+        return max(abs(cx - cam_cx), abs(cz - cam_cz))
 
     overheadMode = False
 
@@ -2456,7 +2452,6 @@ class MCRenderer(object):
                 chunkPosition[:, :, (0, 2)] += chunks[:, np.newaxis, :]
                 chunkPosition *= 16
                 GL.glVertexPointer(3, GL.GL_FLOAT, 0, chunkPosition.ravel())
-                # chunkPosition *= 8
                 GL.glTexCoordPointer(2, GL.GL_FLOAT, 0, (chunkPosition[..., (0, 2)] * 8).ravel())
                 GL.glDrawArrays(GL.GL_QUADS, 0, len(chunkPosition) * 4)
 
@@ -2549,9 +2544,9 @@ class MCRenderer(object):
                     else:
                         shouldRecreateAgain = True
 
-                    if ch.renderstateLists:
-                        for rs in ch.renderstateLists:
-                            chunkLists[rs] += ch.renderstateLists[rs]
+                    if ch.render_state_lists:
+                        for rs in ch.render_state_lists:
+                            chunkLists[rs] += ch.render_state_lists[rs]
 
                 for rs in chunkLists:
                     if len(chunkLists[rs]):
@@ -2562,18 +2557,18 @@ class MCRenderer(object):
                 self.needsImmediateRedraw = shouldRecreateAgain
 
         def callMasterLists(self):
-            for renderstate in self.chunkCalculator.renderStates:
-                if renderstate not in self.masterLists:
+            for render_state in self.chunkCalculator.renderStates:
+                if render_state not in self.masterLists:
                     continue
 
-                if self.alpha != 0xff and renderstate is not ChunkCalculator.renderStateLowDetail:
+                if self.alpha != 0xff and render_state is not ChunkCalculator.renderStateLowDetail:
                     GL.glEnable(GL.GL_BLEND)
-                renderstate.bind()
+                render_state.bind()
 
-                GL.glCallLists(self.masterLists[renderstate])
+                GL.glCallLists(self.masterLists[render_state])
 
-                renderstate.release()
-                if self.alpha != 0xff and renderstate is not ChunkCalculator.renderStateLowDetail:
+                render_state.release()
+                if self.alpha != 0xff and render_state is not ChunkCalculator.renderStateLowDetail:
                     GL.glDisable(GL.GL_BLEND)
 
     errorLimit = 10
@@ -2722,7 +2717,6 @@ class MCRenderer(object):
         if self.level.containsChunk(*c):
             cr = self.getChunkRenderer(c)
             if self.viewingFrustum:
-                # if not self.viewingFrustum.visible(np.array([[c[0] * 16 + 8, 64, c[1] * 16 + 8, 1.0]]), 64).any():
                 if not self.viewingFrustum.visible1([c[0] * 16 + 8, self.level.Height / 2, c[1] * 16 + 8, 1.0], self.level.Height / 2):
                     return
 

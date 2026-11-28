@@ -1,17 +1,16 @@
 
 
 from numpy import zeros, array
-import itertools
 
-#naturally occuring materials
+#naturally occurring materials
 from pymclevel.level import extractHeights
 
 blocktypes = [1, 2, 3, 7, 12, 13, 14, 15, 16, 56, 73, 74, 87, 88, 89]
-blockmask = zeros((256,), dtype='bool')
+block_mask = zeros((256,), dtype='bool')
 
 #compute a truth table that we can index to find out whether a block
-# is naturally occuring and should be considered in a heightmap
-blockmask[blocktypes] = True
+# is naturally occurring and should be considered in a heightmap
+block_mask[blocktypes] = True
 
 displayName = "Chunk Surface Repair"
 
@@ -30,8 +29,8 @@ def perform(level, box, options):
         data = chunk.Data
 
         # use indexing to look up whether or not each block in blocks is
-        # naturally-occuring. these blocks will "count" for column height.
-        maskedBlocks = blockmask[blocks]
+        # naturally-occurring. these blocks will "count" for column height.
+        maskedBlocks = block_mask[blocks]
 
         heightmap = extractHeights(maskedBlocks)
 
